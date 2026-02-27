@@ -12,7 +12,7 @@ const Youth: React.FC = () => {
           <div className="order-2 lg:order-1">
             <div className="aspect-[16/9] rounded-2xl overflow-hidden bg-gray-900 shadow-2xl relative border border-dark-700">
               <img 
-                src="https://iili.io/q2iot1I.png" 
+                src="https://iili.io/qfWIV1f.jpg" 
                 alt="Lounge Area" 
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 opacity-80"
               />

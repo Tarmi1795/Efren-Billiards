@@ -8,16 +8,16 @@ const Gallery: React.FC = () => {
 
   // Reliable, high-quality Billiards & Lounge images from Unsplash
   const images = [
-    "https://iili.io/q2f3DMb.jpg", // Billiards Balls
+    "https://iili.io/qfWIEss.jpg", // Billiards Balls
     "https://iili.io/qFN1vwb.jpg", // Darts 1
     "https://iili.io/qFNV7xs.jpg", // Chess 1
     "https://iili.io/q2fFdAP.jpg", // Action Shot
     "https://iili.io/qFNMwcN.jpg", // Darts 2
-    "https://iili.io/q2fFKog.jpg", // Coffee/Vibe
+    "https://iili.io/qfWIMqG.jpg", // Coffee/Vibe
     "https://iili.io/qFNMXPR.jpg", // Chess 2
-    "https://iili.io/q2fF3DF.jpg", // Party/Event
+    "https://iili.io/qfWI1Xn.jpg", // Party/Event
     "https://iili.io/q2f3Qte.jpg", // Dark Vibe
-    "https://iili.io/q2f3tou.jpg", // Table Detail
+    "https://iili.io/qfWIhdl.jpg", // Table Detail
   ];
 
   return (

@@ -22,7 +22,7 @@ const Hero: React.FC = () => {
 
   return (
     <div id="home" className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden pb-20 pt-32">
-      
+
       {/* 
         Background Video Container with V-Shape Border 
         Strategy: 
@@ -30,31 +30,31 @@ const Hero: React.FC = () => {
         2. Inner Container (Video): Clipped to the same shape minus 4px from the bottom points.
         This reveals the maroon background of the outer container, creating a perfect border.
       */}
-      <div 
+      <div
         className="absolute inset-0 z-0 select-none bg-maroon pointer-events-none overflow-hidden"
-        style={{ 
+        style={{
           clipPath: 'polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%)',
           WebkitClipPath: 'polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%)'
         }}
       >
-        <div 
+        <div
           className="absolute inset-0 bg-dark-900 w-full h-full"
           style={{
             clipPath: 'polygon(0 0, 100% 0, 100% calc(85% - 4px), 50% calc(100% - 4px), 0 calc(85% - 4px))',
             WebkitClipPath: 'polygon(0 0, 100% 0, 100% calc(85% - 4px), 50% calc(100% - 4px), 0 calc(85% - 4px))'
           }}
         >
-          <iframe 
+          <iframe
             ref={iframeRef}
             className="w-full h-full object-cover scale-[1.35] -translate-y-[15%] opacity-60 pointer-events-auto"
-            src="https://www.youtube.com/embed/RfiLxYAGQYY?autoplay=1&mute=1&loop=1&playlist=RfiLxYAGQYY&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1" 
-            title="Hero Background" 
-            frameBorder="0" 
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+            src="https://www.youtube.com/embed/RfiLxYAGQYY?autoplay=1&mute=1&loop=1&playlist=RfiLxYAGQYY&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1"
+            title="Hero Background"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             allowFullScreen
           ></iframe>
           {/* Dark overlay for text visibility */}
-          <div className="absolute inset-0 bg-dark-900/60 pointer-events-none"></div> 
+          <div className="absolute inset-0 bg-dark-900/60 pointer-events-none"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-transparent to-dark-900/20 pointer-events-none"></div>
         </div>
       </div>
@@ -71,7 +71,7 @@ const Hero: React.FC = () => {
       </div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 flex flex-col items-center text-center">
-        
+
         {/* Heading */}
         <Reveal>
           <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-galio uppercase tracking-wider mb-6 leading-[1.1]">
@@ -84,7 +84,7 @@ const Hero: React.FC = () => {
         {/* Subtext */}
         <Reveal delay={200}>
           <p className="text-base md:text-2xl text-gray-100 mb-10 max-w-3xl font-light leading-relaxed drop-shadow-md px-4">
-            Stop paying full price. Unlock <span className="text-brand font-bold">free playing time</span>, priority booking, and 
+            Stop paying full price. Unlock <span className="text-brand font-bold">free playing time</span>, priority booking, and
             VIP status starting at just QAR 35/mo.
           </p>
         </Reveal>
@@ -92,43 +92,43 @@ const Hero: React.FC = () => {
         {/* Call to Actions */}
         <Reveal delay={400}>
           <div className="flex flex-col items-center gap-6 w-full px-4 mb-12">
-            <Button 
-              variant="primary" 
+            <Button
+              variant="primary"
               className="bg-gradient-to-r from-[#FFD700] via-[#C5A059] to-[#B8860B] text-black border-none shadow-[0_0_30px_rgba(197,160,89,0.4)] hover:bg-none hover:bg-white hover:text-black hover:shadow-[0_0_50px_rgba(255,255,255,0.6)] text-base md:text-lg px-8 md:px-12 py-4 md:py-5 uppercase font-black tracking-widest w-full md:w-auto transform transition-all hover:-translate-y-1"
               onClick={() => window.location.hash = '#membership-packages'}
             >
               Get Membership Now! <ArrowRight className="ml-2 w-5 h-5 md:w-6 md:h-6" />
             </Button>
-            
-            <button 
-               onClick={() => document.getElementById('billiards')?.scrollIntoView({ behavior: 'smooth' })}
-               className="text-gray-400 hover:text-white font-bold uppercase tracking-widest text-xs md:text-sm border-b border-gray-500 hover:border-white pb-1 transition-all"
+
+            <button
+              onClick={() => document.getElementById('billiards')?.scrollIntoView({ behavior: 'smooth' })}
+              className="text-gray-400 hover:text-white font-bold uppercase tracking-widest text-xs md:text-sm border-b border-gray-500 hover:border-white pb-1 transition-all"
             >
-              View Facilities First
+              View Facilities!
             </button>
           </div>
         </Reveal>
 
         {/* Flash Sale Banner - Glassmorphism Red - Moved to Bottom */}
         <Reveal variant="fade-up" delay={600}>
-           <div className="w-full max-w-4xl bg-red-900/40 backdrop-blur-md border border-red-500/40 rounded-xl shadow-[0_0_40px_rgba(220,38,38,0.3)] overflow-hidden">
-              <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3 gap-3 md:gap-0">
-                 <div className="flex items-center gap-4">
-                    <span className="bg-red-600 text-white font-extrabold px-3 py-1 text-xs uppercase rounded shadow-sm animate-pulse">Flash Sale</span>
-                    <span className="text-white font-bold uppercase tracking-wide text-xs md:text-base">30% Off Annual Membership</span>
-                 </div>
-                 
-                 {/* Divider */}
-                 <div className="hidden md:block w-px h-6 bg-white/20 mx-4"></div>
-
-                 <div className="flex items-center gap-3">
-                    <Timer size={18} className="text-white/80" />
-                    <span className="text-white font-mono font-bold text-sm tracking-widest">
-                       Limited Time Offer
-                    </span>
-                 </div>
+          <div className="w-full max-w-4xl bg-red-900/40 backdrop-blur-md border border-red-500/40 rounded-xl shadow-[0_0_40px_rgba(220,38,38,0.3)] overflow-hidden">
+            <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3 gap-3 md:gap-0">
+              <div className="flex items-center gap-4">
+                <span className="bg-red-600 text-white font-extrabold px-3 py-1 text-xs uppercase rounded shadow-sm animate-pulse">Flash Sale</span>
+                <span className="text-white font-bold uppercase tracking-wide text-xs md:text-base">30% Off Annual Membership</span>
               </div>
-           </div>
+
+              {/* Divider */}
+              <div className="hidden md:block w-px h-6 bg-white/20 mx-4"></div>
+
+              <div className="flex items-center gap-3">
+                <Timer size={18} className="text-white/80" />
+                <span className="text-white font-mono font-bold text-sm tracking-widest">
+                  Limited Time Offer
+                </span>
+              </div>
+            </div>
+          </div>
         </Reveal>
 
       </div>

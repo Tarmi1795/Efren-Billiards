@@ -17,9 +17,14 @@ import CoffeeMenuPage from './components/CoffeeMenuPage';
 import TermsAndConditions from './components/TermsAndConditions';
 import MembershipLanding from './components/MembershipLanding';
 import ServiceShowcase from './components/ServiceShowcase';
+import BilliardsPage from './components/BilliardsPage';
+import DartsPage from './components/DartsPage';
+import ChessPage from './components/ChessPage';
+import EventPlacePage from './components/EventPlacePage';
+import KaraokePage from './components/KaraokePage';
 
 const App: React.FC = () => {
-  const [route, setRoute] = useState<'home' | 'tournaments' | 'coffee-menu' | 'terms' | 'membership-packages'>('home');
+  const [route, setRoute] = useState<'home' | 'tournaments' | 'coffee-menu' | 'terms' | 'membership-packages' | 'billiards-service' | 'darts' | 'chess' | 'event-place' | 'karaoke'>('home');
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -36,17 +41,32 @@ const App: React.FC = () => {
       } else if (hash === '#membership-packages') {
         setRoute('membership-packages');
         window.scrollTo(0, 0);
+      } else if (hash === '#billiards-service') {
+        setRoute('billiards-service');
+        window.scrollTo(0, 0);
+      } else if (hash === '#darts') {
+        setRoute('darts');
+        window.scrollTo(0, 0);
+      } else if (hash === '#chess') {
+        setRoute('chess');
+        window.scrollTo(0, 0);
+      } else if (hash === '#event-place') {
+        setRoute('event-place');
+        window.scrollTo(0, 0);
+      } else if (hash === '#karaoke') {
+        setRoute('karaoke');
+        window.scrollTo(0, 0);
       } else {
         setRoute('home');
         // If hash refers to a specific section on home, wait for render then scroll
         setTimeout(() => {
-            if (hash && hash !== '#home') {
-                const id = hash.replace('#', '');
-                const element = document.getElementById(id);
-                if (element) element.scrollIntoView({ behavior: 'smooth' });
-            } else if (hash === '#home' || !hash) {
-                window.scrollTo(0, 0);
-            }
+          if (hash && hash !== '#home') {
+            const id = hash.replace('#', '');
+            const element = document.getElementById(id);
+            if (element) element.scrollIntoView({ behavior: 'smooth' });
+          } else if (hash === '#home' || !hash) {
+            window.scrollTo(0, 0);
+          }
         }, 100);
       }
     };
@@ -67,7 +87,7 @@ const App: React.FC = () => {
             <Hero />
             {/* Membership moved to top for higher conversion priority */}
             <div className="relative z-20">
-               <Membership />
+              <Membership />
             </div>
             <ServiceShowcase />
             {/* Highlights moved after Membership (Packages) */}
@@ -87,6 +107,11 @@ const App: React.FC = () => {
         {route === 'coffee-menu' && <CoffeeMenuPage />}
         {route === 'terms' && <TermsAndConditions />}
         {route === 'membership-packages' && <MembershipLanding />}
+        {route === 'billiards-service' && <BilliardsPage />}
+        {route === 'darts' && <DartsPage />}
+        {route === 'chess' && <ChessPage />}
+        {route === 'event-place' && <EventPlacePage />}
+        {route === 'karaoke' && <KaraokePage />}
       </main>
       <Footer />
     </div>

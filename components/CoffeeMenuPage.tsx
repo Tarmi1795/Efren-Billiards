@@ -50,9 +50,9 @@ const CoffeeMenuPage: React.FC = () => {
       {/* Hero */}
       <div className="relative h-[40vh] min-h-[300px] flex items-center justify-center overflow-hidden border-b border-maroon">
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=2574&auto=format&fit=crop" 
-            alt="Coffee Bar Background" 
+          <img
+            src="https://images.unsplash.com/photo-1509042239860-f550ce710b93?q=80&w=2574&auto=format&fit=crop"
+            alt="Sports Cafe Background"
             className="w-full h-full object-cover opacity-50"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-dark-900/60 to-transparent"></div>
@@ -60,7 +60,7 @@ const CoffeeMenuPage: React.FC = () => {
         <div className="relative z-10 text-center px-6">
           <Reveal>
             <h1 className="text-5xl md:text-7xl font-extrabold uppercase text-white mb-4">
-              The <span className="text-brand">Coffee Bar</span>
+              The <span className="text-brand">Sports Cafe</span>
             </h1>
             <p className="text-gray-300 text-lg max-w-xl mx-auto">
               Premium beans, handcrafted mocktails, and the perfect atmosphere to recharge.
@@ -74,9 +74,9 @@ const CoffeeMenuPage: React.FC = () => {
           {/* QR Code Section */}
           <div className="bg-white text-dark-900 p-8 rounded-2xl shadow-glow transform rotate-1 md:rotate-2 hover:rotate-0 transition-transform duration-500 max-w-sm mx-auto md:mx-0">
             <div className="border-4 border-dark-900 p-4 rounded-xl mb-6">
-              <img 
-                src={qrCodeUrl} 
-                alt="Menu QR Code" 
+              <img
+                src={qrCodeUrl}
+                alt="Menu QR Code"
                 className="w-full h-auto"
               />
             </div>
@@ -95,10 +95,10 @@ const CoffeeMenuPage: React.FC = () => {
               <span className="text-brand font-bold tracking-widest uppercase mb-2 block">Taste the Quality</span>
               <h2 className="text-4xl font-extrabold text-white uppercase mb-6">More Than Just A Break</h2>
               <p className="text-gray-400 leading-relaxed mb-6">
-                Our coffee bar isn't an afterthought. It's a destination. We partner with top local roasters to bring you specialty grade coffee. 
+                Our Sports Cafe isn't an afterthought. It's a destination. We partner with top local roasters to bring you specialty grade coffee.
                 Whether you need a caffeine kick before a tournament or a refreshing mocktail to cool down, we've got you covered.
               </p>
-              <Button variant="outline" onClick={() => document.getElementById('preview-list')?.scrollIntoView({behavior: 'smooth'})}>
+              <Button variant="outline" onClick={() => document.getElementById('preview-list')?.scrollIntoView({ behavior: 'smooth' })}>
                 Preview Favorites <ArrowRight size={16} className="ml-2" />
               </Button>
             </Reveal>
@@ -110,25 +110,25 @@ const CoffeeMenuPage: React.FC = () => {
       <Section id="preview-list" className="bg-dark-800">
         <div className="text-center mb-16">
           <Reveal>
-             <h2 className="text-3xl font-bold text-white uppercase">Menu Highlights</h2>
+            <h2 className="text-3xl font-bold text-white uppercase">Menu Highlights</h2>
           </Reveal>
         </div>
-        
+
         <div className="grid md:grid-cols-3 gap-8">
           {categories.map((cat, idx) => (
             <Reveal key={idx} delay={idx * 150} variant="fade-up">
               <div className="bg-dark-900 rounded-xl border border-dark-700 hover:border-brand transition-colors h-full overflow-hidden group flex flex-col">
-                
+
                 {/* Graphical Header */}
                 <div className="h-48 relative overflow-hidden">
-                  <img 
-                    src={cat.image} 
-                    alt={cat.title} 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" 
+                  <img
+                    src={cat.image}
+                    alt={cat.title}
+                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-dark-900 to-transparent opacity-80"></div>
                   <div className="absolute bottom-4 left-4 p-3 bg-dark-800/90 backdrop-blur rounded-lg shadow-lg border border-dark-700">
-                     {cat.icon}
+                    {cat.icon}
                   </div>
                 </div>
 
@@ -147,9 +147,9 @@ const CoffeeMenuPage: React.FC = () => {
             </Reveal>
           ))}
         </div>
-        
+
         <div className="text-center mt-12">
-           <p className="text-gray-500 text-sm">Prices and availability subject to change. Please scan QR for live menu.</p>
+          <p className="text-gray-500 text-sm">Prices and availability subject to change. Please scan QR for live menu.</p>
         </div>
       </Section>
     </div>

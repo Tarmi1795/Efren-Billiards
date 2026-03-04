@@ -83,16 +83,16 @@ const Membership: React.FC = () => {
           <p className="text-gray-400 max-w-2xl mx-auto mb-8">
             Play more, pay less. Unlock exclusive rates, priority booking, and VIP perks.
           </p>
-          
+
           {/* Toggle */}
           <div className="inline-flex items-center bg-dark-800 p-1 rounded-full border border-dark-700">
-            <button 
+            <button
               onClick={() => setIsAnnual(false)}
               className={`px-6 py-2 rounded-full text-sm font-bold uppercase transition-all ${!isAnnual ? 'bg-brand text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
             >
               Monthly
             </button>
-            <button 
+            <button
               onClick={() => setIsAnnual(true)}
               className={`px-6 py-2 rounded-full text-sm font-bold uppercase transition-all ${isAnnual ? 'bg-brand text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
             >
@@ -104,18 +104,18 @@ const Membership: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start relative z-10">
         {plans.map((plan, idx) => (
-          <Reveal 
-            key={idx} 
-            delay={idx * 150} 
-            width="100%" 
+          <Reveal
+            key={idx}
+            delay={idx * 150}
+            width="100%"
             variant={idx === 1 ? 'slide-right' : 'slide-left'}
           >
-            <div 
+            <div
               className={`relative rounded-2xl p-8 border transition-all duration-300 hover:-translate-y-2 hover:scale-105 
-                ${plan.isGold 
-                  ? 'bg-gradient-to-b from-dark-800 to-black border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.2)] hover:shadow-[0_0_50px_rgba(234,179,8,0.4)] z-30 scale-105' 
-                  : plan.popular 
-                    ? 'bg-dark-800 border-brand shadow-2xl shadow-brand/10 z-20 hover:shadow-glow' 
+                ${plan.isGold
+                  ? 'bg-gradient-to-b from-dark-800 to-black border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.2)] hover:shadow-[0_0_50px_rgba(234,179,8,0.4)] z-30 scale-105'
+                  : plan.popular
+                    ? 'bg-dark-800 border-brand shadow-2xl shadow-brand/10 z-20 hover:shadow-glow'
                     : 'bg-dark-800 border-dark-700 hover:border-gray-500'
                 }
               `}
@@ -135,7 +135,7 @@ const Membership: React.FC = () => {
                 {plan.name} {plan.isGold && <Star size={20} className="fill-yellow-500 text-yellow-500" />}
               </h3>
               <p className="text-gray-500 text-sm mt-2 min-h-[20px]">{plan.desc}</p>
-              
+
               <div className="my-8">
                 <span className={`text-4xl font-extrabold ${plan.isGold ? 'text-yellow-400' : 'text-white'}`}>
                   QAR {isAnnual ? plan.priceAnnual : plan.priceMonthly}
@@ -154,13 +154,13 @@ const Membership: React.FC = () => {
 
               <p className="text-xs text-gray-500 italic mb-6 text-center">Note: Terms & Conditions Applied</p>
 
-              <Button 
-                variant={plan.popular || plan.isGold ? 'primary' : 'outline'} 
+              <Button
+                variant={plan.popular || plan.isGold ? 'primary' : 'outline'}
                 fullWidth
                 className={plan.isGold ? 'bg-yellow-500 text-black hover:bg-yellow-400 border-none' : ''}
                 onClick={() => handleJoinClick(plan.name, isAnnual ? plan.priceAnnual : plan.priceMonthly)}
               >
-                Join Now
+                Join Us Now
               </Button>
             </div>
           </Reveal>

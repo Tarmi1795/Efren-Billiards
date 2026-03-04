@@ -11,7 +11,7 @@ const Events: React.FC = () => {
 
       <div className="text-center mb-12 relative z-10">
         <Reveal>
-          <h2 className="text-maroon font-bold uppercase tracking-wider mb-2">Venue Hire</h2>
+          <h2 className="text-gold font-bold uppercase tracking-wider mb-2">Event Place for Rent</h2>
           <h2 className="text-3xl md:text-5xl font-extrabold text-white uppercase max-w-2xl mx-auto">
             Your Next Event, <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand to-white">Sorted</span>
           </h2>
@@ -23,20 +23,20 @@ const Events: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
         {[
-          { 
-            title: "Birthday Bash", 
-            desc: "Celebrate in style with reserved tables and a private area for your crew.", 
-            cat: "Social" 
+          {
+            title: "Birthday Bash",
+            desc: "Celebrate in style with reserved tables and a private area for your crew.",
+            cat: "Social"
           },
-          { 
-            title: "Corporate Events", 
-            desc: "Boost morale with a billiards tournament. We organize the brackets and prizes.", 
-            cat: "Business" 
+          {
+            title: "Corporate Events",
+            desc: "Boost morale with a billiards tournament. We organize the brackets and prizes.",
+            cat: "Business"
           },
-          { 
-            title: "Friends' Game Night", 
-            desc: "Book a block of tables for your group. Winner stays on, loser buys the round.", 
-            cat: "Casual" 
+          {
+            title: "Friends' Game Night",
+            desc: "Book a block of tables for your group. Winner stays on, loser buys the round.",
+            cat: "Casual"
           }
         ].map((evt, idx) => (
           <Reveal key={idx} delay={idx * 150} variant="slide-left">
@@ -44,10 +44,10 @@ const Events: React.FC = () => {
               <span className="text-xs font-bold text-brand uppercase tracking-widest mb-2">{evt.cat}</span>
               <h3 className="text-2xl font-bold text-white uppercase mb-4">{evt.title}</h3>
               <p className="text-gray-400 mb-8 flex-grow leading-relaxed">{evt.desc}</p>
-              <Button 
-                  variant="outline" 
-                  className="w-full"
-                  onClick={() => document.getElementById('contact')?.scrollIntoView()}
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => document.getElementById('contact')?.scrollIntoView()}
               >
                 Inquire Now
               </Button>

@@ -17,7 +17,7 @@ const TermsAndConditions: React.FC = () => {
 
           <div className="grid md:grid-cols-2 gap-12 lg:gap-20">
 
-            {/* Left Column - House Rules */}
+            {/* 1st Section - House Rules */}
             <div className="space-y-8">
               <h2 className="text-2xl font-black text-brand uppercase tracking-widest mb-6 border-b border-dark-800 pb-4">House Rules</h2>
 
@@ -41,7 +41,7 @@ const TermsAndConditions: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Column - Terms and Conditions */}
+            {/* 2nd Section - Terms and Conditions */}
             <div className="space-y-8">
               <h2 className="text-2xl font-black text-white uppercase tracking-widest mb-6 border-b border-dark-800 pb-4">Terms & Conditions</h2>
 
@@ -72,6 +72,32 @@ const TermsAndConditions: React.FC = () => {
               </div>
             </div>
 
+          </div>
+
+          {/* 3rd Section - Privacy Policy */}
+          <div className="mt-16 pt-12 border-t border-dark-800">
+            <h2 className="text-2xl font-black text-red-500 uppercase tracking-widest mb-8 border-b border-dark-800 pb-4">Privacy & Policies</h2>
+            <div className="grid md:grid-cols-2 gap-12 lg:gap-20">
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div> Data Collection</h3>
+                  <p className="text-sm text-gray-400 leading-relaxed pl-6">
+                    We collect personal information necessary for membership registration, event bookings, and communication. This may include your name, contact details, and payment information.
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-lg font-bold text-white mb-3 flex items-center gap-2"><div className="w-1.5 h-1.5 bg-red-500 rounded-full"></div> Data Usage & Security</h3>
+                  <p className="text-sm text-gray-400 leading-relaxed pl-6 mb-4">
+                    Your data is used solely for internal operations, improving our services, and communicating promotions. We do not sell or share your personal information with third parties without your explicit consent.
+                  </p>
+                  <p className="text-sm text-gray-400 leading-relaxed pl-6">
+                    We implement appropriate security measures to protect your personal information against unauthorized access, alteration, disclosure, or destruction.
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="mt-16 pt-8 border-t border-dark-800 text-center">

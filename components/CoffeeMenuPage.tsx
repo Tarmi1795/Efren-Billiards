@@ -1,10 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Coffee, Citrus, Croissant, QrCode, ArrowRight, Target, Brain, Music, Gamepad2, Sparkles } from 'lucide-react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
-import { Coffee, Citrus, Croissant, QrCode, ArrowRight } from 'lucide-react';
+
+// Gamification Data
+type Activity = 'Billiards' | 'Darts' | 'Chess' | 'Karaoke' | 'Relaxing';
+
+interface Recommendation {
+  drink: string;
+  description: string;
+  category: string;
+  icon: React.ReactNode;
+}
+
+const recommendations: Record<Activity, Recommendation> = {
+  Billiards: { drink: 'Signature Spanish Latte', description: 'Smooth and mildly sweet, perfect for staying energized during long matches.', category: 'Espresso Bar', icon: <Gamepad2 size={24} /> },
+  Darts: { drink: 'Lemon Mint Crush', description: 'Refreshing and sharp to keep your focus laser-tight at the oche.', category: 'Mocktails & Coolers', icon: <Target size={24} /> },
+  Chess: { drink: 'V60 Pour Over', description: 'A slow, deliberate brew for deep thinkers and strategic minds.', category: 'Espresso Bar', icon: <Brain size={24} /> },
+  Karaoke: { drink: 'Passion Fruit Mojito', description: 'Vibrant and fruity to keep those vocal cords lubricated and the party going.', category: 'Mocktails & Coolers', icon: <Music size={24} /> },
+  Relaxing: { drink: 'Honey Cake & Iced Tea', description: 'The perfect pairing to unwind after a long day.', category: 'Snacks & Pastries', icon: <Sparkles size={24} /> },
+};
 
 const CoffeeMenuPage: React.FC = () => {
+  const [selectedActivity, setSelectedActivity] = useState<Activity>('Billiards');
+
   const categories = [
     {
       title: "Espresso Bar",
@@ -41,7 +62,6 @@ const CoffeeMenuPage: React.FC = () => {
     }
   ];
 
-  // Properly encode the URL for the QR code generator, especially the '#' character
   const targetUrl = "https://efren-billiards-and-events-place-359701191378.us-west1.run.app/#coffee-menu";
   const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
 
@@ -69,7 +89,54 @@ const CoffeeMenuPage: React.FC = () => {
         </div>
       </div>
 
-      <Section id="qr-menu" className="bg-dark-900">
+      {/* Gamification Widget: Match My Game */}
+      <Section id="match-my-game" className="bg-dark-900 pb-0">
+        <Reveal>
+          <div className="max-w-4xl mx-auto bg-dark-800 rounded-3xl p-8 md:p-12 border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden">
+            <div className="absolute -top-10 -right-10 text-brand/5 rotate-12 cursor-default"><Coffee size={300} /></div>
+
+            <div className="relative z-10">
+              <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-widest mb-2 flex items-center gap-3">
+                <Sparkles className="text-brand" /> Match My Game
+              </h2>
+              <p className="text-gray-400 text-sm font-bold uppercase tracking-wider mb-8">Select your activity to get the perfect pairing recommendation</p>
+
+              <div className="grid md:grid-cols-5 gap-3 mb-10">
+                {(Object.keys(recommendations) as Activity[]).map(activity => (
+                  <button
+                    key={activity}
+                    onClick={() => setSelectedActivity(activity)}
+                    className={`flex flex-col flex-1 items-center justify-center p-4 rounded-xl transition-all duration-300 ${selectedActivity === activity
+                        ? 'bg-brand text-black shadow-[0_0_20px_rgba(197,160,89,0.4)] scale-105'
+                        : 'bg-dark-900 text-gray-400 hover:bg-dark-700 hover:text-white'
+                      }`}
+                  >
+                    {recommendations[activity].icon}
+                    <span className="text-[10px] font-bold uppercase tracking-wider mt-2">{activity}</span>
+                  </button>
+                ))}
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={selectedActivity}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-dark-900 border border-brand/30 rounded-2xl p-6 text-center"
+                >
+                  <span className="text-xs font-bold uppercase tracking-widest text-brand block mb-2">{recommendations[selectedActivity].category}</span>
+                  <h3 className="text-3xl font-black text-white uppercase tracking-tight mb-4">{recommendations[selectedActivity].drink}</h3>
+                  <p className="text-gray-400 max-w-lg mx-auto leading-relaxed">{recommendations[selectedActivity].description}</p>
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        </Reveal>
+      </Section>
+
+      <Section id="qr-menu" className="bg-dark-900 pt-32">
         <div className="grid md:grid-cols-2 gap-12 items-center">
           {/* QR Code Section */}
           <div className="bg-white text-dark-900 p-8 rounded-2xl shadow-glow transform rotate-1 md:rotate-2 hover:rotate-0 transition-transform duration-500 max-w-sm mx-auto md:mx-0">

@@ -1,10 +1,49 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Calculator, Users, Info, Building, AlertCircle } from 'lucide-react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
 
+// Mock Data Types
+type EventType = 'Gala' | 'Tournament' | 'Birthday';
+
+interface EventData {
+    type: EventType;
+    basePrice: number;
+    image: string;
+    description: string;
+}
+
+const eventTypes: Record<EventType, EventData> = {
+    Gala: {
+        type: 'Gala',
+        basePrice: 150,
+        image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800&auto=format&fit=crop',
+        description: 'Elegant seating, buffet setup, and premium lighting.'
+    },
+    Tournament: {
+        type: 'Tournament',
+        basePrice: 100,
+        image: 'https://images.unsplash.com/photo-1599839619722-39751411ea63?q=80&w=800&auto=format&fit=crop',
+        description: 'Optimized floorplan for competitive play and spectator viewing.'
+    },
+    Birthday: {
+        type: 'Birthday',
+        basePrice: 80,
+        image: 'https://images.unsplash.com/photo-1530103862676-de88b6408257?q=80&w=800&auto=format&fit=crop',
+        description: 'Casual layout with dance floor and catering stations.'
+    }
+};
+
 const EventPlacePage: React.FC = () => {
     useEffect(() => { window.scrollTo(0, 0); }, []);
+
+    // Calculator State
+    const [eventType, setEventType] = useState<EventType>('Gala');
+    const [guests, setGuests] = useState<number>(50);
+
+    const estimatedCost = guests * eventTypes[eventType].basePrice;
 
     return (
         <div className="pt-24 min-h-screen bg-dark-900">
@@ -17,17 +56,105 @@ const EventPlacePage: React.FC = () => {
                 </div>
             </Reveal>
 
-            <Section id="content" className="py-20 max-w-4xl mx-auto px-6 text-center text-gray-300">
-                <Reveal variant="fade-up">
-                    <p className="text-xl md:text-2xl font-bold text-white leading-relaxed mb-8">
+            <Section id="content" className="py-20 max-w-6xl mx-auto px-6 text-gray-300">
+                <Reveal variant="fade-up" className="text-center mb-16">
+                    <p className="text-xl md:text-2xl font-bold text-white leading-relaxed mb-8 max-w-3xl mx-auto">
                         From corporate team-building to private birthday celebrations, our versatile event space offers the perfect backdrop.
                     </p>
-                    <p className="text-lg leading-relaxed mb-12 text-gray-400">
-                        We provide customizable layouts, high-end audio-visual equipment, and a dedicated service team to make your gathering truly unforgettable. The space can accommodate both intimate parties and large-scale corporate functions, complete with custom catering and entertainment packages. Let us take care of the details while you enjoy the occasion.
+                    <p className="text-lg leading-relaxed text-gray-400 max-w-3xl mx-auto">
+                        We provide customizable layouts, high-end audio-visual equipment, and a dedicated service team to make your gathering truly unforgettable. Let us take care of the details while you enjoy the occasion.
                     </p>
-                    <Button variant="primary" onClick={() => window.location.hash = '#contact'} className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full hover:scale-105 transition-transform duration-300">
-                        Inquire Now
-                    </Button>
+                </Reveal>
+
+                {/* Event Budget Calculator Widget */}
+                <Reveal delay={100}>
+                    <div className="bg-dark-800 rounded-3xl p-8 border border-white/10 shadow-2xl relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-brand to-maroon"></div>
+                        <h2 className="text-3xl font-black text-white uppercase tracking-widest mb-8 flex items-center gap-3">
+                            <Calculator className="text-brand" /> Budget Estimator
+                        </h2>
+
+                        <div className="grid md:grid-cols-2 gap-12">
+                            {/* Controls */}
+                            <div className="space-y-8">
+                                <div>
+                                    <label className="block text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">Event Type</label>
+                                    <div className="grid grid-cols-3 gap-2">
+                                        {(Object.keys(eventTypes) as EventType[]).map((type) => (
+                                            <button
+                                                key={type}
+                                                onClick={() => setEventType(type)}
+                                                className={`py-3 px-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${eventType === type ? 'bg-brand text-black shadow-[0_0_15px_rgba(197,160,89,0.4)]' : 'bg-dark-900 text-gray-400 hover:bg-dark-700'
+                                                    }`}
+                                            >
+                                                {type}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="flex justify-between text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">
+                                        <span>Guest Count</span>
+                                        <span className="text-brand">{guests} Guests</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min="10"
+                                        max="200"
+                                        value={guests}
+                                        onChange={(e) => setGuests(parseInt(e.target.value))}
+                                        className="w-full h-2 bg-dark-900 rounded-lg appearance-none cursor-pointer accent-brand"
+                                    />
+                                    {guests >= 200 && (
+                                        <p className="text-xs text-brand/80 mt-2 flex items-center gap-1"><AlertCircle size={12} /> Max capacity reached for standard booking.</p>
+                                    )}
+                                </div>
+
+                                <div className="p-6 bg-dark-900 rounded-xl border border-white/5 text-center">
+                                    <p className="text-sm font-bold uppercase tracking-widest text-gray-500 mb-2">Estimated Cost</p>
+                                    <motion.p
+                                        key={estimatedCost}
+                                        initial={{ scale: 0.8, opacity: 0 }}
+                                        animate={{ scale: 1, opacity: 1 }}
+                                        className="text-4xl font-black text-white"
+                                    >
+                                        {estimatedCost.toLocaleString()} <span className="text-lg text-brand">QAR</span>
+                                    </motion.p>
+                                    <p className="text-xs text-gray-500 mt-2">*Estimate includes base package and catering.</p>
+                                </div>
+
+                                <Button variant="primary" fullWidth onClick={() => window.location.hash = '#contact'} className="py-4">
+                                    Request Formal Quote
+                                </Button>
+                            </div>
+
+                            {/* Floorplan Preview */}
+                            <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-dark-900">
+                                <div className="absolute top-4 left-4 z-10 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center gap-2">
+                                    <Building size={14} className="text-brand" />
+                                    <span className="text-xs font-bold uppercase tracking-wider text-white">Floorplan Preview: {eventType}</span>
+                                </div>
+                                <AnimatePresence mode="wait">
+                                    <motion.img
+                                        key={eventType}
+                                        src={eventTypes[eventType].image}
+                                        initial={{ opacity: 0, scale: 1.05 }}
+                                        animate={{ opacity: 0.6, scale: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="w-full h-full object-cover min-h-[300px]"
+                                        alt={`${eventType} Floorplan`}
+                                    />
+                                </AnimatePresence>
+                                <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black via-black/80 to-transparent">
+                                    <p className="text-sm text-gray-300">
+                                        {eventTypes[eventType].description}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </Reveal>
             </Section>
         </div>

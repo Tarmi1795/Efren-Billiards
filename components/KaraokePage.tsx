@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, CheckSquare, Square, Search, Music, Sparkles } from 'lucide-react';
+import { X, CheckSquare, Square, Search, Music, Star } from 'lucide-react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
@@ -88,7 +88,7 @@ const KaraokePage: React.FC = () => {
                             </button>
 
                             <h3 className="text-3xl font-black text-white uppercase tracking-tight mb-2 flex items-center gap-3">
-                                <Sparkles className="text-brand" /> Theme Box Builder
+                                <Star className="text-brand" /> Theme Box Builder
                             </h3>
                             <p className="text-gray-400 text-sm leading-relaxed mb-8 border-b border-dark-700 pb-6">
                                 Upgrade your private room experience by pre-booking prop boxes. We'll have them set up before you arrive!
@@ -100,8 +100,8 @@ const KaraokePage: React.FC = () => {
                                         key={addon.id}
                                         onClick={() => toggleAddon(addon.id)}
                                         className={`p-4 rounded-xl border flex justify-between items-center transition-all cursor-pointer ${selectedAddons.includes(addon.id)
-                                                ? 'bg-brand/10 border-brand text-white shadow-[0_0_15px_rgba(197,160,89,0.2)]'
-                                                : 'bg-dark-900 border-white/5 text-gray-300 hover:border-brand/50'
+                                            ? 'bg-brand/10 border-brand text-white shadow-[0_0_15px_rgba(197,160,89,0.2)]'
+                                            : 'bg-dark-900 border-white/5 text-gray-300 hover:border-brand/50'
                                             }`}
                                     >
                                         <div className="flex items-center gap-4">

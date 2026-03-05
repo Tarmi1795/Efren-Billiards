@@ -1,157 +1,88 @@
-import React, { useState } from 'react';
-import Section from './ui/Section';
+import React, { useEffect } from 'react';
+import { useTournamentData } from '../hooks/useTournaments';
+import Navbar from './Navbar';
+import Footer from './Footer';
+import TournamentBracket from './TournamentBracket';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Trophy, Users, Calendar, UserPlus } from 'lucide-react';
 import Button from './ui/Button';
-import Reveal from './ui/Reveal';
-import { Calendar, Trophy, Users, MapPin, ChevronDown, ChevronUp, User } from 'lucide-react';
-
-interface Player {
-    name: string;
-    rank: string;
-    avatar: string;
-}
-
-interface Tournament {
-    id: number;
-    title: string;
-    date: string;
-    prize: string;
-    format: string;
-    status: 'Open' | 'Closed' | 'Live';
-    players: Player[];
-}
 
 const TournamentPage: React.FC = () => {
-    const [expandedId, setExpandedId] = useState<number | null>(null);
-
-    const tournaments: Tournament[] = [
-        {
-            id: 1,
-            title: "Qatar 9-Ball Open 2026",
-            date: "March 15 - 20, 2026",
-            prize: "TBA",
-            format: "Single Elimination, Race to 9",
-            status: 'Open',
-            players: [
-                { name: "Ahmed Al-Saffar", rank: "Pro", avatar: "https://iili.io/q2f3DMb.jpg" },
-                { name: "John Doe", rank: "A", avatar: "https://iili.io/q2fFdAP.jpg" },
-                { name: "Sarah Smith", rank: "A+", avatar: "https://iili.io/q2fFKog.jpg" },
-                { name: "Mike Ross", rank: "Pro", avatar: "https://iili.io/q2f3Qte.jpg" },
-            ]
-        },
-        {
-            id: 2,
-            title: "Ramadan Late-Night Cup",
-            date: "April 05 - 10, 2026",
-            prize: "TBA",
-            format: "Double Elimination, Race to 7",
-            status: 'Open',
-            players: [
-                { name: "Khalid M.", rank: "B", avatar: "" },
-                { name: "Yousef A.", rank: "A", avatar: "" },
-            ]
-        },
-        {
-            id: 3,
-            title: "Friday Blitz Tournament",
-            date: "Every Friday, 20:00",
-            prize: "Entry Fee Pool",
-            format: "Lightning Round",
-            status: 'Live',
-            players: []
+    // Determine tournament_id from hash routing ex: #tournaments?id=SIM123
+    const formatUrl = () => {
+        const hashParts = window.location.hash.split('?');
+        if (hashParts.length > 1) {
+            return new URLSearchParams(hashParts[1]).get('id');
         }
-    ];
-
-    const togglePlayers = (id: number) => {
-        setExpandedId(expandedId === id ? null : id);
+        return 'default-simul-id'; // Fallback for direct #tournaments navigation
     };
+    const tournamentId = formatUrl();
+    const { tournament, matches, participants, loading, error } = useTournamentData(tournamentId);
+
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, []);
+
+    // Skeleton loader component
+    if (loading) {
+        return (
+            <div className="pt-24 min-h-screen bg-dark-900 px-6 text-center flex flex-col items-center">
+                <div className="w-64 h-12 bg-dark-800 animate-pulse rounded-lg mb-8"></div>
+                <div className="w-full max-w-4xl h-[60vh] bg-dark-800 animate-pulse rounded-3xl border border-white/10"></div>
+                <p className="mt-8 text-brand font-bold uppercase tracking-widest animate-pulse">Syncing closely with Supabase...</p>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="pt-24 min-h-screen bg-dark-900 px-6 flex items-center justify-center">
+                <div className="bg-red-900/20 text-red-500 border border-red-500/50 p-8 rounded-xl max-w-md text-center">
+                    <p className="font-bold uppercase tracking-widest mb-2">Error Loading Bracket</p>
+                    <p className="text-sm">{error}</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <div className="pt-20 min-h-screen bg-dark-900">
-            <Section id="tournaments-hero" className="bg-dark-900 pb-0">
-                <Reveal>
-                    <div className="text-center mb-16">
-                        <span className="text-brand font-bold tracking-widest uppercase mb-2 block">Competitive Scene</span>
-                        <h1 className="text-5xl md:text-7xl font-extrabold text-white uppercase mb-6">
-                            Upcoming <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand to-white">Tournaments</span>
-                        </h1>
-                        <p className="text-gray-400 max-w-2xl mx-auto text-lg">
-                            Test your skills against Qatar's best. Register for upcoming events, view brackets, and track your ranking.
-                        </p>
+        <div className="pt-24 min-h-screen bg-dark-900">
+            {/* Header info */}
+            <div className="max-w-6xl mx-auto px-6 py-12">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-16">
+                    <span className="text-brand font-bold uppercase tracking-widest text-sm mb-4 block flex items-center justify-center gap-2">
+                        <Trophy size={16} /> Official Tournament Record
+                    </span>
+                    <h1 className="text-4xl md:text-5xl font-black text-white uppercase tracking-tight mb-6">
+                        {tournament?.name || 'Tournament View'}
+                    </h1>
+
+                    <div className="flex flex-wrap justify-center gap-6 text-gray-400 text-sm font-bold uppercase tracking-wider">
+                        <div className="flex items-center gap-2 bg-dark-800 px-4 py-2 rounded-full border border-white/10">
+                            <Calendar size={16} className="text-brand" /> {new Date(tournament?.created_at || Date.now()).toLocaleDateString()}
+                        </div>
+                        <div className="flex items-center gap-2 bg-dark-800 px-4 py-2 rounded-full border border-white/10">
+                            <Users size={16} className="text-brand" /> {participants.length} Registered
+                        </div>
                     </div>
-                </Reveal>
-            </Section>
 
-            <Section id="tournament-list" className="bg-dark-900 pt-0">
-                <div className="grid gap-8">
-                    {tournaments.map((t, idx) => (
-                        <Reveal key={t.id} delay={idx * 100} width="100%">
-                            <div className="bg-dark-800 rounded-2xl border border-dark-700 overflow-hidden hover:border-brand transition-colors duration-300">
-                                <div className="p-6 md:p-8 grid md:grid-cols-12 gap-6 items-center">
-                                    {/* Date Box */}
-                                    <div className="md:col-span-2 flex flex-col items-center justify-center bg-dark-900 rounded-xl p-4 border border-dark-700 text-center h-full">
-                                        <Calendar className="text-brand mb-2" />
-                                        <span className="text-white font-bold text-sm uppercase">{t.date}</span>
-                                    </div>
+                    <div className="mt-8 flex justify-center">
+                        <Button
+                            variant="primary"
+                            onClick={() => alert("Supabase Integration Pending: This will open the registration form connecting to the tournament_participants table.")}
+                            className="px-8 py-3 uppercase tracking-widest font-black flex items-center gap-2 hover:scale-105 transition-transform"
+                        >
+                            <UserPlus size={18} /> Register Now
+                        </Button>
+                    </div>
+                </motion.div>
 
-                                    {/* Info */}
-                                    <div className="md:col-span-6">
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-2xl font-bold text-white uppercase">{t.title}</h3>
-                                            <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${t.status === 'Open' ? 'bg-green-900 text-green-400' : 'bg-red-900 text-red-400'}`}>
-                                                {t.status} Registration
-                                            </span>
-                                        </div>
-                                        <div className="flex flex-wrap gap-4 text-sm text-gray-400 mb-4">
-                                            <span className="flex items-center gap-1"><Trophy size={16} className="text-maroon" /> Prize: {t.prize}</span>
-                                            <span className="flex items-center gap-1"><MapPin size={16} /> Efren Billiards Main Hall</span>
-                                            <span className="flex items-center gap-1"><Users size={16} /> {t.players.length} Registered</span>
-                                        </div>
-                                        <p className="text-gray-500 text-sm italic">{t.format}</p>
-                                    </div>
-
-                                    {/* Actions */}
-                                    <div className="md:col-span-4 flex flex-col gap-3">
-                                        <Button variant="primary" fullWidth disabled={t.status !== 'Open'} onClick={() => alert("Registration form would open here!")}>
-                                            {t.status === 'Open' ? 'Register Now' : 'Registration Closed'}
-                                        </Button>
-                                        <button
-                                            onClick={() => togglePlayers(t.id)}
-                                            className="flex items-center justify-center gap-2 text-sm font-bold text-gray-400 hover:text-white uppercase transition-colors py-2"
-                                        >
-                                            {expandedId === t.id ? 'Hide Players' : 'View Registered Players'}
-                                            {expandedId === t.id ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                                        </button>
-                                    </div>
-                                </div>
-
-                                {/* Accordion Player List */}
-                                <div className={`bg-dark-900/50 transition-all duration-500 overflow-hidden ${expandedId === t.id ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-                                    <div className="p-6 border-t border-dark-700">
-                                        <h4 className="text-white font-bold uppercase mb-4 text-sm tracking-wider">Confirmed Participants</h4>
-                                        {t.players.length > 0 ? (
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                {t.players.map((p, i) => (
-                                                    <div key={i} className="flex items-center gap-3 bg-dark-800 p-3 rounded-lg border border-dark-700">
-                                                        <div className="w-8 h-8 rounded-full bg-dark-700 flex items-center justify-center overflow-hidden">
-                                                            {p.avatar ? <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" /> : <User size={16} className="text-gray-500" />}
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-white text-sm font-bold">{p.name}</p>
-                                                            <p className="text-xs text-brand">{p.rank}</p>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        ) : (
-                                            <p className="text-gray-500 text-sm">No players registered yet. Be the first!</p>
-                                        )}
-                                    </div>
-                                </div>
-                            </div>
-                        </Reveal>
-                    ))}
+                {/* Bracket Rendering */}
+                <div>
+                    <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-8">Live Bracket View</h2>
+                    <TournamentBracket matches={matches} />
                 </div>
-            </Section>
+            </div>
         </div>
     );
 };

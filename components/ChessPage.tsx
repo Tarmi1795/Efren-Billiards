@@ -1,36 +1,39 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Trophy, X, Hash, Award } from 'lucide-react';
+import { Brain, Trophy, X, Award, Calendar, Swords } from 'lucide-react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
 
+interface TopPlayer {
+    id: string;
+    rank: number;
+    name: string;
+    rating: number;
+    title?: string;
+}
+
+const topPlayers: TopPlayer[] = [
+    { id: '1', rank: 1, name: 'Eugenio T.', rating: 2450, title: 'GM' },
+    { id: '2', rank: 2, name: 'Wesley S.', rating: 2380, title: 'IM' },
+    { id: '3', rank: 3, name: 'Rogelio A.', rating: 2200, title: 'FM' },
+    { id: '4', rank: 4, name: 'Julio C.', rating: 2150 },
+    { id: '5', rank: 5, name: 'Mark P.', rating: 2100 },
+];
+
 const ChessPage: React.FC = () => {
     useEffect(() => { window.scrollTo(0, 0); }, []);
-
-    // State for Puzzle Widget
-    const [puzzleAttempt, setPuzzleAttempt] = useState('');
-    const [puzzleSolved, setPuzzleSolved] = useState(false);
-    const [puzzleError, setPuzzleError] = useState(false);
-    const [attemptsLeft, setAttemptsLeft] = useState(3);
-    const [showHint, setShowHint] = useState(false);
 
     // State for Rebate Modal
     const [showRebateModal, setShowRebateModal] = useState(false);
 
-    const handlePuzzleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (attemptsLeft === 0 || puzzleSolved) return;
+    // State for Challenge Modal
+    const [showChallengeModal, setShowChallengeModal] = useState(false);
+    const [selectedPlayer, setSelectedPlayer] = useState<TopPlayer | null>(null);
 
-        // Correct answer for the mock puzzle: "Nf3"
-        if (puzzleAttempt.trim().toLowerCase() === 'nf3') {
-            setPuzzleSolved(true);
-            setPuzzleError(false);
-        } else {
-            setPuzzleError(true);
-            setAttemptsLeft(prev => prev - 1);
-            setTimeout(() => setPuzzleError(false), 2000);
-        }
+    const handleChallengeClick = (player: TopPlayer) => {
+        setSelectedPlayer(player);
+        setShowChallengeModal(true);
     };
 
     return (
@@ -62,54 +65,63 @@ const ChessPage: React.FC = () => {
                     </div>
                 </Reveal>
 
-                {/* Gamification Widget: Puzzle of the Week */}
+                {/* Grandmaster Simul & Player Challenges */}
                 <Reveal delay={200} className="mt-24">
                     <div className="bg-dark-800 rounded-3xl p-8 md:p-12 border border-brand/20 shadow-[0_0_40px_rgba(197,160,89,0.1)] relative overflow-hidden text-left">
-                        <div className="flex flex-col md:flex-row gap-12 items-center">
+                        <div className="flex flex-col md:flex-row gap-12">
+                            {/* Monthly Simul Info */}
                             <div className="flex-1 w-full">
-                                <h3 className="text-brand font-bold uppercase tracking-widest text-sm flex items-center gap-2 mb-2"><Brain size={16} /> Puzzle of the Week</h3>
-                                <h4 className="text-3xl font-black text-white uppercase tracking-tight mb-4">Mate in 1</h4>
-                                <p className="text-gray-400 mb-6 text-sm leading-relaxed">Solve this week's puzzle for a 10% discount on your next hours of play. White to move.</p>
+                                <h3 className="text-brand font-bold uppercase tracking-widest text-sm flex items-center gap-2 mb-2"><Brain size={16} /> Elite Events</h3>
+                                <h4 className="text-3xl font-black text-white uppercase tracking-tight mb-4">Grandmaster Simul</h4>
+                                <p className="text-gray-400 mb-8 text-sm leading-relaxed">
+                                    Join our monthly exhibition event! Face off against top-ranked masters in a simultaneous exhibition match. Think you have what it takes to draw or defeat a Grandmaster?
+                                </p>
 
-                                <form onSubmit={handlePuzzleSubmit} className="space-y-4">
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            disabled={puzzleSolved || attemptsLeft === 0}
-                                            value={puzzleAttempt}
-                                            onChange={(e) => setPuzzleAttempt(e.target.value)}
-                                            placeholder="Enter algebraic notation (e.g., Nf3)"
-                                            className={`w-full bg-dark-900 border ${puzzleError ? 'border-red-500' : puzzleSolved ? 'border-green-500' : 'border-white/20 focus:border-brand'} rounded-xl px-4 py-4 text-white uppercase outline-none transition-colors duration-300 placeholder:normal-case font-mono`}
-                                        />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-xs font-bold uppercase tracking-wider">{attemptsLeft} attempts left</span>
-                                    </div>
-
-                                    {!puzzleSolved ? (
-                                        <div className="flex gap-4">
-                                            <Button variant="primary" type="submit" className="flex-1 font-black" disabled={attemptsLeft === 0}>Submit Move</Button>
-                                            <Button variant="outline" type="button" onClick={() => setShowHint(true)} className="border-white/10" disabled={showHint || attemptsLeft === 0}>Hint</Button>
+                                <div className="bg-dark-900 p-6 rounded-xl border border-white/5 mb-8">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="bg-brand/20 p-3 rounded-full text-brand">
+                                            <Calendar size={20} />
                                         </div>
-                                    ) : (
-                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 bg-green-900/40 border border-green-500/50 rounded-xl">
-                                            <p className="text-green-400 font-bold uppercase tracking-wider text-sm flex items-center gap-2 mb-1"><Trophy size={16} /> Brilliant Move!</p>
-                                            <p className="text-white">Your Promo Code: <span className="font-mono bg-dark-900 px-2 py-1 rounded text-brand border border-brand/30 ml-2 font-bold tracking-widest">EFRENMATE10</span></p>
-                                        </motion.div>
-                                    )}
-
-                                    {showHint && !puzzleSolved && (
-                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-xs text-brand mt-4 italic">
-                                            Hint: Look at the knight on d4...
-                                        </motion.div>
-                                    )}
-
-                                    {attemptsLeft === 0 && !puzzleSolved && (
-                                        <p className="text-red-400 text-sm font-bold mt-4 uppercase tracking-wider">Out of attempts. Check back next week!</p>
-                                    )}
-                                </form>
+                                        <div>
+                                            <p className="text-white font-bold uppercase tracking-wider text-sm">Next event: April 15th</p>
+                                            <p className="text-xs text-gray-400 uppercase tracking-widest">Seats are limited to 20 boards</p>
+                                        </div>
+                                    </div>
+                                    <Button variant="primary" onClick={() => window.location.hash = '#contact'} className="w-full font-black text-sm uppercase tracking-widest py-3 hover:scale-105 transition-transform duration-300">
+                                        Reserve a Board
+                                    </Button>
+                                </div>
                             </div>
-                            <div className="w-full md:w-64 rounded-xl border-4 border-dark-900 overflow-hidden shadow-2xl bg-white p-2 flex items-center justify-center aspect-square">
-                                {/* Mock Chessboard Image */}
-                                <img src="https://images.unsplash.com/photo-1580541832626-2a7131ee809f?q=80&w=400&auto=format&fit=crop" alt="Chess Puzzle Board" className="w-full h-full object-cover filter grayscale" />
+
+                            {/* Top Ranked Players & Challenge */}
+                            <div className="flex-1 w-full">
+                                <h3 className="text-brand font-bold uppercase tracking-widest text-sm flex items-center gap-2 mb-2"><Trophy size={16} /> Rank Poll</h3>
+                                <h4 className="text-2xl font-black text-white uppercase tracking-tight mb-6 flex items-center gap-2">Top Ranked Players</h4>
+
+                                <div className="space-y-3">
+                                    {topPlayers.map((player) => (
+                                        <div key={player.id} className="flex items-center justify-between p-3 bg-dark-900 rounded-xl border border-white/5 hover:border-brand/30 transition-colors group">
+                                            <div className="flex items-center gap-4">
+                                                <div className="w-6 font-black text-gray-500 text-sm">
+                                                    #{player.rank}
+                                                </div>
+                                                <div>
+                                                    <p className="text-white font-bold uppercase tracking-wider text-sm flex items-center gap-2">
+                                                        {player.name}
+                                                        {player.title && <span className="bg-brand text-black text-[10px] px-1.5 py-0.5 rounded font-black">{player.title}</span>}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 font-mono">Rating: {player.rating}</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => handleChallengeClick(player)}
+                                                className="text-[10px] font-bold uppercase tracking-widest bg-dark-800 text-brand px-3 py-1.5 rounded border border-brand/30 hover:bg-brand hover:text-black transition-colors flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 focus:opacity-100"
+                                            >
+                                                <Swords size={12} /> Challenge
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -148,6 +160,48 @@ const ChessPage: React.FC = () => {
                             <Button variant="primary" fullWidth onClick={() => setShowRebateModal(false)}>
                                 Back to Board
                             </Button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Challenge Modal */}
+            <AnimatePresence>
+                {showChallengeModal && selectedPlayer && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="bg-dark-800 border border-white/10 rounded-3xl p-8 max-w-md w-full relative shadow-2xl"
+                        >
+                            <button onClick={() => setShowChallengeModal(false)} className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors">
+                                <X size={24} />
+                            </button>
+
+                            <div className="w-12 h-12 bg-dark-900 border border-brand/20 rounded-full flex items-center justify-center mb-6 text-brand">
+                                <Swords size={20} />
+                            </div>
+
+                            <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-2">Schedule Challenge</h3>
+                            <p className="text-gray-400 leading-relaxed mb-6 text-sm">
+                                Request a seated match against <span className="text-white font-bold">{selectedPlayer.name} {selectedPlayer.title && `(${selectedPlayer.title})`}</span>. If accepted, you will receive an email to confirm the table booking.
+                            </p>
+
+                            <form className="space-y-4 mb-8" onSubmit={(e) => { e.preventDefault(); alert('Challenge request sent successfully!'); setShowChallengeModal(false); }}>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Preferred Date</label>
+                                    <input type="date" className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white uppercase outline-none focus:border-brand transition-colors text-sm" required />
+                                </div>
+                                <Button variant="primary" type="submit" fullWidth className="py-4">
+                                    Send Challenge Request
+                                </Button>
+                            </form>
                         </motion.div>
                     </motion.div>
                 )}

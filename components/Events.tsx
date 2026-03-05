@@ -26,17 +26,23 @@ const Events: React.FC = () => {
           {
             title: "Birthday Bash",
             desc: "Celebrate in style with reserved tables and a private area for your crew.",
-            cat: "Social"
+            cat: "Social",
+            action: () => document.getElementById('contact')?.scrollIntoView(),
+            cta: "Inquire Now"
           },
           {
             title: "Corporate Events",
             desc: "Boost morale with a billiards tournament. We organize the brackets and prizes.",
-            cat: "Business"
+            cat: "Business",
+            action: () => document.getElementById('contact')?.scrollIntoView(),
+            cta: "Inquire Now"
           },
           {
-            title: "Friends' Game Night",
-            desc: "Book a block of tables for your group. Winner stays on, loser buys the round.",
-            cat: "Casual"
+            title: "Grandmaster Simul",
+            desc: "Monthly chess exhibition. Face off against top-ranked masters. View bracket and reserve your board.",
+            cat: "Tournament",
+            action: () => window.location.hash = '#tournaments?id=SIMUL-001',
+            cta: "View Details"
           }
         ].map((evt, idx) => (
           <Reveal key={idx} delay={idx * 150} variant="slide-left">
@@ -47,9 +53,9 @@ const Events: React.FC = () => {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => document.getElementById('contact')?.scrollIntoView()}
+                onClick={evt.action}
               >
-                Inquire Now
+                {evt.cta}
               </Button>
             </div>
           </Reveal>

@@ -29,7 +29,7 @@ const App: React.FC = () => {
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash === '#tournaments') {
+      if (hash.startsWith('#tournaments')) {
         setRoute('tournaments');
         window.scrollTo(0, 0);
       } else if (hash === '#coffee-menu') {

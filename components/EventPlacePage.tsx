@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calculator, Users, Info, Building, AlertCircle } from 'lucide-react';
+import { Calendar, Users, Clock, ArrowRight, Music, AlertCircle, Calculator, Building } from 'lucide-react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
@@ -84,8 +84,8 @@ const EventPlacePage: React.FC = () => {
                                             <button
                                                 key={type}
                                                 onClick={() => setEventType(type)}
-                                                className={`py-3 px-2 text-xs font-bold uppercase tracking-wider rounded-lg transition-all ${eventType === type ? 'bg-brand text-black shadow-[0_0_15px_rgba(197,160,89,0.4)]' : 'bg-dark-900 text-gray-400 hover:bg-dark-700'
-                                                    }`}
+                                                className={`py - 3 px - 2 text - xs font - bold uppercase tracking - wider rounded - lg transition - all ${eventType === type ? 'bg-brand text-black shadow-[0_0_15px_rgba(197,160,89,0.4)]' : 'bg-dark-900 text-gray-400 hover:bg-dark-700'
+                                                    } `}
                                             >
                                                 {type}
                                             </button>

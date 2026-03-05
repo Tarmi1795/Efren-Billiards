@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Coffee, Citrus, Croissant, QrCode, ArrowRight, Target, Brain, Music, Gamepad2, Sparkles } from 'lucide-react';
+import { Coffee, Citrus, Croissant, QrCode, ArrowRight, Target, Brain, Music, Gamepad2, Zap, Wind } from 'lucide-react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
@@ -20,7 +20,7 @@ const recommendations: Record<Activity, Recommendation> = {
   Darts: { drink: 'Lemon Mint Crush', description: 'Refreshing and sharp to keep your focus laser-tight at the oche.', category: 'Mocktails & Coolers', icon: <Target size={24} /> },
   Chess: { drink: 'V60 Pour Over', description: 'A slow, deliberate brew for deep thinkers and strategic minds.', category: 'Espresso Bar', icon: <Brain size={24} /> },
   Karaoke: { drink: 'Passion Fruit Mojito', description: 'Vibrant and fruity to keep those vocal cords lubricated and the party going.', category: 'Mocktails & Coolers', icon: <Music size={24} /> },
-  Relaxing: { drink: 'Honey Cake & Iced Tea', description: 'The perfect pairing to unwind after a long day.', category: 'Snacks & Pastries', icon: <Sparkles size={24} /> },
+  Relaxing: { drink: 'Honey Cake & Iced Tea', description: 'The perfect pairing to unwind after a long day.', category: 'Snacks & Pastries', icon: <Wind size={24} /> },
 };
 
 const CoffeeMenuPage: React.FC = () => {
@@ -97,7 +97,7 @@ const CoffeeMenuPage: React.FC = () => {
 
             <div className="relative z-10">
               <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-widest mb-2 flex items-center gap-3">
-                <Sparkles className="text-brand" /> Match My Game
+                <Zap className="text-brand" /> Match My Game
               </h2>
               <p className="text-gray-400 text-sm font-bold uppercase tracking-wider mb-8">Select your activity to get the perfect pairing recommendation</p>
 
@@ -107,8 +107,8 @@ const CoffeeMenuPage: React.FC = () => {
                     key={activity}
                     onClick={() => setSelectedActivity(activity)}
                     className={`flex flex-col flex-1 items-center justify-center p-4 rounded-xl transition-all duration-300 ${selectedActivity === activity
-                        ? 'bg-brand text-black shadow-[0_0_20px_rgba(197,160,89,0.4)] scale-105'
-                        : 'bg-dark-900 text-gray-400 hover:bg-dark-700 hover:text-white'
+                      ? 'bg-brand text-black shadow-[0_0_20px_rgba(197,160,89,0.4)] scale-105'
+                      : 'bg-dark-900 text-gray-400 hover:bg-dark-700 hover:text-white'
                       }`}
                   >
                     {recommendations[activity].icon}

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AuthProvider } from './contexts/AuthContext';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import CinematicVideo from './components/CinematicVideo';
@@ -22,14 +23,50 @@ import DartsPage from './components/DartsPage';
 import ChessPage from './components/ChessPage';
 import EventPlacePage from './components/EventPlacePage';
 import KaraokePage from './components/KaraokePage';
+// ─── Auth Pages ───
+import Login from './components/Login';
+import ProfileDashboard from './components/ProfileDashboard';
+
+type AppRoute =
+  | 'home'
+  | 'tournaments'
+  | 'coffee-menu'
+  | 'terms'
+  | 'membership-packages'
+  | 'billiards-service'
+  | 'darts'
+  | 'chess'
+  | 'event-place'
+  | 'karaoke'
+  // ─── New auth routes ───
+  | 'login'
+  | 'admin-login'
+  | 'profile'
+  | 'admin-cms';
 
 const App: React.FC = () => {
-  const [route, setRoute] = useState<'home' | 'tournaments' | 'coffee-menu' | 'terms' | 'membership-packages' | 'billiards-service' | 'darts' | 'chess' | 'event-place' | 'karaoke'>('home');
+  const [route, setRoute] = useState<AppRoute>('home');
 
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
-      if (hash.startsWith('#tournaments')) {
+
+      // ─── Auth routes ───
+      if (hash === '#login') {
+        setRoute('login');
+        window.scrollTo(0, 0);
+      } else if (hash === '#admin-login') {
+        setRoute('admin-login');
+        window.scrollTo(0, 0);
+      } else if (hash === '#profile') {
+        setRoute('profile');
+        window.scrollTo(0, 0);
+      } else if (hash === '#admin-cms') {
+        setRoute('admin-cms');
+        window.scrollTo(0, 0);
+      }
+      // ─── Existing routes ───
+      else if (hash.startsWith('#tournaments')) {
         setRoute('tournaments');
         window.scrollTo(0, 0);
       } else if (hash === '#coffee-menu') {
@@ -58,7 +95,6 @@ const App: React.FC = () => {
         window.scrollTo(0, 0);
       } else {
         setRoute('home');
-        // If hash refers to a specific section on home, wait for render then scroll
         setTimeout(() => {
           if (hash && hash !== '#home') {
             const id = hash.replace('#', '');
@@ -71,50 +107,60 @@ const App: React.FC = () => {
       }
     };
 
-    // Initial check
     handleHashChange();
-
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   return (
-    <div className="min-h-screen bg-dark-900 text-white selection:bg-brand selection:text-white">
-      <Navbar />
-      <main>
-        {route === 'home' && (
-          <>
-            <Hero />
-            {/* Membership moved to top for higher conversion priority */}
-            <div className="relative z-20">
-              <Membership />
+    <AuthProvider>
+      <div className="min-h-screen bg-dark-900 text-white selection:bg-brand selection:text-white">
+        <Navbar />
+        <main>
+          {route === 'home' && (
+            <>
+              <Hero />
+              <div className="relative z-20">
+                <Membership />
+              </div>
+              <ServiceShowcase />
+              <Highlights />
+              <CinematicVideo />
+              <Facilities />
+              <ImageCarousel />
+              <Youth />
+              <Events />
+              <Timetable />
+              <Gallery />
+              <Contact />
+            </>
+          )}
+          {route === 'tournaments' && <TournamentPage />}
+          {route === 'coffee-menu' && <CoffeeMenuPage />}
+          {route === 'terms' && <TermsAndConditions />}
+          {route === 'membership-packages' && <MembershipLanding />}
+          {route === 'billiards-service' && <BilliardsPage />}
+          {route === 'darts' && <DartsPage />}
+          {route === 'chess' && <ChessPage />}
+          {route === 'event-place' && <EventPlacePage />}
+          {route === 'karaoke' && <KaraokePage />}
+
+          {/* ─── Auth Routes ─── */}
+          {route === 'login' && <Login />}
+          {route === 'admin-login' && <Login isAdmin />}
+          {route === 'profile' && <ProfileDashboard />}
+          {route === 'admin-cms' && (
+            <div className="min-h-screen flex items-center justify-center pt-24">
+              <div className="text-center">
+                <h1 className="text-3xl font-bold text-white mb-2">Admin CMS</h1>
+                <p className="text-gray-500">Content management coming in Step 4.</p>
+              </div>
             </div>
-            <ServiceShowcase />
-            {/* Highlights moved after Membership (Packages) */}
-            <Highlights />
-            <CinematicVideo />
-            {/* PromoBanner removed as it's now part of Hero */}
-            <Facilities />
-            <ImageCarousel />
-            <Youth />
-            <Events />
-            <Timetable />
-            <Gallery />
-            <Contact />
-          </>
-        )}
-        {route === 'tournaments' && <TournamentPage />}
-        {route === 'coffee-menu' && <CoffeeMenuPage />}
-        {route === 'terms' && <TermsAndConditions />}
-        {route === 'membership-packages' && <MembershipLanding />}
-        {route === 'billiards-service' && <BilliardsPage />}
-        {route === 'darts' && <DartsPage />}
-        {route === 'chess' && <ChessPage />}
-        {route === 'event-place' && <EventPlacePage />}
-        {route === 'karaoke' && <KaraokePage />}
-      </main>
-      <Footer />
-    </div>
+          )}
+        </main>
+        <Footer />
+      </div>
+    </AuthProvider>
   );
 };
 

@@ -103,9 +103,8 @@ export function useProfileLinking() {
             }
             // Update the profile table with the new phone
             if (user?.id) {
-                await supabase
-                    .from('profiles')
-                    .update({ phone, updated_at: new Date().toISOString() })
+                await (supabase.from('profiles') as any)
+                    .update({ phone })
                     .eq('id', user.id);
             }
             setOtpSent(false);
@@ -142,9 +141,8 @@ export function useProfileLinking() {
             }
             // Update profile table
             if (user?.id) {
-                await supabase
-                    .from('profiles')
-                    .update({ email, updated_at: new Date().toISOString() })
+                await (supabase.from('profiles') as any)
+                    .update({ email })
                     .eq('id', user.id);
             }
             await refreshProfile();

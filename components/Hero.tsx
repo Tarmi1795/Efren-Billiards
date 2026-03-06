@@ -1,11 +1,46 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Button from './ui/Button';
 import { Timer, ArrowRight, Volume2, VolumeX } from 'lucide-react';
 import Reveal from './ui/Reveal';
+import { supabase } from '../lib/supabase';
 
 const Hero: React.FC = () => {
   const [isMuted, setIsMuted] = useState(true);
+  const [content, setContent] = useState({
+    title: 'The Ultimate Billiards Experience',
+    subtitle: 'A premium members-only club where legends are built and the game never ends.',
+    cta: 'Get Membership Now!'
+  });
+  const [loading, setLoading] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    const fetchContent = async () => {
+      try {
+        const { data, error } = await (supabase.from('cms_content') as any)
+          .select('*')
+          .eq('slug', 'homepage-hero')
+          .single();
+
+        if (error && error.code !== 'PGRST116') throw error;
+
+        if (data) {
+          const body = JSON.parse(data.body);
+          setContent({
+            title: data.title,
+            subtitle: body.subtitle || content.subtitle,
+            cta: body.cta || content.cta
+          });
+        }
+      } catch (err) {
+        console.error('Error fetching hero content:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContent();
+  }, []);
 
   const toggleSound = () => {
     if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -75,17 +110,22 @@ const Hero: React.FC = () => {
         {/* Heading */}
         <Reveal>
           <h1 className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-galio uppercase tracking-wider mb-6 leading-[1.1]">
-            <div className="mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-blue-400">BECOME A</div>
-            <div className="mb-2 text-[#FFD700] drop-shadow-[0_0_15px_rgba(255,215,0,0.5)] filter">MEMBER</div>
-            <div className="text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-blue-400">TODAY</div>
+            <div className="mb-2 text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-blue-400">
+              {content.title.split(' ').slice(0, 2).join(' ')}
+            </div>
+            <div className="mb-2 text-[#FFD700] drop-shadow-[0_0_15px_rgba(255,215,0,0.5)] filter">
+              {content.title.split(' ').slice(2, 3).join(' ')}
+            </div>
+            <div className="text-transparent bg-clip-text bg-gradient-to-r from-white via-blue-100 to-blue-400">
+              {content.title.split(' ').slice(3).join(' ')}
+            </div>
           </h1>
         </Reveal>
 
         {/* Subtext */}
         <Reveal delay={200}>
           <p className="text-base md:text-2xl text-gray-100 mb-10 max-w-3xl font-light leading-relaxed drop-shadow-md px-4">
-            Stop paying full price. Unlock <span className="text-brand font-bold">free playing time</span>, priority booking, and
-            VIP status starting at just QAR 35/mo.
+            {content.subtitle}
           </p>
         </Reveal>
 
@@ -97,7 +137,7 @@ const Hero: React.FC = () => {
               className="bg-gradient-to-r from-[#FFD700] via-[#C5A059] to-[#B8860B] text-black border-none shadow-[0_0_30px_rgba(197,160,89,0.4)] hover:bg-none hover:bg-white hover:text-black hover:shadow-[0_0_50px_rgba(255,255,255,0.6)] text-base md:text-lg px-8 md:px-12 py-4 md:py-5 uppercase font-black tracking-widest w-full md:w-auto transform transition-all hover:-translate-y-1"
               onClick={() => window.location.hash = '#membership-packages'}
             >
-              Get Membership Now! <ArrowRight className="ml-2 w-5 h-5 md:w-6 md:h-6" />
+              {content.cta} <ArrowRight className="ml-2 w-5 h-5 md:w-6 md:h-6" />
             </Button>
 
             <button

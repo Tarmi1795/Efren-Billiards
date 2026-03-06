@@ -113,16 +113,19 @@ export interface Database {
                     updated_at?: string;
                 };
                 Update: Partial<Omit<Profile, 'id' | 'created_at'>>;
+                Relationships: [];
             };
             players: {
                 Row: Player;
                 Insert: Omit<Player, 'created_at'> & { created_at?: string };
                 Update: Partial<Omit<Player, 'id' | 'created_at'>>;
+                Relationships: [];
             };
             tournaments: {
                 Row: Tournament;
                 Insert: Omit<Tournament, 'created_at'> & { created_at?: string };
                 Update: Partial<Omit<Tournament, 'id' | 'created_at'>>;
+                Relationships: [];
             };
             tournament_participants: {
                 Row: TournamentParticipant;
@@ -131,6 +134,7 @@ export interface Database {
                     created_at?: string;
                 };
                 Update: Partial<Omit<TournamentParticipant, 'id' | 'created_at' | 'player'>>;
+                Relationships: [];
             };
             matches: {
                 Row: Match;
@@ -139,6 +143,7 @@ export interface Database {
                     created_at?: string;
                 };
                 Update: Partial<Omit<Match, 'id' | 'created_at' | 'player1' | 'player2' | 'winner'>>;
+                Relationships: [];
             };
             cms_content: {
                 Row: CMSContent;
@@ -148,6 +153,7 @@ export interface Database {
                     updated_at?: string;
                 };
                 Update: Partial<Omit<CMSContent, 'id' | 'created_at'>>;
+                Relationships: [];
             };
             registrations: {
                 Row: Registration;
@@ -156,8 +162,11 @@ export interface Database {
                     registered_at?: string;
                 };
                 Update: Partial<Omit<Registration, 'id' | 'registered_at'>>;
+                Relationships: [];
             };
         };
+        Views: Record<string, never>;
+        Functions: Record<string, never>;
         Enums: {
             membership_tier: MembershipTier;
             account_status: AccountStatus;
@@ -165,5 +174,6 @@ export interface Database {
             match_status: MatchStatus;
             game_type: GameType;
         };
+        CompositeTypes: Record<string, never>;
     };
 }

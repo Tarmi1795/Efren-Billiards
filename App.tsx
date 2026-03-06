@@ -26,6 +26,7 @@ import KaraokePage from './components/KaraokePage';
 // ─── Auth Pages ───
 import Login from './components/Login';
 import ProfileDashboard from './components/ProfileDashboard';
+import AdminCMS from './components/AdminCMS';
 
 type AppRoute =
   | 'home'
@@ -52,16 +53,17 @@ const App: React.FC = () => {
       const hash = window.location.hash;
 
       // ─── Auth routes ───
-      if (hash === '#login') {
+      // ─── Auth routes ───
+      if (hash.startsWith('#login')) {
         setRoute('login');
         window.scrollTo(0, 0);
-      } else if (hash === '#admin-login') {
+      } else if (hash.startsWith('#admin-login')) {
         setRoute('admin-login');
         window.scrollTo(0, 0);
-      } else if (hash === '#profile') {
+      } else if (hash.startsWith('#profile')) {
         setRoute('profile');
         window.scrollTo(0, 0);
-      } else if (hash === '#admin-cms') {
+      } else if (hash.startsWith('#admin-cms')) {
         setRoute('admin-cms');
         window.scrollTo(0, 0);
       }
@@ -149,14 +151,7 @@ const App: React.FC = () => {
           {route === 'login' && <Login />}
           {route === 'admin-login' && <Login isAdmin />}
           {route === 'profile' && <ProfileDashboard />}
-          {route === 'admin-cms' && (
-            <div className="min-h-screen flex items-center justify-center pt-24">
-              <div className="text-center">
-                <h1 className="text-3xl font-bold text-white mb-2">Admin CMS</h1>
-                <p className="text-gray-500">Content management coming in Step 4.</p>
-              </div>
-            </div>
-          )}
+          {route === 'admin-cms' && <AdminCMS />}
         </main>
         <Footer />
       </div>

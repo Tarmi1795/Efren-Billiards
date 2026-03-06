@@ -1,12 +1,7 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
 import { Tournament, TournamentParticipant, Match, Player } from '../types';
 
-// Utility for generating UUIDs manually for mock data
-const generateUUID = () => crypto.randomUUID();
-
-/**
- * UTILITY: Relational Bracket Logic
- */
 export function generateRelationalBracket(
     tournamentId: string,
     participants: TournamentParticipant[]
@@ -23,7 +18,7 @@ export function generateRelationalBracket(
     let matchOrderGlobal = 0;
 
     function buildNode(round: number, siblingIndex: number, nextMatchId: string | null): number {
-        const matchId = generateUUID();
+        const matchId = crypto.randomUUID();
         const currentOrder = matchOrderGlobal++;
 
         const match: Match = {
@@ -90,9 +85,62 @@ export function generateRelationalBracket(
     return matches;
 }
 
-/**
- * Hook to fetch ALL tournaments to display on the master hub.
- */
+async function fetchParticipantsWithPlayers(tournamentId: string): Promise<TournamentParticipant[]> {
+    const { data, error } = await supabase
+        .from('tournament_participants')
+        .select('id, tournament_id, player_id, seed, created_at, players ( id, name, avatar_url, rating, created_at )')
+        .eq('tournament_id', tournamentId)
+        .order('seed', { ascending: true });
+
+    if (error) throw error;
+
+    return (data || []).map((row: any) => ({
+        id: row.id,
+        tournament_id: row.tournament_id,
+        player_id: row.player_id,
+        seed: row.seed,
+        created_at: row.created_at,
+        player: row.players ?? undefined,
+    }));
+}
+
+async function fetchMatchesWithPlayers(tournamentId: string): Promise<Match[]> {
+    const { data, error } = await supabase
+        .from('matches')
+        .select('id, tournament_id, round, match_order, player1_id, player2_id, winner_id, status, next_match_id, created_at')
+        .eq('tournament_id', tournamentId)
+        .order('round', { ascending: true })
+        .order('match_order', { ascending: true });
+
+    if (error) throw error;
+    if (!data || data.length === 0) return [];
+
+    const playerIds = new Set<string>();
+    data.forEach((m: any) => {
+        if (m.player1_id) playerIds.add(m.player1_id);
+        if (m.player2_id) playerIds.add(m.player2_id);
+        if (m.winner_id) playerIds.add(m.winner_id);
+    });
+
+    const playerMap: Record<string, Player> = {};
+    if (playerIds.size > 0) {
+        const { data: players, error: pErr } = await supabase
+            .from('players')
+            .select('id, name, avatar_url, rating, created_at')
+            .in('id', Array.from(playerIds));
+        if (!pErr && players) {
+            players.forEach((p: any) => { playerMap[p.id] = p; });
+        }
+    }
+
+    return data.map((m: any) => ({
+        ...m,
+        player1: m.player1_id ? playerMap[m.player1_id] ?? null : null,
+        player2: m.player2_id ? playerMap[m.player2_id] ?? null : null,
+        winner: m.winner_id ? playerMap[m.winner_id] ?? null : null,
+    }));
+}
+
 export function useAllTournaments() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -101,43 +149,13 @@ export function useAllTournaments() {
     useEffect(() => {
         const fetchData = async () => {
             try {
-                // TODO (Supabase Integration):
-                // const { data, error } = await supabase.from('tournaments')
-                //     .select('id, name, game_type, status, started_at, completed_at, created_at')
-                //     .order('created_at', { ascending: false });
-                // if (error) throw error;
-                // setTournaments(data || []);
+                const { data, error: qErr } = await supabase
+                    .from('tournaments')
+                    .select('id, name, game_type, status, started_at, completed_at, created_at')
+                    .order('created_at', { ascending: false });
 
-                await new Promise(resolve => setTimeout(resolve, 1000));
-
-                const mockTournaments: Tournament[] = [
-                    {
-                        id: 'SIMUL-001',
-                        name: "Grandmaster Simul: Open Challenge",
-                        game_type: "chess",
-                        status: "pending",
-                        created_at: new Date(Date.now() - 86400000).toISOString()
-                    },
-                    {
-                        id: 'DART-002',
-                        name: "Weekend Darts Showdown",
-                        game_type: "darts",
-                        status: "in_progress",
-                        started_at: new Date(Date.now() - 3600000).toISOString(),
-                        created_at: new Date(Date.now() - 172800000).toISOString()
-                    },
-                    {
-                        id: 'BILL-003',
-                        name: "8-Ball amateur league",
-                        game_type: "billiards",
-                        status: "completed",
-                        completed_at: new Date(Date.now() - 5000000).toISOString(),
-                        started_at: new Date(Date.now() - 10000000).toISOString(),
-                        created_at: new Date(Date.now() - 250000000).toISOString()
-                    }
-                ];
-
-                setTournaments(mockTournaments);
+                if (qErr) throw qErr;
+                setTournaments((data as Tournament[]) || []);
             } catch (err: any) {
                 setError(err.message || 'Failed to fetch tournaments.');
             } finally {
@@ -151,83 +169,6 @@ export function useAllTournaments() {
     return { tournaments, loading, error };
 }
 
-/**
- * Common Mock Engine
- */
-const generateMockDataByType = (gameType: string, customId?: string) => {
-    let mockTournament: Tournament;
-    let mockPlayers: Player[];
-
-    if (gameType === 'darts' || customId?.startsWith('DART')) {
-        mockTournament = {
-            id: customId || 'DART-002',
-            name: "Weekend Darts Showdown",
-            game_type: "darts",
-            status: "pending",
-            created_at: new Date().toISOString()
-        };
-        mockPlayers = [
-            { id: generateUUID(), name: "Tarek M.", rating: 1420, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Sarah J.", rating: 1385, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Ahmed Q.", rating: 1350, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Chris W.", rating: 1290, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Nour E.", rating: 1100, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Mike R.", rating: 1050, created_at: new Date().toISOString() },
-        ];
-    } else if (gameType === 'billiards' || customId?.startsWith('BILL')) {
-        mockTournament = {
-            id: customId || 'BILL-003',
-            name: "8-Ball Amateur League",
-            game_type: "billiards",
-            status: "pending",
-            created_at: new Date().toISOString()
-        };
-        mockPlayers = [
-            { id: generateUUID(), name: "John D.", rating: 650, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Local Hero", rating: 800, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "The Magician", rating: 850, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Shane V.", rating: 780, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Jayson S.", rating: 750, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Filler J.", rating: 790, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Ko P.", rating: 770, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Albin O.", rating: 760, created_at: new Date().toISOString() },
-        ];
-    } else {
-        mockTournament = {
-            id: customId || 'SIMUL-001',
-            name: "Grandmaster Simul: Open Challenge",
-            game_type: "chess",
-            status: "pending",
-            created_at: new Date().toISOString()
-        };
-        mockPlayers = [
-            { id: generateUUID(), name: "Eugenio T.", rating: 2450, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Wesley S.", rating: 2380, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Rogelio A.", rating: 2200, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Julio C.", rating: 2150, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Mark P.", rating: 2100, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Guest User 1", rating: 1500, created_at: new Date().toISOString() },
-            { id: generateUUID(), name: "Guest User 2", rating: 1600, created_at: new Date().toISOString() }
-        ];
-    }
-
-    const mockParticipants: TournamentParticipant[] = mockPlayers.map((p, index) => ({
-        id: generateUUID(),
-        tournament_id: mockTournament.id,
-        player_id: p.id,
-        seed: index + 1,
-        created_at: new Date().toISOString(),
-        player: p
-    }));
-
-    const generatedMatches = generateRelationalBracket(mockTournament.id, mockParticipants);
-
-    return { mockTournament, mockParticipants, generatedMatches };
-};
-
-/**
- * Hook to fetch the currently active tournament for a specific game type.
- */
 export function useActiveTournamentByGameType(gameType: 'billiards' | 'darts' | 'chess') {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -239,15 +180,31 @@ export function useActiveTournamentByGameType(gameType: 'billiards' | 'darts' | 
         const fetchData = async () => {
             setLoading(true);
             try {
-                // TODO (Supabase Integration):
-                // 1. Find active tournament by gameType ...
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                const { mockTournament, mockParticipants, generatedMatches } = generateMockDataByType(gameType);
+                const { data: tData, error: tErr } = await supabase
+                    .from('tournaments')
+                    .select('id, name, game_type, status, started_at, completed_at, created_at')
+                    .eq('game_type', gameType)
+                    .in('status', ['pending', 'in_progress'])
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
 
-                setTournament(mockTournament);
-                setParticipants(mockParticipants);
-                setMatches(generatedMatches);
+                if (tErr) throw tErr;
+                const t = tData as Tournament;
+                setTournament(t);
 
+                const [parts, matchData] = await Promise.all([
+                    fetchParticipantsWithPlayers(t.id),
+                    fetchMatchesWithPlayers(t.id),
+                ]);
+
+                setParticipants(parts);
+
+                if (matchData.length > 0) {
+                    setMatches(matchData);
+                } else if (parts.length >= 2) {
+                    setMatches(generateRelationalBracket(t.id, parts));
+                }
             } catch (err: any) {
                 setError(err.message || `Failed to fetch active ${gameType} tournament.`);
             } finally {
@@ -261,9 +218,6 @@ export function useActiveTournamentByGameType(gameType: 'billiards' | 'darts' | 
     return { tournament, matches, participants, loading, error };
 }
 
-/**
- * Legacy URL routing fallback
- */
 export function useTournamentData(tournamentId: string | null) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -277,12 +231,28 @@ export function useTournamentData(tournamentId: string | null) {
         const fetchData = async () => {
             setLoading(true);
             try {
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                const { mockTournament, mockParticipants, generatedMatches } = generateMockDataByType('', tournamentId);
+                const { data: tData, error: tErr } = await supabase
+                    .from('tournaments')
+                    .select('id, name, game_type, status, started_at, completed_at, created_at')
+                    .eq('id', tournamentId)
+                    .single();
 
-                setTournament(mockTournament);
-                setParticipants(mockParticipants);
-                setMatches(generatedMatches);
+                if (tErr) throw tErr;
+                const t = tData as Tournament;
+                setTournament(t);
+
+                const [parts, matchData] = await Promise.all([
+                    fetchParticipantsWithPlayers(t.id),
+                    fetchMatchesWithPlayers(t.id),
+                ]);
+
+                setParticipants(parts);
+
+                if (matchData.length > 0) {
+                    setMatches(matchData);
+                } else if (parts.length >= 2) {
+                    setMatches(generateRelationalBracket(t.id, parts));
+                }
             } catch (err: any) {
                 setError(err.message || 'Failed to fetch tournament data.');
             } finally {

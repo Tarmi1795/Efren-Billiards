@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
-    User, Phone, Mail, Shield, Crown, Award, Star,
+    User, Users, Phone, Mail, Shield, Crown, Award, Trophy, Star,
     ChevronRight, Loader2, CheckCircle, AlertCircle,
-    LogOut, ArrowRight, Link2
+    LogOut, ArrowRight, Link2, Smartphone
 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfileLinking } from '../hooks/useProfile';
 import { useToast } from './ui/Toast';
-import type { MembershipTier } from '../types/database';
+import type { Profile, MembershipTier } from '../types/database';
 
 // ============================================================================
 // Profile Dashboard — displays membership tier, status, and account linking
@@ -23,44 +24,44 @@ const TIER_CONFIG: Record<MembershipTier, {
     gradient: string;
 }> = {
     Guest: {
-        label: 'Guest',
-        color: 'text-gray-400',
-        bg: 'bg-gray-500/10',
-        border: 'border-gray-500/20',
-        icon: <User size={20} />,
-        gradient: 'from-gray-500/20 to-gray-600/10',
+        label: 'Guest Player',
+        color: 'text-brand',
+        bg: 'bg-brand/10',
+        border: 'border-brand/20',
+        icon: <Users size={20} />,
+        gradient: 'from-brand/20 to-brand/10',
     },
     Player: {
-        label: 'Player',
-        color: 'text-blue-400',
-        bg: 'bg-blue-500/10',
-        border: 'border-blue-500/20',
-        icon: <Star size={20} />,
-        gradient: 'from-blue-500/20 to-blue-600/10',
+        label: 'Guest Player',
+        color: 'text-brand',
+        bg: 'bg-brand/10',
+        border: 'border-brand/20',
+        icon: <Users size={20} />,
+        gradient: 'from-brand/20 to-brand/10',
     },
     Bronze: {
-        label: 'Bronze',
-        color: 'text-[#B87333]',
-        bg: 'bg-[#B87333]/10',
-        border: 'border-[#B87333]/20',
-        icon: <Award size={20} />,
-        gradient: 'from-[#B87333]/20 to-[#8B5E2B]/10',
+        label: 'Guest Player',
+        color: 'text-brand',
+        bg: 'bg-brand/10',
+        border: 'border-brand/20',
+        icon: <Users size={20} />,
+        gradient: 'from-brand/20 to-brand/10',
     },
     Silver: {
-        label: 'Silver',
-        color: 'text-[#A8A8A8]',
-        bg: 'bg-[#A8A8A8]/10',
-        border: 'border-[#A8A8A8]/20',
-        icon: <Award size={20} />,
-        gradient: 'from-[#A8A8A8]/20 to-[#808080]/10',
+        label: 'Guest Player',
+        color: 'text-brand',
+        bg: 'bg-brand/10',
+        border: 'border-brand/20',
+        icon: <Users size={20} />,
+        gradient: 'from-brand/20 to-brand/10',
     },
     Gold: {
-        label: 'Gold',
-        color: 'text-[#C5A059]',
-        bg: 'bg-[#C5A059]/10',
-        border: 'border-[#C5A059]/20',
-        icon: <Crown size={20} />,
-        gradient: 'from-[#C5A059]/20 to-[#9E7E39]/10',
+        label: 'Guest Player',
+        color: 'text-brand',
+        bg: 'bg-brand/10',
+        border: 'border-brand/20',
+        icon: <Users size={20} />,
+        gradient: 'from-brand/20 to-brand/10',
     },
     Admin: {
         label: 'Administrator',
@@ -70,6 +71,44 @@ const TIER_CONFIG: Record<MembershipTier, {
         icon: <Shield size={20} />,
         gradient: 'from-red-500/20 to-red-600/10',
     },
+};
+
+/** Membership privileges per tier */
+const TIER_BENEFITS: Record<MembershipTier, string[]> = {
+    Guest: [
+        'Access to common areas',
+        'Standard table rates',
+        'Public event access'
+    ],
+    Player: [
+        'Access to member lounge',
+        '10% off table bookings',
+        'Priority registration for local tournaments'
+    ],
+    Bronze: [
+        'All Player benefits',
+        'One free guest pass per month',
+        'Dedicated cue locker storage',
+        '15% off at the coffee lounge'
+    ],
+    Silver: [
+        'All Bronze benefits',
+        'Complimentary drink on arrival',
+        'Advanced booking window (48h)',
+        '20% off all dining & coffee'
+    ],
+    Gold: [
+        'All Silver benefits',
+        'Private VIP room access',
+        'Personal concierge service',
+        'Free entry to all monthly tournaments',
+        'First access to international exhibitions'
+    ],
+    Admin: [
+        'Complete system access',
+        'Full management control',
+        'Reporting & Analytics'
+    ],
 };
 
 const ProfileDashboard: React.FC = () => {
@@ -85,29 +124,105 @@ const ProfileDashboard: React.FC = () => {
     } = useProfileLinking();
 
     // Linking form state
+    const [members, setMembers] = useState<Profile[]>([]);
+    const [setupData, setSetupData] = useState({ full_name: '', phone: '' });
+    const [submittingSetup, setSubmittingSetup] = useState(false);
     const [newPhone, setNewPhone] = useState('');
     const [phoneOtpCode, setPhoneOtpCode] = useState('');
     const [newEmail, setNewEmail] = useState('');
     const [showPhoneLink, setShowPhoneLink] = useState(false);
     const [showEmailLink, setShowEmailLink] = useState(false);
 
-    // Redirect if not logged in
+    // My Tournaments State
+    const [myTournaments, setMyTournaments] = useState<any[]>([]);
+    const [tournamentsLoading, setTournamentsLoading] = useState(true);
+
+    // Player Stats State
+    const [playerStats, setPlayerStats] = useState<{ wins: number, losses: number, rating: number } | null>(null);
+
+    // Fetch Player Stats
     useEffect(() => {
+        if (!user) return;
+        const fetchStats = async () => {
+            try {
+                const { data } = await supabase.from('players').select('wins, losses, rating').eq('id', user.id).maybeSingle();
+                if (data) setPlayerStats(data);
+            } catch (err) {
+                console.error("Failed to fetch player stats:", err);
+            }
+        };
+        fetchStats();
+    }, [user]);
+
+    // Fetch My Tournaments
+    useEffect(() => {
+        if (!user) return;
+        const fetchMyTournaments = async () => {
+            setTournamentsLoading(true);
+            try {
+                const { data, error } = await supabase
+                    .from('tournament_participants')
+                    .select('*, tournaments(*)')
+                    .eq('player_id', user.id);
+
+                if (error) throw error;
+                // extract tournaments from the join
+                const t = data?.map((d: any) => d.tournaments).filter(Boolean) || [];
+                setMyTournaments(t);
+            } catch (err) {
+                console.error("Failed to fetch tournaments:", err);
+            } finally {
+                setTournamentsLoading(false);
+            }
+        };
+        fetchMyTournaments();
+    }, [user]);
+
+    // Redirect if not logged in or handle profile setup
+    useEffect(() => {
+        const handleSetupSubmit = async (e: React.FormEvent) => {
+            e.preventDefault();
+            if (!setupData.full_name || !setupData.phone) {
+                showToast('Please provide both name and phone number.', 'error');
+                return;
+            }
+
+            setSubmittingSetup(true);
+            try {
+                const { error } = await (supabase.from('profiles') as any)
+                    .update({
+                        full_name: setupData.full_name,
+                        phone: setupData.phone
+                    })
+                    .eq('id', profile?.id);
+
+                if (error) throw error;
+                showToast('Profile setup complete! Welcome to the club.', 'success');
+                await refreshProfile();
+            } catch (err: any) {
+                showToast(err.message, 'error');
+            } finally {
+                setSubmittingSetup(false);
+            }
+        };
+
+        const needsSetup = profile && (!profile.full_name || !profile.phone);
+
         if (!authLoading && !user) {
             window.location.hash = '#login';
         }
-    }, [user, authLoading]);
+    }, [user, authLoading, profile, refreshProfile, setupData.full_name, setupData.phone, showToast]); // Added dependencies
 
     // Show toast for linking results
     useEffect(() => {
         if (phoneLinking.error) showToast(phoneLinking.error, 'error');
         if (phoneLinking.success) showToast(phoneLinking.success, 'success');
-    }, [phoneLinking.error, phoneLinking.success]);
+    }, [phoneLinking.error, phoneLinking.success, showToast]); // Added showToast dependency
 
     useEffect(() => {
         if (emailLinking.error) showToast(emailLinking.error, 'error');
         if (emailLinking.success) showToast(emailLinking.success, 'success');
-    }, [emailLinking.error, emailLinking.success]);
+    }, [emailLinking.error, emailLinking.success, showToast]); // Added showToast dependency
 
     if (authLoading) {
         return (
@@ -120,9 +235,17 @@ const ProfileDashboard: React.FC = () => {
     if (!profile) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a0c] via-[#0f1110] to-[#0a0a0c] px-4">
-                <div className="text-center">
-                    <Loader2 size={28} className="animate-spin text-brand mx-auto mb-4" />
-                    <p className="text-gray-400 text-sm">Loading profile...</p>
+                <div className="text-center bg-red-900/20 border border-red-500/50 p-6 rounded-2xl max-w-sm w-full backdrop-blur-md">
+                    <p className="text-white font-bold text-lg mb-2">Profile Data Error</p>
+                    <p className="text-red-400 text-sm mb-6">
+                        Failed to load profile. This is usually caused by database permissions (RLS). Please contact the administrator.
+                    </p>
+                    <button
+                        onClick={signOut}
+                        className="px-6 py-2 bg-red-500/20 text-red-500 rounded-xl font-bold uppercase hover:bg-red-500/40"
+                    >
+                        Sign Out & Try Again
+                    </button>
                 </div>
             </div>
         );
@@ -135,101 +258,232 @@ const ProfileDashboard: React.FC = () => {
     const phoneVerified = !!user?.phone;
     const emailVerified = !!user?.email_confirmed_at;
 
+    const needsSetup = !profile.full_name || !profile.phone; // Moved needsSetup here for rendering logic
+
+    const handleSetupSubmit = async (e: React.FormEvent) => { // Moved handleSetupSubmit here for rendering logic
+        e.preventDefault();
+        if (!setupData.full_name || !setupData.phone) {
+            showToast('Please provide both name and phone number.', 'error');
+            return;
+        }
+
+        setSubmittingSetup(true);
+        try {
+            const { error } = await (supabase.from('profiles') as any)
+                .update({
+                    full_name: setupData.full_name,
+                    phone: setupData.phone
+                })
+                .eq('id', profile?.id);
+
+            if (error) throw error;
+            showToast('Profile setup complete! Welcome to the club.', 'success');
+            await refreshProfile();
+        } catch (err: any) {
+            showToast(err.message, 'error');
+        } finally {
+            setSubmittingSetup(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#0a0a0c] via-[#0f1110] to-[#0a0a0c] pt-28 pb-16 px-4">
             <ToastContainer />
 
-            {/* Background accents */}
-            <div className="fixed inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-[600px] h-[600px] bg-brand/3 rounded-full blur-3xl" />
-                <div className="absolute -bottom-40 -left-40 w-[600px] h-[600px] bg-gold/3 rounded-full blur-3xl" />
+            {/* ── Background Elements ── */}
+            <div className="fixed inset-0 pointer-events-none">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand/5 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2" />
+                <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-brand/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
             </div>
 
             <div className="max-w-2xl mx-auto relative z-10">
-                {/* ── Header Card ── */}
-                <div className={`rounded-2xl border ${tier.border} bg-gradient-to-br ${tier.gradient} p-8 mb-6 backdrop-blur-xl`}>
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-center gap-4">
-                            {/* Avatar */}
-                            <div className={`w-16 h-16 rounded-2xl ${tier.bg} ${tier.border} border flex items-center justify-center`}>
-                                {profile.avatar_url ? (
-                                    <img
-                                        src={profile.avatar_url}
-                                        alt="Avatar"
-                                        className="w-full h-full object-cover rounded-2xl"
-                                    />
-                                ) : (
-                                    <span className={tier.color}>{tier.icon}</span>
-                                )}
+                {needsSetup && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+                        <div className="w-full max-w-md bg-[#0d0d0f] border border-white/10 rounded-3xl p-8 shadow-2xl animate-in zoom-in-95 duration-500">
+                            <div className="text-center mb-8">
+                                <div className="w-16 h-16 rounded-2xl bg-brand/10 flex items-center justify-center mx-auto mb-4 border border-brand/20">
+                                    <User size={32} className="text-brand" />
+                                </div>
+                                <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Welcome to the Club</h2>
+                                <p className="text-gray-500 text-sm mt-2 font-medium">Please complete your profile details to continue.</p>
                             </div>
 
-                            <div>
-                                <h1 className="text-2xl font-bold text-white">
-                                    {profile.full_name || user?.email?.split('@')[0] || 'Member'}
-                                </h1>
-                                <div className="flex items-center gap-2 mt-1">
-                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider ${tier.bg} ${tier.color} ${tier.border} border`}>
-                                        {tier.icon}
-                                        {tier.label}
-                                    </span>
-                                    <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold ${profile.status === 'active'
-                                        ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                                        : profile.status === 'suspended'
-                                            ? 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                            : 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20'
-                                        }`}>
-                                        <span className={`w-1.5 h-1.5 rounded-full ${profile.status === 'active' ? 'bg-emerald-400' :
-                                            profile.status === 'suspended' ? 'bg-red-400' : 'bg-yellow-400'
-                                            }`} />
+                            <form onSubmit={handleSetupSubmit} className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold px-2">Full Name</label>
+                                    <div className="relative">
+                                        <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                                        <input
+                                            type="text"
+                                            placeholder="Efren Reyes"
+                                            required
+                                            value={setupData.full_name}
+                                            onChange={e => setSetupData(prev => ({ ...prev, full_name: e.target.value }))}
+                                            className="w-full pl-12 pr-4 py-3 bg-white/[0.03] border border-white/5 rounded-xl text-white text-sm focus:outline-none focus:border-brand/40 transition-all font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold px-2">Mobile Number</label>
+                                    <div className="relative">
+                                        <Smartphone size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                                        <input
+                                            type="tel"
+                                            placeholder="+974 5555 1234"
+                                            required
+                                            value={setupData.phone}
+                                            onChange={e => setSetupData(prev => ({ ...prev, phone: e.target.value }))}
+                                            className="w-full pl-12 pr-4 py-3 bg-white/[0.03] border border-white/5 rounded-xl text-white text-sm focus:outline-none focus:border-brand/40 transition-all font-medium"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    disabled={submittingSetup}
+                                    className="w-full py-4 bg-brand text-white rounded-xl font-bold uppercase tracking-wider text-sm hover:bg-brand/90 transition-all flex items-center justify-center gap-2 group disabled:opacity-50"
+                                >
+                                    {submittingSetup ? (
+                                        <Loader2 size={18} className="animate-spin" />
+                                    ) : (
+                                        <>
+                                            Complete Profile
+                                            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                        </>
+                                    )}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                )}
+                {/* ── Digital Membership Card ── */}
+                <div className="relative group perspective-1000 mb-8">
+                    <div className={`
+                        relative w-full aspect-[1.586/1] rounded-2xl p-8 overflow-hidden
+                        bg-gradient-to-br ${tier.gradient} border ${tier.border}
+                        shadow-2xl shadow-black/40 backdrop-blur-xl
+                        transition-transform duration-500 group-hover:rotate-y-12
+                    `}>
+                        {/* Shimmer effect */}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+
+                        <div className="h-full flex flex-col justify-between relative z-10">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 font-bold mb-1">Membership Card</p>
+                                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Efren Club</h2>
+                                </div>
+                                <div className={`w-12 h-12 rounded-xl ${tier.bg} flex items-center justify-center border ${tier.border}`}>
+                                    {tier.icon}
+                                </div>
+                            </div>
+
+                            <div className="mt-8">
+                                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Member Name</p>
+                                <p className="text-xl font-bold text-white tracking-tight">
+                                    {profile.full_name || 'REGISTERED MEMBER'}
+                                </p>
+                            </div>
+
+                            <div className="flex justify-between items-end">
+                                <div>
+                                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">ID Number</p>
+                                    <p className="text-sm font-mono text-white/80">EF-{profile.id.slice(0, 8).toUpperCase()}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold italic">Status</p>
+                                    <p className={`text-sm font-bold uppercase ${profile.status === 'active' ? 'text-emerald-400' : 'text-red-400'}`}>
                                         {profile.status}
-                                    </span>
+                                    </p>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Sign Out */}
-                        <button
-                            onClick={signOut}
-                            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] text-gray-400 text-xs font-semibold hover:bg-white/[0.06] hover:text-white transition-all"
-                        >
-                            <LogOut size={14} />
-                            Sign Out
-                        </button>
-                    </div>
-
-                    {/* Membership tier value indicator for non-admin tiers */}
-                    {profile.tier !== 'Admin' && profile.tier !== 'Guest' && (
-                        <div className="mt-6 pt-4 border-t border-white/[0.06]">
-                            <p className="text-xs text-gray-500 uppercase tracking-widest mb-2">Membership Level</p>
-                            <div className="flex items-center gap-1">
-                                {['Player', 'Bronze', 'Silver', 'Gold'].map((t) => {
-                                    const tierRank = { Player: 1, Bronze: 2, Silver: 3, Gold: 4 };
-                                    const current = tierRank[profile.tier as keyof typeof tierRank] || 0;
-                                    const level = tierRank[t as keyof typeof tierRank] || 0;
-                                    const active = level <= current;
-
-                                    return (
-                                        <div
-                                            key={t}
-                                            className={`flex-1 h-2 rounded-full transition-all duration-500 ${active
-                                                ? t === 'Gold' ? 'bg-[#C5A059]'
-                                                    : t === 'Silver' ? 'bg-[#A8A8A8]'
-                                                        : t === 'Bronze' ? 'bg-[#B87333]'
-                                                            : 'bg-brand'
-                                                : 'bg-white/[0.05]'
-                                                }`}
-                                        />
-                                    );
-                                })}
-                            </div>
-                            <div className="flex justify-between mt-1">
-                                {['Player', 'Bronze', 'Silver', 'Gold'].map((t) => (
-                                    <span key={t} className="text-[10px] text-gray-600 uppercase tracking-wider">{t}</span>
-                                ))}
-                            </div>
+                        {/* Card Branding Accent */}
+                        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center opacity-[0.03]">
+                            <Shield size={240} className="text-white" />
                         </div>
-                    )}
+                    </div>
                 </div>
+
+                {/* ── Player Stats ── */}
+                <div className="grid grid-cols-3 gap-4 mb-8">
+                    <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-xl text-center">
+                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1">Wins</p>
+                        <p className="text-2xl font-black text-white">{playerStats?.wins || 0}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-xl text-center">
+                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1">Losses</p>
+                        <p className="text-2xl font-black text-white">{playerStats?.losses || 0}</p>
+                    </div>
+                    <div className="p-4 rounded-2xl border border-white/[0.06] bg-white/[0.02] backdrop-blur-xl text-center">
+                        <p className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-1">Rating</p>
+                        <p className="text-2xl font-black text-gold">{playerStats?.rating || 1500}</p>
+                    </div>
+                </div>
+
+                {/* ── Active Registrations ── */}
+                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 mb-6 backdrop-blur-xl">
+                    <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <Trophy size={16} className="text-brand" />
+                        My Tournaments
+                    </h2>
+                    <div className="space-y-4">
+                        {tournamentsLoading ? (
+                            <div className="flex justify-center p-4">
+                                <Loader2 size={24} className="animate-spin text-brand" />
+                            </div>
+                        ) : myTournaments.length === 0 ? (
+                            <div className="text-center p-4 rounded-xl bg-white/[0.02] border border-white/[0.05]">
+                                <p className="text-sm text-gray-500">You haven't registered for any tournaments yet.</p>
+                                <a href="#tournaments" className="text-brand text-xs font-bold uppercase tracking-widest mt-2 inline-block hover:text-white transition-colors">Find a Tournament</a>
+                            </div>
+                        ) : (
+                            myTournaments.map(t => (
+                                <div key={t.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                    <div>
+                                        <p className="text-sm font-bold text-white">{t.name}</p>
+                                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Starts: {t.started_at ? new Date(t.started_at).toLocaleDateString() : 'TBA'}</p>
+                                    </div>
+                                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20">
+                                        Registered
+                                    </span>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Tier Benefits List ── */}
+                <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 mb-6 backdrop-blur-xl">
+                    <h2 className="text-sm font-bold text-white uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <Star size={16} className="text-gold" />
+                        Exclusive {tier.label} Perks
+                    </h2>
+                    <ul className="space-y-3">
+                        {TIER_BENEFITS[profile.tier].map((benefit, idx) => (
+                            <li key={idx} className="flex items-start gap-3 text-sm text-gray-400">
+                                <CheckCircle size={16} className="text-emerald-500 mt-0.5 flex-shrink-0" />
+                                {benefit}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* ── Sign Out Shortcut ── */}
+                <div className="flex justify-end mb-6">
+                    <button
+                        onClick={signOut}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/[0.03] border border-white/[0.06] text-gray-400 text-xs font-semibold hover:bg-white/[0.06] hover:text-white transition-all shadow-sm"
+                    >
+                        <LogOut size={14} />
+                        Sign Out
+                    </button>
+                </div>
+
+                {/* ── Contact Methods ── */}
 
                 {/* ── Contact Methods ── */}
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-6 mb-6 backdrop-blur-xl">

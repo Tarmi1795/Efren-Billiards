@@ -40,16 +40,27 @@ const Login: React.FC<LoginProps> = ({ isAdmin = false }) => {
         if (authLoading) return;
         if (!session || !profile) return;
 
-        if (isAdmin) {
-            // Admin login: validate tier from DB
-            if (profile.tier === 'Admin') {
+        // Smart Redirect based on Tier
+        if (profile.tier === 'Admin') {
+            // Admins always go to CMS regardless of which login page they used
+            if (window.location.hash !== '#admin-cms') {
                 window.location.hash = '#admin-cms';
-            } else {
-                setUnauthorized(true);
             }
         } else {
-            // Standard login: redirect to profile
-            window.location.hash = '#profile';
+            if (isAdmin) {
+                // Regular user tried to login via admin portal
+                setUnauthorized(true);
+            } else {
+                // Redirect regular users to profile or pending tournament
+                const pendingTourney = localStorage.getItem('pendingTournamentRegistration');
+                if (pendingTourney) {
+                    if (window.location.hash !== `#tournaments?id=${pendingTourney}`) {
+                        window.location.hash = `#tournaments?id=${pendingTourney}`;
+                    }
+                } else if (window.location.hash !== '#profile') {
+                    window.location.hash = '#profile';
+                }
+            }
         }
     }, [session, profile, isAdmin, authLoading]);
 

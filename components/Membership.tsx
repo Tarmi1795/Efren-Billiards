@@ -152,7 +152,9 @@ const Membership: React.FC = () => {
                 ))}
               </ul>
 
-              <p className="text-xs text-gray-500 italic mb-6 text-center">Note: Terms & Conditions Applied</p>
+              <p className="text-xs text-gray-500 italic mb-6 text-center">
+                Note: <a href="#terms" className="underline hover:text-brand transition-colors">Terms & Conditions Applied</a>
+              </p>
 
               <Button
                 variant={plan.popular || plan.isGold ? 'primary' : 'outline'}

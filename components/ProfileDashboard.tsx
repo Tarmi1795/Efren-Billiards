@@ -112,7 +112,7 @@ const TIER_BENEFITS: Record<MembershipTier, string[]> = {
 };
 
 const ProfileDashboard: React.FC = () => {
-    const { user, profile, loading: authLoading, signOut, refreshProfile } = useAuth();
+    const { user, profile, loading: authLoading, signOut, refreshProfile, setProfile } = useAuth();
     const { showToast, ToastContainer } = useToast();
     const {
         phoneLinking,
@@ -132,6 +132,7 @@ const ProfileDashboard: React.FC = () => {
     const [newEmail, setNewEmail] = useState('');
     const [showPhoneLink, setShowPhoneLink] = useState(false);
     const [showEmailLink, setShowEmailLink] = useState(false);
+    const [setupComplete, setSetupComplete] = useState(false);
 
     // My Tournaments State
     const [myTournaments, setMyTournaments] = useState<any[]>([]);
@@ -178,40 +179,12 @@ const ProfileDashboard: React.FC = () => {
         fetchMyTournaments();
     }, [user]);
 
-    // Redirect if not logged in or handle profile setup
+    // Redirect if not logged in
     useEffect(() => {
-        const handleSetupSubmit = async (e: React.FormEvent) => {
-            e.preventDefault();
-            if (!setupData.full_name || !setupData.phone) {
-                showToast('Please provide both name and phone number.', 'error');
-                return;
-            }
-
-            setSubmittingSetup(true);
-            try {
-                const { error } = await (supabase.from('profiles') as any)
-                    .update({
-                        full_name: setupData.full_name,
-                        phone: setupData.phone
-                    })
-                    .eq('id', profile?.id);
-
-                if (error) throw error;
-                showToast('Profile setup complete! Welcome to the club.', 'success');
-                await refreshProfile();
-            } catch (err: any) {
-                showToast(err.message, 'error');
-            } finally {
-                setSubmittingSetup(false);
-            }
-        };
-
-        const needsSetup = profile && (!profile.full_name || !profile.phone);
-
         if (!authLoading && !user) {
-            window.location.hash = '#login';
+            window.location.hash = '#home';
         }
-    }, [user, authLoading, profile, refreshProfile, setupData.full_name, setupData.phone, showToast]); // Added dependencies
+    }, [user, authLoading]);
 
     // Show toast for linking results
     useEffect(() => {
@@ -232,20 +205,38 @@ const ProfileDashboard: React.FC = () => {
         );
     }
 
+    if (!user) {
+        return null; // Will redirect in useEffect
+    }
+
     if (!profile) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0a0a0c] via-[#0f1110] to-[#0a0a0c] px-4">
-                <div className="text-center bg-red-900/20 border border-red-500/50 p-6 rounded-2xl max-w-sm w-full backdrop-blur-md">
-                    <p className="text-white font-bold text-lg mb-2">Profile Data Error</p>
-                    <p className="text-red-400 text-sm mb-6">
-                        Failed to load profile. This is usually caused by database permissions (RLS). Please contact the administrator.
-                    </p>
-                    <button
-                        onClick={signOut}
-                        className="px-6 py-2 bg-red-500/20 text-red-500 rounded-xl font-bold uppercase hover:bg-red-500/40"
-                    >
-                        Sign Out & Try Again
-                    </button>
+                <div className="flex flex-col items-center gap-6 text-center max-w-sm">
+                    <div className="relative">
+                        <Loader2 size={32} className="animate-spin text-brand" />
+                        <AlertCircle size={16} className="absolute -top-1 -right-1 text-red-500" />
+                    </div>
+                    <div className="space-y-2">
+                        <p className="text-white font-bold text-lg">Profile Sync Issue</p>
+                        <p className="text-gray-400 text-sm leading-relaxed">
+                            We're having trouble syncing your profile from the database. This is usually due to a configuration error in Supabase (RLS recursion).
+                        </p>
+                    </div>
+                    <div className="flex flex-col w-full gap-3">
+                        <button
+                            onClick={() => window.location.reload()}
+                            className="w-full py-3 bg-brand text-white rounded-xl font-bold uppercase tracking-wider text-xs hover:bg-brand/90 transition-all"
+                        >
+                            Retry Connection
+                        </button>
+                        <button
+                            onClick={signOut}
+                            className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 rounded-xl font-bold uppercase tracking-wider text-xs hover:bg-white/10 hover:text-white transition-all"
+                        >
+                            Sign Out
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -258,7 +249,7 @@ const ProfileDashboard: React.FC = () => {
     const phoneVerified = !!user?.phone;
     const emailVerified = !!user?.email_confirmed_at;
 
-    const needsSetup = !profile.full_name || !profile.phone; // Moved needsSetup here for rendering logic
+    const needsSetup = !setupComplete && (!profile.full_name || !profile.phone); // Moved needsSetup here for rendering logic
 
     const handleSetupSubmit = async (e: React.FormEvent) => { // Moved handleSetupSubmit here for rendering logic
         e.preventDefault();
@@ -269,16 +260,29 @@ const ProfileDashboard: React.FC = () => {
 
         setSubmittingSetup(true);
         try {
-            const { error } = await (supabase.from('profiles') as any)
-                .update({
+            const { data, error } = await (supabase.from('profiles') as any)
+                .upsert({
+                    id: profile?.id,
                     full_name: setupData.full_name,
-                    phone: setupData.phone
+                    phone: setupData.phone,
+                    tier: profile?.tier || 'Guest',
+                    status: profile?.status || 'active',
+                    updated_at: new Date().toISOString()
                 })
-                .eq('id', profile?.id);
+                .select()
+                .single();
 
             if (error) throw error;
+            
+            setSetupComplete(true);
             showToast('Profile setup complete! Welcome to the club.', 'success');
-            await refreshProfile();
+            
+            // Optimistically update local state to prevent loop
+            if (data) {
+                setProfile(data as Profile);
+            } else {
+                await refreshProfile();
+            }
         } catch (err: any) {
             showToast(err.message, 'error');
         } finally {
@@ -310,7 +314,7 @@ const ProfileDashboard: React.FC = () => {
 
                             <form onSubmit={handleSetupSubmit} className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold px-2">Full Name</label>
+                                    <label className="text-[10px] uppercase tracking-widest text-gray-400 font-bold px-2">Player Name</label>
                                     <div className="relative">
                                         <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
                                         <input

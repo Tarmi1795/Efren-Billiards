@@ -4,6 +4,7 @@ import { X, CheckSquare, Square, Search, Music, Star } from 'lucide-react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
+import { handleHashClick } from '../lib/scroll';
 
 // Mock Add-ons Data
 interface ThemeAddon {
@@ -58,7 +59,7 @@ const KaraokePage: React.FC = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        <Button variant="primary" onClick={() => window.location.hash = '#contact'} className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full hover:scale-105 transition-transform duration-300 w-full sm:w-auto">
+                        <Button variant="primary" onClick={(e) => handleHashClick(e, '#contact')} className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full hover:scale-105 transition-transform duration-300 w-full sm:w-auto">
                             Book a Room
                         </Button>
                         <Button variant="outline" onClick={() => setShowThemeModal(true)} className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full w-full sm:w-auto flex items-center justify-center gap-2 border-brand text-brand hover:bg-brand hover:text-black transition-colors duration-300">
@@ -132,9 +133,9 @@ const KaraokePage: React.FC = () => {
                             <Button
                                 variant="primary"
                                 fullWidth
-                                onClick={() => {
-                                    alert(`Mock Add-ons Saved! Added to your booking intent. Total: ${totalAddonCost} QAR`);
+                                onClick={(e) => {
                                     setShowThemeModal(false);
+                                    handleHashClick(e, '#contact');
                                 }}
                                 className="py-4 text-sm"
                             >

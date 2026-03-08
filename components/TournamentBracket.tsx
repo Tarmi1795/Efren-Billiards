@@ -1,25 +1,26 @@
 import React from 'react';
-import { Match, Player } from '../types';
 import { motion } from 'framer-motion';
+import type { Profile } from '../types/database';
+import type { MatchWithPlayers } from '../hooks/useTournaments';
 
 interface TournamentBracketProps {
-    matches: Match[];
+    matches: MatchWithPlayers[];
 }
 
 interface BracketNodeProps {
-    match: Match;
-    allMatches: Match[];
+    match: MatchWithPlayers;
+    allMatches: MatchWithPlayers[];
 }
 
-const MatchPlayerNode: React.FC<{ player?: Player | null, isWinner: boolean }> = ({ player, isWinner }) => {
+const MatchPlayerNode: React.FC<{ player?: Profile | null, isWinner: boolean }> = ({ player, isWinner }) => {
     return (
         <div className={`p-3 border-b last:border-b-0 border-white/10 flex items-center justify-between ${isWinner ? 'bg-brand/10' : 'bg-dark-900'} transition-colors`}>
             <span className={`text-sm font-bold truncate pr-3 ${isWinner ? 'text-brand' : 'text-gray-300'}`}>
-                {player ? player.name : 'TBD'}
+                {player ? player.full_name : 'TBD'}
             </span>
-            {player?.rating && (
+            {player?.tier && (
                 <span className="text-[10px] text-gray-500 font-mono bg-dark-800 px-1.5 py-0.5 rounded">
-                    {player.rating}
+                    {player.tier}
                 </span>
             )}
         </div>

@@ -24,9 +24,9 @@ import ChessPage from './components/ChessPage';
 import EventPlacePage from './components/EventPlacePage';
 import KaraokePage from './components/KaraokePage';
 // ─── Auth Pages ───
-import Login from './components/Login';
 import ProfileDashboard from './components/ProfileDashboard';
 import AdminCMS from './components/AdminCMS';
+import { scrollToElement } from './lib/scroll';
 
 type AppRoute =
   | 'home'
@@ -40,8 +40,6 @@ type AppRoute =
   | 'event-place'
   | 'karaoke'
   // ─── New auth routes ───
-  | 'login'
-  | 'admin-login'
   | 'profile'
   | 'admin-cms';
 
@@ -53,14 +51,7 @@ const App: React.FC = () => {
       const hash = window.location.hash;
 
       // ─── Auth routes ───
-      // ─── Auth routes ───
-      if (hash.startsWith('#login')) {
-        setRoute('login');
-        window.scrollTo(0, 0);
-      } else if (hash.startsWith('#admin-login')) {
-        setRoute('admin-login');
-        window.scrollTo(0, 0);
-      } else if (hash.startsWith('#profile')) {
+      if (hash.startsWith('#profile')) {
         setRoute('profile');
         window.scrollTo(0, 0);
       } else if (hash.startsWith('#admin-cms')) {
@@ -68,7 +59,7 @@ const App: React.FC = () => {
         window.scrollTo(0, 0);
       }
       // ─── Existing routes ───
-      else if (hash.startsWith('#tournaments')) {
+      else if (hash.startsWith('#tournament')) {
         setRoute('tournaments');
         window.scrollTo(0, 0);
       } else if (hash === '#coffee-menu') {
@@ -97,15 +88,16 @@ const App: React.FC = () => {
         window.scrollTo(0, 0);
       } else {
         setRoute('home');
-        setTimeout(() => {
-          if (hash && hash !== '#home') {
-            const id = hash.replace('#', '');
-            const element = document.getElementById(id);
-            if (element) element.scrollIntoView({ behavior: 'smooth' });
-          } else if (hash === '#home' || !hash) {
-            window.scrollTo(0, 0);
-          }
-        }, 100);
+        // If we have a hash that isn't a route, it's likely a section ID
+        if (hash && hash !== '#home' && hash !== '#') {
+          const id = hash.replace('#', '');
+          // We wait for the route change to render the home components
+          setTimeout(() => {
+            scrollToElement(id);
+          }, 400);
+        } else if (hash === '#home' || !hash) {
+          window.scrollTo(0, 0);
+        }
       }
     };
 
@@ -148,8 +140,6 @@ const App: React.FC = () => {
           {route === 'karaoke' && <KaraokePage />}
 
           {/* ─── Auth Routes ─── */}
-          {route === 'login' && <Login />}
-          {route === 'admin-login' && <Login isAdmin />}
           {route === 'profile' && <ProfileDashboard />}
           {route === 'admin-cms' && <AdminCMS />}
         </main>

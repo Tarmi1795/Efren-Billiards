@@ -2,6 +2,7 @@ import React from 'react';
 import Section from './ui/Section';
 import Button from './ui/Button';
 import Reveal from './ui/Reveal';
+import { handleHashClick } from '../lib/scroll';
 
 const Events: React.FC = () => {
   return (
@@ -27,21 +28,21 @@ const Events: React.FC = () => {
             title: "Birthday Bash",
             desc: "Celebrate in style with reserved tables and a private area for your crew.",
             cat: "Social",
-            action: () => document.getElementById('contact')?.scrollIntoView(),
+            action: (e: any) => handleHashClick(e, '#contact'),
             cta: "Inquire Now"
           },
           {
             title: "Corporate Events",
             desc: "Boost morale with a billiards tournament. We organize the brackets and prizes.",
             cat: "Business",
-            action: () => document.getElementById('contact')?.scrollIntoView(),
+            action: (e: any) => handleHashClick(e, '#contact'),
             cta: "Inquire Now"
           },
           {
             title: "Grandmaster Simul",
             desc: "Monthly chess exhibition. Face off against top-ranked masters. View bracket and reserve your board.",
             cat: "Tournament",
-            action: () => window.location.hash = '#tournaments?id=SIMUL-001',
+            action: (e: any) => handleHashClick(e, '#tournaments?id=SIMUL-001'),
             cta: "View Details"
           }
         ].map((evt, idx) => (

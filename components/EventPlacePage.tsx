@@ -4,6 +4,7 @@ import { Calendar, Users, Clock, ArrowRight, Music, AlertCircle, Calculator, Bui
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
+import { handleHashClick } from '../lib/scroll';
 
 // Mock Data Types
 type EventType = 'Gala' | 'Tournament' | 'Birthday';
@@ -19,19 +20,19 @@ const eventTypes: Record<EventType, EventData> = {
     Gala: {
         type: 'Gala',
         basePrice: 150,
-        image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=800&auto=format&fit=crop',
+        image: 'https://iili.io/q2MS4TJ.md.jpg',
         description: 'Elegant seating, buffet setup, and premium lighting.'
     },
     Tournament: {
         type: 'Tournament',
         basePrice: 100,
-        image: 'https://images.unsplash.com/photo-1599839619722-39751411ea63?q=80&w=800&auto=format&fit=crop',
+        image: 'https://iili.io/q2MSgpa.md.jpg',
         description: 'Optimized floorplan for competitive play and spectator viewing.'
     },
     Birthday: {
         type: 'Birthday',
         basePrice: 80,
-        image: 'https://images.unsplash.com/photo-1530103862676-de88b6408257?q=80&w=800&auto=format&fit=crop',
+        image: 'https://iili.io/q2MSjhx.md.jpg',
         description: 'Casual layout with dance floor and catering stations.'
     }
 };
@@ -124,16 +125,16 @@ const EventPlacePage: React.FC = () => {
                                     <p className="text-xs text-gray-500 mt-2">*Estimate includes base package and catering.</p>
                                 </div>
 
-                                <Button variant="primary" fullWidth onClick={() => window.location.hash = '#contact'} className="py-4">
+                                <Button variant="primary" fullWidth onClick={(e) => handleHashClick(e, '#contact')} className="py-4">
                                     Request Formal Quote
                                 </Button>
                             </div>
 
-                            {/* Floorplan Preview */}
+                            {/* Event Preview */}
                             <div className="relative group rounded-xl overflow-hidden border border-white/10 bg-dark-900">
                                 <div className="absolute top-4 left-4 z-10 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 flex items-center gap-2">
                                     <Building size={14} className="text-brand" />
-                                    <span className="text-xs font-bold uppercase tracking-wider text-white">Floorplan Preview: {eventType}</span>
+                                    <span className="text-xs font-bold uppercase tracking-wider text-white">Event Preview: {eventType}</span>
                                 </div>
                                 <AnimatePresence mode="wait">
                                     <motion.img
@@ -144,7 +145,7 @@ const EventPlacePage: React.FC = () => {
                                         exit={{ opacity: 0 }}
                                         transition={{ duration: 0.5 }}
                                         className="w-full h-full object-cover min-h-[300px]"
-                                        alt={`${eventType} Floorplan`}
+                                        alt={`${eventType} Preview`}
                                     />
                                 </AnimatePresence>
                                 <div className="absolute bottom-0 w-full p-4 bg-gradient-to-t from-black via-black/80 to-transparent">

@@ -4,6 +4,9 @@ import { Brain, Trophy, X, Award, Calendar, Swords } from 'lucide-react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
+import GameTournamentSection from './GameTournamentSection';
+import TournamentCTA from './TournamentCTA';
+import { handleHashClick } from '../lib/scroll';
 
 interface TopPlayer {
     id: string;
@@ -56,13 +59,14 @@ const ChessPage: React.FC = () => {
                         Challenge your focus and strategic thinking. We offer beautifully crafted, weighted tournament chess sets and digital clocks for those who love speed chess. The lounge area provides a serene environment perfect for studying openings, casual play, or intense competition, all while enjoying our specialty coffee.
                     </p>
                     <div className="flex gap-4 justify-center font-black">
-                        <Button variant="primary" onClick={() => window.location.hash = '#contact'} className="px-8 py-4 text-sm uppercase tracking-[0.2em] rounded-full hover:scale-105 transition-transform duration-300">
+                        <Button variant="primary" onClick={(e) => handleHashClick(e, '#contact')} className="px-8 py-4 text-sm uppercase tracking-[0.2em] rounded-full hover:scale-105 transition-transform duration-300">
                             Book a Table
                         </Button>
                         <Button variant="outline" onClick={() => setShowRebateModal(true)} className="px-8 py-4 text-sm uppercase tracking-[0.1em] rounded-full hover:border-maroon transition-colors duration-300 border-white/20">
                             Claim "Losing King" Rebate
                         </Button>
                     </div>
+                    <TournamentCTA gameType="chess" />
                 </Reveal>
 
                 {/* Grandmaster Simul & Player Challenges */}
@@ -87,7 +91,7 @@ const ChessPage: React.FC = () => {
                                             <p className="text-xs text-gray-400 uppercase tracking-widest">Seats are limited to 20 boards</p>
                                         </div>
                                     </div>
-                                    <Button variant="primary" onClick={() => window.location.hash = '#contact'} className="w-full font-black text-sm uppercase tracking-widest py-3 hover:scale-105 transition-transform duration-300">
+                                    <Button variant="primary" onClick={(e) => handleHashClick(e, '#contact')} className="w-full font-black text-sm uppercase tracking-widest py-3 hover:scale-105 transition-transform duration-300">
                                         Reserve a Board
                                     </Button>
                                 </div>
@@ -127,6 +131,8 @@ const ChessPage: React.FC = () => {
                     </div>
                 </Reveal>
             </Section>
+
+            <GameTournamentSection gameType="chess" />
 
             {/* Losing King Rebate Modal */}
             <AnimatePresence>
@@ -193,7 +199,11 @@ const ChessPage: React.FC = () => {
                                 Request a seated match against <span className="text-white font-bold">{selectedPlayer.name} {selectedPlayer.title && `(${selectedPlayer.title})`}</span>. If accepted, you will receive an email to confirm the table booking.
                             </p>
 
-                            <form className="space-y-4 mb-8" onSubmit={(e) => { e.preventDefault(); alert('Challenge request sent successfully!'); setShowChallengeModal(false); }}>
+                            <form className="space-y-4 mb-8" onSubmit={(e) => { 
+                                e.preventDefault(); 
+                                setShowChallengeModal(false); 
+                                handleHashClick(e as any, '#contact');
+                            }}>
                                 <div>
                                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Preferred Date</label>
                                     <input type="date" className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white uppercase outline-none focus:border-brand transition-colors text-sm" required />

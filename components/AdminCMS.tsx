@@ -9,10 +9,10 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './ui/Toast';
 import AdminTournaments from './AdminTournaments';
+import AdminPlayers from './AdminPlayers';
 import type { Profile, MembershipTier } from '../types/database';
 
-
-type CMSModule = 'hero' | 'gallery' | 'tournaments' | 'members' | 'settings';
+type CMSModule = 'hero' | 'gallery' | 'tournaments' | 'players' | 'members' | 'settings';
 
 const AdminCMS: React.FC = () => {
     const { profile, loading: authLoading } = useAuth();
@@ -37,7 +37,7 @@ const AdminCMS: React.FC = () => {
     // Redirect if not admin
     useEffect(() => {
         if (!authLoading && (!profile || profile.tier !== 'Admin')) {
-            window.location.hash = '#login';
+            window.location.hash = '#home';
         }
     }, [profile, authLoading]);
 
@@ -120,12 +120,27 @@ const AdminCMS: React.FC = () => {
     const fetchMembers = async () => {
         setLoading(true);
         try {
-            const { data, error } = await (supabase.from('profiles') as any)
-                .select('*, player:players(wins, losses, rating)')
+            const { data: profilesData, error: profilesError } = await (supabase.from('profiles') as any)
+                .select('*')
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
-            setMembers(data || []);
+            if (profilesError) throw profilesError;
+
+            const { data: playersData, error: playersError } = await (supabase.from('players') as any)
+                .select('id, wins, losses, rating');
+
+            if (playersError) {
+                console.warn('Could not fetch players for stats:', playersError);
+            }
+
+            const playersMap = new Map((playersData || []).map((p: any) => [p.id, p]));
+
+            const merged = (profilesData || []).map((profile: any) => ({
+                ...profile,
+                player: playersMap.get(profile.id) || null
+            }));
+
+            setMembers(merged);
         } catch (err: any) {
             showToast(err.message, 'error');
         } finally {
@@ -291,11 +306,19 @@ const AdminCMS: React.FC = () => {
                                 Tournaments
                             </button>
                             <button
+                                onClick={() => setActiveModule('players')}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'players' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                    }`}
+                            >
+                                <Users size={18} />
+                                Players
+                            </button>
+                            <button
                                 onClick={() => setActiveModule('members')}
                                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'members' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                     }`}
                             >
-                                <Users size={18} />
+                                <Shield size={18} />
                                 Members
                             </button>
                             <button
@@ -546,8 +569,8 @@ const AdminCMS: React.FC = () => {
                                                             onChange={(e) => updateMemberTier(member.id, e.target.value as MembershipTier)}
                                                             className="bg-brand/10 text-brand border border-brand/20 text-[10px] font-black uppercase tracking-widest rounded-lg px-3 py-1.5 focus:outline-none"
                                                         >
-                                                            <option value="Guest">Guest</option>
-                                                            <option value="Admin">Admin</option>
+                                                            <option className="bg-[#0a0a0c] text-brand" value="Guest">Guest</option>
+                                                            <option className="bg-[#0a0a0c] text-brand" value="Admin">Admin</option>
                                                         </select>
                                                     </td>
                                                     <td className="px-6 py-5">
@@ -581,6 +604,11 @@ const AdminCMS: React.FC = () => {
                     {/* Tournaments Module */}
                     {activeModule === 'tournaments' && (
                         <AdminTournaments />
+                    )}
+
+                    {/* Players Module */}
+                    {activeModule === 'players' && (
+                        <AdminPlayers />
                     )}
 
                     {/* Placeholder for other modules */}

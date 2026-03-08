@@ -4,6 +4,7 @@ import { Coffee, Citrus, Croissant, QrCode, ArrowRight, Target, Brain, Music, Ga
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
+import { scrollToElement } from '../lib/scroll';
 
 // Gamification Data
 type Activity = 'Billiards' | 'Darts' | 'Chess' | 'Karaoke' | 'Relaxing';
@@ -165,7 +166,7 @@ const CoffeeMenuPage: React.FC = () => {
                 Our Sports Cafe isn't an afterthought. It's a destination. We partner with top local roasters to bring you specialty grade coffee.
                 Whether you need a caffeine kick before a tournament or a refreshing mocktail to cool down, we've got you covered.
               </p>
-              <Button variant="outline" onClick={() => document.getElementById('preview-list')?.scrollIntoView({ behavior: 'smooth' })}>
+              <Button variant="outline" onClick={() => scrollToElement('preview-list')}>
                 Preview Favorites <ArrowRight size={16} className="ml-2" />
               </Button>
             </Reveal>

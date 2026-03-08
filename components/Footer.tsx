@@ -1,5 +1,6 @@
 import React from 'react';
 import { Instagram, Facebook } from 'lucide-react';
+import { handleHashClick } from '../lib/scroll';
 
 const Footer: React.FC = () => {
   return (
@@ -29,28 +30,28 @@ const Footer: React.FC = () => {
           <div>
             <h4 className="font-bold text-white uppercase mb-6">Explore</h4>
             <ul className="space-y-4 text-gray-400">
-              <li><a href="#home" className="hover:text-brand transition-colors">Home</a></li>
-              <li><a href="#gallery" className="hover:text-brand transition-colors">Gallery</a></li>
-              <li><a href="#contact" className="hover:text-brand transition-colors">Contact Us</a></li>
+              <li><a href="#home" onClick={(e) => handleHashClick(e, '#home')} className="hover:text-brand transition-colors">Home</a></li>
+              <li><a href="#gallery" onClick={(e) => handleHashClick(e, '#gallery')} className="hover:text-brand transition-colors">Gallery</a></li>
+              <li><a href="#contact" onClick={(e) => handleHashClick(e, '#contact')} className="hover:text-brand transition-colors">Contact Us</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-white uppercase mb-6">Our Services</h4>
             <ul className="space-y-4 text-gray-400">
-              <li><a href="#billiards" className="hover:text-brand transition-colors">Billiards</a></li>
-              <li><a href="#coffee-menu" className="hover:text-brand transition-colors">Sports Cafe</a></li>
-              <li><a href="#events" className="hover:text-brand transition-colors">Events Place</a></li>
-              <li><a href="#tournaments" className="hover:text-brand transition-colors">Tournaments</a></li>
+              <li><a href="#billiards-service" onClick={(e) => handleHashClick(e, '#billiards-service')} className="hover:text-brand transition-colors">Billiards</a></li>
+              <li><a href="#coffee-menu" onClick={(e) => handleHashClick(e, '#coffee-menu')} className="hover:text-brand transition-colors">Sports Cafe</a></li>
+              <li><a href="#event-place" onClick={(e) => handleHashClick(e, '#event-place')} className="hover:text-brand transition-colors">Events Place</a></li>
+              <li><a href="#tournaments" onClick={(e) => handleHashClick(e, '#tournaments')} className="hover:text-brand transition-colors">Tournaments</a></li>
             </ul>
           </div>
 
           <div>
             <h4 className="font-bold text-white uppercase mb-6">Membership</h4>
             <ul className="space-y-4 text-gray-400">
-              <li><a href="#membership-packages" className="hover:text-brand transition-colors">View Plans</a></li>
-              <li><a href="#terms" className="hover:text-brand transition-colors">House Rules</a></li>
-              <li><a href="#tournaments" className="hover:text-brand transition-colors">League Signups</a></li>
+              <li><a href="#membership-packages" onClick={(e) => handleHashClick(e, '#membership-packages')} className="hover:text-brand transition-colors">View Plans</a></li>
+              <li><a href="#terms" onClick={(e) => handleHashClick(e, '#terms')} className="hover:text-brand transition-colors">House Rules</a></li>
+              <li><a href="#tournaments" onClick={(e) => handleHashClick(e, '#tournaments')} className="hover:text-brand transition-colors">League Signups</a></li>
             </ul>
           </div>
 
@@ -67,8 +68,8 @@ const Footer: React.FC = () => {
         <div className="border-t border-dark-800 pt-8 flex flex-col md:flex-row justify-between items-center text-gray-600 gap-4">
           <p>© 2026 Efren Billiards and Events Place. All rights reserved.</p>
           <div className="flex gap-6">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#terms" className="hover:text-white transition-colors">Terms & Conditions</a>
+            <a href="#terms" onClick={(e) => handleHashClick(e, '#terms')} className="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#terms" onClick={(e) => handleHashClick(e, '#terms')} className="hover:text-white transition-colors">Terms & Conditions</a>
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Check, X, Facebook, Instagram } from 'lucide-react';
+import { Check, X, Facebook, Instagram, Volume2, VolumeX } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -32,12 +32,15 @@ const plans: Plan[] = [
     monthlyPrice: 85,
     annualPrice: 59,
     features: [
-      '3 Hours Free Play / Month',
-      'Discounted Rate: QAR 30/hr',
-      'Free Signature Coffee / Visit',
-      'Free Haircut (Coming Soon)',
-      '7 Career Coaching Sessions',
-      '3 Hours Event Space Usage',
+      'Free 3 hours playing time monthly',
+      'Discounted table rate: QAR30/hour',
+      'Free 1 large Efren signature coffee per visit',
+      'Free haircut (Soon to offer)',
+      'Free use of event place for 3 hours on your birthday (Valued @ QAR600)',
+      '20% Discounts in food and drinks',
+      '20% discount on event place rental',
+      '20% discount on photobooth and 360 videbooth rental',
+      'Free 7 sessions of professional career coaching (transferrable)'
     ],
     highlight: true,
     metallicGradient: 'bg-gradient-to-br from-[#FFFACD]/90 via-[#FFD700]/90 to-[#B8860B]/90',
@@ -51,13 +54,15 @@ const plans: Plan[] = [
     monthlyPrice: 60,
     annualPrice: 42,
     features: [
-      '2 Hours Free Play / Month',
-      'Discounted Rate: QAR 30/hr',
-      '20% Off Food & Drinks',
-      '5 Career Coaching Sessions',
-      '20% Off Event Space',
+      'Free 2 hours playing time monthly',
+      'Discounted table rate: QAR30/hour',
+      'Free haircut (Soon to offer)',
+      'Free use of event place for 2 hours on your birthday (Valued @ QAR400)',
+      '20% Discounts in food and drinks',
+      '20% discount on event place rental',
+      '20% discount on photobooth and 360 videbooth rental',
+      'Free 5 sessions of professional career coaching (transferrable)'
     ],
-    notIncluded: ['Free Haircut'],
     metallicGradient: 'bg-gradient-to-br from-[#F5F5F5]/90 via-[#C0C0C0]/90 to-[#757575]/90',
     textColor: 'text-black',
     borderColor: 'border-[#404040]/20',
@@ -69,12 +74,15 @@ const plans: Plan[] = [
     monthlyPrice: 35,
     annualPrice: 24,
     features: [
-      '1 Hour Free Play / Month',
-      'Discounted Rate: QAR 30/hr',
-      '20% Off Food & Drinks',
-      '3 Career Coaching Sessions',
+      'Free 1 hour playing time monthly',
+      'Discounted table rate: QAR30/hour',
+      'Free haircut (Soon to offer)',
+      'Free use of event place for 1 hour on your birthday (Valued @ QAR200)',
+      '20% Discounts in food and drinks',
+      '20% discount on event place rental',
+      '20% discount on photobooth and 360 videbooth rental',
+      'Free 3 sessions of professional career coaching (transferrable)'
     ],
-    notIncluded: ['Priority Booking', 'Event Space Access', 'Free Haircut'],
     metallicGradient: 'bg-gradient-to-br from-[#E8C39E]/90 via-[#CD7F32]/90 to-[#8B4513]/90',
     textColor: 'text-black',
     borderColor: 'border-[#5D2906]/20',
@@ -83,6 +91,49 @@ const plans: Plan[] = [
 
 const MembershipLanding: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(true);
+  const [isMuted, setIsMuted] = useState(true);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    if (hasInteracted) return;
+
+    const handleFirstInteraction = () => {
+      if (!hasInteracted && iframeRef.current && iframeRef.current.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(JSON.stringify({
+          event: 'command',
+          func: 'unMute',
+          args: []
+        }), '*');
+        setIsMuted(false);
+        setHasInteracted(true);
+      }
+    };
+
+    window.addEventListener('click', handleFirstInteraction, { once: true });
+    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    window.addEventListener('keydown', handleFirstInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+    };
+  }, [hasInteracted]);
+
+  const toggleSound = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (iframeRef.current && iframeRef.current.contentWindow) {
+      const action = isMuted ? 'unMute' : 'mute';
+      iframeRef.current.contentWindow.postMessage(JSON.stringify({
+        event: 'command',
+        func: action,
+        args: []
+      }), '*');
+      setIsMuted(!isMuted);
+      setHasInteracted(true);
+    }
+  };
 
   // Animation Variants
   const containerVariants = {
@@ -127,12 +178,24 @@ const MembershipLanding: React.FC = () => {
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
         <div className="absolute inset-0 bg-black/60 z-10"></div> {/* Dark Overlay */}
         <iframe
-          className="w-full h-full object-cover scale-[1.35] pointer-events-none"
+          ref={iframeRef}
+          className="w-full h-full object-cover scale-[1.35] pointer-events-auto"
           src="https://www.youtube.com/embed/RfiLxYAGQYY?autoplay=1&mute=1&loop=1&playlist=RfiLxYAGQYY&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1"
           title="Background Video"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           style={{ border: 'none' }}
         ></iframe>
+      </div>
+
+      {/* Sound Toggle Button */}
+      <div className="absolute top-24 right-6 md:top-32 md:right-10 z-20">
+        <button
+          onClick={toggleSound}
+          className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-full text-white hover:bg-gold hover:border-gold hover:text-black transition-all duration-300 group shadow-lg"
+          aria-label="Toggle Sound"
+        >
+          {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+        </button>
       </div>
 
       {/* Main Content */}
@@ -270,7 +333,9 @@ const MembershipLanding: React.FC = () => {
                   Be A {plan.name} Member Now!
                 </button>
 
-                <p className="text-[10px] text-center mt-6 opacity-50 uppercase tracking-widest">Terms & Conditions Apply</p>
+                <p className="text-[10px] text-center mt-6 opacity-50 uppercase tracking-widest">
+                  <a href="#terms" className="hover:text-gold transition-colors underline">Terms & Conditions Apply</a>
+                </p>
               </div>
             </motion.div>
           ))}

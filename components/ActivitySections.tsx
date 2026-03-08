@@ -1,6 +1,7 @@
 import React from 'react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
+import { handleHashClick } from '../lib/scroll';
 
 const activities = [
   {
@@ -76,7 +77,7 @@ const ActivitySections: React.FC = () => {
 
               <Reveal delay={600}>
                 <button 
-                  onClick={() => window.location.hash = '#contact'}
+                  onClick={(e) => handleHashClick(e, '#contact')}
                   className="inline-flex items-center gap-2 text-white font-bold uppercase tracking-widest text-sm group"
                 >
                   <span className="border-b-2 border-brand pb-1 group-hover:border-white transition-colors">Book this space</span>

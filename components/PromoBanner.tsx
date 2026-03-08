@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Button from './ui/Button';
 import { Timer } from 'lucide-react';
+import { handleHashClick } from '../lib/scroll';
 
 const PromoBanner: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState({ hours: 11, minutes: 59, seconds: 59 });
@@ -50,7 +51,7 @@ const PromoBanner: React.FC = () => {
           <Button 
             variant="secondary" 
             className="whitespace-nowrap shadow-xl hover:shadow-2xl transform hover:scale-105 border-2 border-transparent hover:border-white transition-all"
-            onClick={() => document.getElementById('contact')?.scrollIntoView({behavior: 'smooth'})}
+            onClick={(e) => handleHashClick(e, '#contact')}
           >
             Claim Offer
           </Button>

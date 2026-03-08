@@ -4,33 +4,32 @@ import { Calendar, Clock, X, Bell, AlertCircle, ArrowRight } from 'lucide-react'
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
+import GameTournamentSection from './GameTournamentSection';
+import TournamentCTA from './TournamentCTA';
+import { handleHashClick } from '../lib/scroll';
 
 // Mock Data Types
-interface TimeSlot {
-    id: string;
-    time: string;
-    available: boolean;
-    instructor: string;
-}
-
-const clinicSlots: TimeSlot[] = [
-    { id: '1', time: '14:00 - 14:30', available: true, instructor: 'Coach Alex' },
-    { id: '2', time: '15:00 - 15:30', available: false, instructor: 'Coach Alex' },
-    { id: '3', time: '16:00 - 16:30', available: false, instructor: 'Coach Sarah' },
-    { id: '4', time: '18:00 - 18:30', available: true, instructor: 'Coach Sarah' },
-];
 
 const BilliardsPage: React.FC = () => {
     useEffect(() => { window.scrollTo(0, 0); }, []);
 
-    const [showClinicModal, setShowClinicModal] = useState(false);
-    const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
-    const [notified, setNotified] = useState<Record<string, boolean>>({});
+    const [showFormModal, setShowFormModal] = useState(false);
+    const [formType, setFormType] = useState<'Clinic' | 'Coaching'>('Clinic');
+    const [formData, setFormData] = useState({
+        name: '',
+        mobile: '',
+        skillLevel: 'Beginner',
+        schedule: ''
+    });
 
-    const handleNotify = (id: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        setNotified(prev => ({ ...prev, [id]: true }));
-    }
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        const typeText = formType === 'Clinic' ? 'Book a Pro Clinic' : 'Inquire about Coaching';
+        const message = `Hello! I would like to ${typeText}.\n\n*Name:* ${formData.name}\n*Skill Level:* ${formData.skillLevel}\n*Preferred Schedule:* ${formData.schedule}`;
+        const whatsappUrl = `https://wa.me/97451622111?text=${encodeURIComponent(message)}`;
+        window.open(whatsappUrl, '_blank');
+        setShowFormModal(false);
+    };
 
     return (
         <div className="pt-24 min-h-screen bg-dark-900">
@@ -52,19 +51,30 @@ const BilliardsPage: React.FC = () => {
                         Our tables are meticulously maintained to ensure consistent play for both casual enthusiasts and serious competitors. Whether you're practicing for your next tournament or enjoying a relaxed evening with friends, our billiards area is designed to provide the ultimate playing experience. We offer premium cues, pristine felt, and a dedicated staff ready to reset your racks.
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                        <Button variant="primary" onClick={() => window.location.hash = '#contact'} className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full hover:scale-105 transition-transform duration-300 w-full sm:w-auto">
+                        <Button 
+                            variant="primary" 
+                            onClick={() => handleHashClick({ preventDefault: () => {} }, '#contact')} 
+                            className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full hover:scale-105 transition-transform duration-300 w-full sm:w-auto"
+                        >
                             Book a Table
                         </Button>
-                        <Button variant="outline" onClick={() => setShowClinicModal(true)} className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full w-full sm:w-auto flex items-center justify-center gap-2 border-brand text-brand hover:bg-brand hover:text-black transition-colors duration-300">
-                            Book Pro Clinic
+                        <Button 
+                            variant="outline" 
+                            onClick={() => { setFormType('Coaching'); setShowFormModal(true); }} 
+                            className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full w-full sm:w-auto flex items-center justify-center gap-2 border-brand text-brand hover:bg-brand hover:text-black transition-colors duration-300"
+                        >
+                            Inquire Coaching Service
                         </Button>
                     </div>
+                    <TournamentCTA gameType="billiards" />
                 </Reveal>
             </Section>
 
-            {/* Pro Clinic Booking Modal */}
+            <GameTournamentSection gameType="billiards" />
+
+            {/* Coaching Questionnaire Modal */}
             <AnimatePresence>
-                {showClinicModal && (
+                {showFormModal && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -75,66 +85,78 @@ const BilliardsPage: React.FC = () => {
                             initial={{ scale: 0.95, y: 20 }}
                             animate={{ scale: 1, y: 0 }}
                             exit={{ scale: 0.95, y: 20 }}
-                            className="bg-dark-800 border border-white/10 rounded-3xl p-6 md:p-10 max-w-xl w-full relative shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-y-auto max-h-[90vh]"
+                            className="bg-dark-800 border border-white/10 rounded-3xl p-6 md:p-10 max-w-lg w-full relative shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-y-auto max-h-[90vh]"
                         >
-                            <button onClick={() => setShowClinicModal(false)} className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors bg-dark-900 rounded-full p-2">
+                            <button onClick={() => setShowFormModal(false)} className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors bg-dark-900 rounded-full p-2">
                                 <X size={20} />
                             </button>
 
-                            <h3 className="text-3xl font-black text-white uppercase tracking-tight mb-2 flex items-center gap-3">
-                                30-Min Pro Tune-up <span className="bg-brand text-black text-[10px] tracking-widest px-2 py-1 rounded-full whitespace-nowrap align-middle">NEW</span>
+                            <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-2">
+                                {formType === 'Clinic' ? 'Book Pro Clinic' : 'Coaching Inquiry'}
                             </h3>
-                            <p className="text-gray-400 text-sm leading-relaxed mb-8 border-b border-dark-700 pb-6">
-                                Book a quick clinic with our resident pros to fix your stance, stroke, or strategy before your big match. Includes cue demoing.
+                            <p className="text-gray-400 text-sm mb-8">
+                                Please fill out the form below and we'll connect with you on WhatsApp.
                             </p>
 
-                            <div className="space-y-3 mb-8">
-                                <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-4 flex items-center gap-2">
-                                    <Calendar size={14} className="text-brand" /> Today's Slots
-                                </h4>
+                            <form onSubmit={handleSubmit} className="space-y-6">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Full Name</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-brand outline-none transition-colors"
+                                        placeholder="Enter your name"
+                                    />
+                                </div>
 
-                                {clinicSlots.map((slot) => (
-                                    <div
-                                        key={slot.id}
-                                        onClick={() => slot.available && setSelectedSlot(slot.id)}
-                                        className={`p-4 rounded-xl border flex justify-between items-center transition-all ${!slot.available
-                                                ? 'bg-dark-900/50 border-dark-700 opacity-60 cursor-not-allowed'
-                                                : selectedSlot === slot.id
-                                                    ? 'bg-brand/10 border-brand text-white cursor-pointer shadow-[0_0_15px_rgba(197,160,89,0.2)]'
-                                                    : 'bg-dark-900 border-white/5 text-gray-300 hover:border-brand/50 cursor-pointer'
-                                            }`}
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Mobile Number</label>
+                                    <input
+                                        required
+                                        type="tel"
+                                        value={formData.mobile}
+                                        onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
+                                        className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-brand outline-none transition-colors"
+                                        placeholder="+974 ..."
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Skill Level</label>
+                                    <select
+                                        value={formData.skillLevel}
+                                        onChange={(e) => setFormData({ ...formData, skillLevel: e.target.value })}
+                                        className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-brand outline-none transition-colors appearance-none"
                                     >
-                                        <div>
-                                            <p className="font-bold flex items-center gap-2"><Clock size={14} className={selectedSlot === slot.id ? 'text-brand' : 'text-gray-500'} /> {slot.time}</p>
-                                            <p className="text-xs text-gray-500 uppercase tracking-widest mt-1">{slot.instructor}</p>
-                                        </div>
+                                        <option value="Beginner">Beginner</option>
+                                        <option value="Intermediate">Intermediate</option>
+                                        <option value="Advanced">Advanced</option>
+                                    </select>
+                                </div>
 
-                                        {!slot.available ? (
-                                            notified[slot.id] ? (
-                                                <span className="text-xs font-bold text-green-400 uppercase tracking-wider flex items-center gap-1"><Bell size={12} /> Alert Set</span>
-                                            ) : (
-                                                <button onClick={(e) => handleNotify(slot.id, e)} className="text-xs font-bold bg-dark-800 text-gray-400 px-3 py-1.5 rounded uppercase tracking-wider hover:text-white border border-white/10 transition-colors">
-                                                    Notify Me
-                                                </button>
-                                            )
-                                        ) : (
-                                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${selectedSlot === slot.id ? 'border-brand' : 'border-gray-600'}`}>
-                                                {selectedSlot === slot.id && <div className="w-2 h-2 bg-brand rounded-full"></div>}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">Preferred Date/Time</label>
+                                    <input
+                                        required
+                                        type="text"
+                                        value={formData.schedule}
+                                        onChange={(e) => setFormData({ ...formData, schedule: e.target.value })}
+                                        className="w-full bg-dark-900 border border-white/10 rounded-xl px-4 py-3 text-white focus:border-brand outline-none transition-colors"
+                                        placeholder="e.g. Monday at 6 PM"
+                                    />
+                                </div>
 
-                            <Button
-                                variant="primary"
-                                fullWidth
-                                disabled={!selectedSlot}
-                                onClick={() => alert("Mock Booking Confirmed!")}
-                                className="py-4 text-sm"
-                            >
-                                {selectedSlot ? 'Confirm Booking' : 'Select a Slot'}
-                            </Button>
+                                <Button
+                                    variant="primary"
+                                    fullWidth
+                                    type="submit"
+                                    className="py-4 text-sm font-black uppercase tracking-widest"
+                                >
+                                    Submit to WhatsApp
+                                </Button>
+                            </form>
                         </motion.div>
                     </motion.div>
                 )}

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useToast } from './ui/Toast';
-import { Loader2, Plus, Trophy, Edit2, Trash2, Users } from 'lucide-react';
-import type { Tournament, GameType, TournamentStatus } from '../types/database';
+import { Loader2, Plus, Trophy, Users } from 'lucide-react';
+import type { Tournament, TournamentCategory, TournamentStatus } from '../types/database';
+import AdminTournamentParticipants from './AdminTournamentParticipants';
+import AdminTournamentList from './admin/AdminTournamentList';
 
 const AdminTournaments: React.FC = () => {
     const { showToast, ToastContainer } = useToast();
@@ -10,19 +12,23 @@ const AdminTournaments: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [showForm, setShowForm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
+    const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
 
     // Form State
-    const [editingId, setEditingId] = useState<string | null>(null);
     const [formData, setFormData] = useState<{
         name: string;
-        game_type: GameType;
+        game_type: TournamentCategory;
         status: TournamentStatus;
-        started_at: string;
+        start_date: string;
+        description: string;
+        prize_amount: string;
     }>({
         name: '',
         game_type: 'billiards',
         status: 'pending',
-        started_at: ''
+        start_date: '',
+        description: '',
+        prize_amount: '',
     });
 
     useEffect(() => {
@@ -46,24 +52,15 @@ const AdminTournaments: React.FC = () => {
         }
     };
 
-    const handleOpenForm = (tournament?: Tournament) => {
-        if (tournament) {
-            setEditingId(tournament.id);
-            setFormData({
-                name: tournament.name,
-                game_type: tournament.game_type,
-                status: tournament.status,
-                started_at: tournament.started_at ? new Date(tournament.started_at).toISOString().slice(0, 16) : ''
-            });
-        } else {
-            setEditingId(null);
-            setFormData({
-                name: '',
-                game_type: 'billiards',
-                status: 'pending',
-                started_at: ''
-            });
-        }
+    const handleOpenForm = () => {
+        setFormData({
+            name: '',
+            game_type: 'billiards',
+            status: 'pending',
+            start_date: '',
+            description: '',
+            prize_amount: '',
+        });
         setShowForm(true);
     };
 
@@ -71,22 +68,19 @@ const AdminTournaments: React.FC = () => {
         e.preventDefault();
         setSubmitting(true);
         try {
+            const parsedPrize = formData.prize_amount ? parseFloat(formData.prize_amount) : null;
             const payload = {
                 name: formData.name,
                 game_type: formData.game_type,
                 status: formData.status,
-                started_at: formData.started_at ? new Date(formData.started_at).toISOString() : null,
+                start_date: formData.start_date ? new Date(formData.start_date).toISOString() : null,
+                description: formData.description || null,
+                prize_amount: parsedPrize,
             };
 
-            if (editingId) {
-                const { error } = await (supabase.from('tournaments') as any).update(payload).eq('id', editingId);
-                if (error) throw error;
-                showToast('Tournament updated successfully', 'success');
-            } else {
-                const { error } = await (supabase.from('tournaments') as any).insert([payload]);
-                if (error) throw error;
-                showToast('Tournament created successfully', 'success');
-            }
+            const { error } = await (supabase.from('tournaments') as any).insert([payload]);
+            if (error) throw error;
+            showToast('Tournament created successfully', 'success');
 
             setShowForm(false);
             fetchTournaments();
@@ -97,43 +91,35 @@ const AdminTournaments: React.FC = () => {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        if (!confirm('Are you sure you want to delete this tournament?')) return;
-        try {
-            const { error } = await (supabase.from('tournaments') as any).delete().eq('id', id);
-            if (error) throw error;
-            showToast('Tournament deleted', 'success');
-            fetchTournaments();
-        } catch (err: any) {
-            showToast(err.message, 'error');
-        }
-    };
+    if (selectedTournament) {
+        return <AdminTournamentParticipants tournament={selectedTournament} onBack={() => setSelectedTournament(null)} />;
+    }
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl">
             <ToastContainer />
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Tournaments</h1>
-                    <p className="text-gray-500 text-sm mt-1">Manage events, players, and registrations.</p>
+                    <p className="text-gray-500 text-sm mt-1">Manage events, drag to reorder, inline edit.</p>
                 </div>
                 {!showForm && (
                     <button
-                        onClick={() => handleOpenForm()}
+                        onClick={handleOpenForm}
                         className="flex items-center gap-2 px-6 py-2.5 bg-brand text-white rounded-xl text-sm font-bold hover:bg-brand/90 transition-all shadow-lg shadow-brand/20"
                     >
                         <Plus size={18} />
-                        Create Tournament
+                        Create
                     </button>
                 )}
             </div>
 
             {showForm ? (
                 <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 backdrop-blur-xl">
-                    <h2 className="text-xl font-bold text-white mb-6 uppercase tracking-wider">{editingId ? 'Edit Tournament' : 'New Tournament'}</h2>
+                    <h2 className="text-xl font-bold text-white mb-6 uppercase tracking-wider">New Tournament</h2>
                     <form onSubmit={handleSave} className="space-y-6">
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-2">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2 md:col-span-2">
                                 <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Tournament Name</label>
                                 <input
                                     type="text"
@@ -148,12 +134,12 @@ const AdminTournaments: React.FC = () => {
                                 <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Game Type</label>
                                 <select
                                     value={formData.game_type}
-                                    onChange={e => setFormData({ ...formData, game_type: e.target.value as GameType })}
+                                    onChange={e => setFormData({ ...formData, game_type: e.target.value as TournamentCategory })}
                                     className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand/40 appearance-none"
                                 >
-                                    <option value="billiards">Billiards</option>
-                                    <option value="darts">Darts</option>
-                                    <option value="chess">Chess</option>
+                                    <option className="bg-[#0a0a0c] text-white" value="billiards">Billiards</option>
+                                    <option className="bg-[#0a0a0c] text-white" value="darts">Darts</option>
+                                    <option className="bg-[#0a0a0c] text-white" value="chess">Chess</option>
                                 </select>
                             </div>
                             <div className="space-y-2">
@@ -163,18 +149,38 @@ const AdminTournaments: React.FC = () => {
                                     onChange={e => setFormData({ ...formData, status: e.target.value as TournamentStatus })}
                                     className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand/40 appearance-none"
                                 >
-                                    <option value="pending">Upcoming / Pending</option>
-                                    <option value="in_progress">In Progress</option>
-                                    <option value="completed">Completed</option>
+                                    <option className="bg-[#0a0a0c] text-white" value="pending">Pending (Accepting Registrations)</option>
+                                    <option className="bg-[#0a0a0c] text-white" value="in_progress">In Progress</option>
+                                    <option className="bg-[#0a0a0c] text-white" value="completed">Completed</option>
                                 </select>
                             </div>
-                            <div className="space-y-2">
+                            <div className="space-y-2 md:col-span-2">
                                 <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Start Date & Time</label>
                                 <input
                                     type="datetime-local"
-                                    value={formData.started_at}
-                                    onChange={e => setFormData({ ...formData, started_at: e.target.value })}
+                                    value={formData.start_date}
+                                    onChange={e => setFormData({ ...formData, start_date: e.target.value })}
+                                    min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
+                                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand/40 [color-scheme:dark]"
+                                />
+                            </div>
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Description (Optional)</label>
+                                <textarea
+                                    value={formData.description}
+                                    onChange={e => setFormData({ ...formData, description: e.target.value })}
+                                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand/40 min-h-[100px]"
+                                    placeholder="Enter tournament details, rules, or schedule..."
+                                />
+                            </div>
+                            <div className="space-y-2 md:col-span-2">
+                                <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Prize Amount (QAR) (Optional)</label>
+                                <input
+                                    type="number"
+                                    value={formData.prize_amount}
+                                    onChange={e => setFormData({ ...formData, prize_amount: e.target.value })}
                                     className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand/40"
+                                    placeholder="e.g. 1000"
                                 />
                             </div>
                         </div>
@@ -200,81 +206,22 @@ const AdminTournaments: React.FC = () => {
                     </form>
                 </div>
             ) : (
-                <div className="rounded-3xl border border-white/5 bg-white/[0.01] overflow-hidden">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-white/[0.02] border-b border-white/5">
-                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Tournament</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Status</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Game Type</th>
-                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-white/5">
-                            {loading ? (
-                                [1, 2, 3].map(i => (
-                                    <tr key={i} className="animate-pulse">
-                                        <td colSpan={4} className="px-6 py-8 bg-white/[0.01]" />
-                                    </tr>
-                                ))
-                            ) : tournaments.length === 0 ? (
-                                <tr>
-                                    <td colSpan={4} className="px-6 py-12 text-center text-gray-500 text-sm">
-                                        No tournaments found. Create one to get started.
-                                    </td>
-                                </tr>
-                            ) : (
-                                tournaments.map(t => (
-                                    <tr key={t.id} className="group hover:bg-white/[0.02] transition-colors">
-                                        <td className="px-6 py-5">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center font-bold text-brand">
-                                                    <Trophy size={18} />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-bold text-white">{t.name}</p>
-                                                    <p className="text-[10px] text-gray-500 font-medium">
-                                                        {t.started_at ? new Date(t.started_at).toLocaleDateString() : 'TBA'}
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-5">
-                                            <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${t.status === 'completed' ? 'bg-gray-500/10 text-gray-400' :
-                                                    t.status === 'in_progress' ? 'bg-emerald-500/10 text-emerald-400' :
-                                                        'bg-yellow-500/10 text-yellow-400'
-                                                }`}>
-                                                <div className={`w-1 h-1 rounded-full ${t.status === 'completed' ? 'bg-gray-400' :
-                                                        t.status === 'in_progress' ? 'bg-emerald-400' :
-                                                            'bg-yellow-400'
-                                                    }`} />
-                                                {t.status.replace('_', ' ')}
-                                            </span>
-                                        </td>
-                                        <td className="px-6 py-5 text-sm text-gray-400 capitalize">
-                                            {t.game_type}
-                                        </td>
-                                        <td className="px-6 py-5 text-right flex items-center justify-end gap-2 text-gray-400">
-                                            <button
-                                                onClick={() => handleOpenForm(t)}
-                                                className="p-2 hover:text-white transition-all bg-white/5 hover:bg-white/10 rounded-lg"
-                                                title="Edit"
-                                            >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(t.id)}
-                                                className="p-2 hover:text-red-400 transition-all bg-white/5 hover:bg-red-500/10 rounded-lg"
-                                                title="Delete"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
+                <div className="mt-8">
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <Loader2 size={24} className="animate-spin text-brand" />
+                        </div>
+                    ) : tournaments.length === 0 ? (
+                        <div className="text-center py-12 text-zinc-500 border border-zinc-800 rounded-2xl border-dashed">
+                            No tournaments found. Create one to get started.
+                        </div>
+                    ) : (
+                        <AdminTournamentList 
+                            initialTournaments={tournaments} 
+                            onTournamentsChange={setTournaments} 
+                            onSelectTournament={setSelectedTournament}
+                        />
+                    )}
                 </div>
             )}
         </div>

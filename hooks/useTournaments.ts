@@ -1,19 +1,26 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Tournament, TournamentParticipant, Match, Player } from '../types';
+import type { Tournament, Registration, Match, Profile } from '../types/database';
+
+export interface MatchWithPlayers extends Match {
+    player1?: Profile | null;
+    player2?: Profile | null;
+    winner?: Profile | null;
+}
 
 export function generateRelationalBracket(
     tournamentId: string,
-    participants: TournamentParticipant[]
-): Match[] {
-    const matches: Match[] = [];
+    participants: Registration[]
+): MatchWithPlayers[] {
+    const matches: MatchWithPlayers[] = [];
     const N = participants.length;
     if (N < 2) return [];
 
     let powerOfTwo = 1;
     while (powerOfTwo < N) powerOfTwo *= 2;
 
-    const seeded = [...participants].sort((a, b) => a.seed - b.seed);
+    // We don't have seeds in the new schema yet, so just use order of registration
+    const seeded = [...participants];
     const totalRounds = Math.log2(powerOfTwo);
     let matchOrderGlobal = 0;
 
@@ -21,7 +28,7 @@ export function generateRelationalBracket(
         const matchId = crypto.randomUUID();
         const currentOrder = matchOrderGlobal++;
 
-        const match: Match = {
+        const match: MatchWithPlayers = {
             id: matchId,
             tournament_id: tournamentId,
             round,
@@ -49,16 +56,18 @@ export function generateRelationalBracket(
 
     round1Matches.forEach((m) => {
         if (currentParticipantIndex < seeded.length) {
-            m.player1_id = seeded[currentParticipantIndex].player_id;
-            m.player1 = seeded[currentParticipantIndex].player;
+            const p = (seeded[currentParticipantIndex] as any).profiles;
+            m.player1_id = seeded[currentParticipantIndex].user_id;
+            m.player1 = p ? { ...p, name: p.full_name } : null;
             currentParticipantIndex++;
         }
     });
 
     round1Matches.forEach((m) => {
         if (currentParticipantIndex < seeded.length) {
-            m.player2_id = seeded[currentParticipantIndex].player_id;
-            m.player2 = seeded[currentParticipantIndex].player;
+            const p = (seeded[currentParticipantIndex] as any).profiles;
+            m.player2_id = seeded[currentParticipantIndex].user_id;
+            m.player2 = p ? { ...p, name: p.full_name } : null;
             currentParticipantIndex++;
         } else {
             m.status = 'completed';
@@ -85,29 +94,22 @@ export function generateRelationalBracket(
     return matches;
 }
 
-async function fetchParticipantsWithPlayers(tournamentId: string): Promise<TournamentParticipant[]> {
+async function fetchParticipantsWithPlayers(tournamentId: string): Promise<Registration[]> {
     const { data, error } = await supabase
-        .from('tournament_participants')
-        .select('id, tournament_id, player_id, seed, created_at, players ( id, name, avatar_url, rating, created_at )')
+        .from('registrations')
+        .select('*, profiles(*)')
         .eq('tournament_id', tournamentId)
-        .order('seed', { ascending: true });
+        .order('registered_at', { ascending: true });
 
     if (error) throw error;
 
-    return (data || []).map((row: any) => ({
-        id: row.id,
-        tournament_id: row.tournament_id,
-        player_id: row.player_id,
-        seed: row.seed,
-        created_at: row.created_at,
-        player: row.players ?? undefined,
-    }));
+    return data as any[];
 }
 
-async function fetchMatchesWithPlayers(tournamentId: string): Promise<Match[]> {
+async function fetchMatchesWithPlayers(tournamentId: string): Promise<MatchWithPlayers[]> {
     const { data, error } = await supabase
         .from('matches')
-        .select('id, tournament_id, round, match_order, player1_id, player2_id, winner_id, status, next_match_id, created_at')
+        .select('*')
         .eq('tournament_id', tournamentId)
         .order('round', { ascending: true })
         .order('match_order', { ascending: true });
@@ -122,14 +124,19 @@ async function fetchMatchesWithPlayers(tournamentId: string): Promise<Match[]> {
         if (m.winner_id) playerIds.add(m.winner_id);
     });
 
-    const playerMap: Record<string, Player> = {};
+    const playerMap: Record<string, any> = {};
     if (playerIds.size > 0) {
         const { data: players, error: pErr } = await supabase
             .from('players')
-            .select('id, name, avatar_url, rating, created_at')
+            .select('*')
             .in('id', Array.from(playerIds));
         if (!pErr && players) {
-            players.forEach((p: any) => { playerMap[p.id] = p; });
+            players.forEach((p: any) => { 
+                playerMap[p.id] = {
+                    ...p,
+                    full_name: p.name // Map 'name' to 'full_name' for the UI
+                }; 
+            });
         }
     }
 
@@ -151,7 +158,7 @@ export function useAllTournaments() {
             try {
                 const { data, error: qErr } = await supabase
                     .from('tournaments')
-                    .select('id, name, game_type, status, started_at, completed_at, created_at')
+                    .select('*')
                     .order('created_at', { ascending: false });
 
                 if (qErr) throw qErr;
@@ -169,12 +176,42 @@ export function useAllTournaments() {
     return { tournaments, loading, error };
 }
 
+export function useTournamentsByGameType(gameType: 'billiards' | 'darts' | 'chess') {
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [tournaments, setTournaments] = useState<Tournament[]>([]);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const { data, error: tErr } = await supabase
+                    .from('tournaments')
+                    .select('*')
+                    .eq('game_type', gameType)
+                    .order('created_at', { ascending: false });
+
+                if (tErr) throw tErr;
+                setTournaments((data as Tournament[]) || []);
+            } catch (err: any) {
+                setError(err.message || `Failed to fetch ${gameType} tournaments.`);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
+    }, [gameType]);
+
+    return { tournaments, loading, error };
+}
+
 export function useActiveTournamentByGameType(gameType: 'billiards' | 'darts' | 'chess') {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [tournament, setTournament] = useState<Tournament | null>(null);
-    const [matches, setMatches] = useState<Match[]>([]);
-    const [participants, setParticipants] = useState<TournamentParticipant[]>([]);
+    const [matches, setMatches] = useState<MatchWithPlayers[]>([]);
+    const [participants, setParticipants] = useState<Registration[]>([]);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -182,14 +219,20 @@ export function useActiveTournamentByGameType(gameType: 'billiards' | 'darts' | 
             try {
                 const { data: tData, error: tErr } = await supabase
                     .from('tournaments')
-                    .select('id, name, game_type, status, started_at, completed_at, created_at')
+                    .select('*')
                     .eq('game_type', gameType)
                     .in('status', ['pending', 'in_progress'])
                     .order('created_at', { ascending: false })
                     .limit(1)
-                    .single();
+                    .maybeSingle();
 
                 if (tErr) throw tErr;
+                if (!tData) {
+                    setTournament(null);
+                    setParticipants([]);
+                    setMatches([]);
+                    return;
+                }
                 const t = tData as Tournament;
                 setTournament(t);
 
@@ -222,8 +265,8 @@ export function useTournamentData(tournamentId: string | null) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [tournament, setTournament] = useState<Tournament | null>(null);
-    const [matches, setMatches] = useState<Match[]>([]);
-    const [participants, setParticipants] = useState<TournamentParticipant[]>([]);
+    const [matches, setMatches] = useState<MatchWithPlayers[]>([]);
+    const [participants, setParticipants] = useState<Registration[]>([]);
 
     useEffect(() => {
         if (!tournamentId) { setLoading(false); return; }
@@ -233,7 +276,7 @@ export function useTournamentData(tournamentId: string | null) {
             try {
                 const { data: tData, error: tErr } = await supabase
                     .from('tournaments')
-                    .select('id, name, game_type, status, started_at, completed_at, created_at')
+                    .select('*')
                     .eq('id', tournamentId)
                     .single();
 

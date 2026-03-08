@@ -3,16 +3,19 @@ import Button from './ui/Button';
 import { Timer, ArrowRight, Volume2, VolumeX } from 'lucide-react';
 import Reveal from './ui/Reveal';
 import { supabase } from '../lib/supabase';
+import { scrollToElement, handleHashClick } from '../lib/scroll';
 
 const Hero: React.FC = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [content, setContent] = useState({
-    title: 'The Ultimate Billiards Experience',
-    subtitle: 'A premium members-only club where legends are built and the game never ends.',
+    title: 'Become A Member Today',
+    subtitle: 'Join our premium club and unlock exclusive discounts. Members save up to 30% on table rates, dining, and event bookings.',
     cta: 'Get Membership Now!'
   });
   const [loading, setLoading] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const [hasInteracted, setHasInteracted] = useState(false);
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -42,7 +45,34 @@ const Hero: React.FC = () => {
     fetchContent();
   }, []);
 
-  const toggleSound = () => {
+  useEffect(() => {
+    if (hasInteracted) return;
+
+    const handleFirstInteraction = () => {
+      if (!hasInteracted && iframeRef.current && iframeRef.current.contentWindow) {
+        iframeRef.current.contentWindow.postMessage(JSON.stringify({
+          event: 'command',
+          func: 'unMute',
+          args: []
+        }), '*');
+        setIsMuted(false);
+        setHasInteracted(true);
+      }
+    };
+
+    window.addEventListener('click', handleFirstInteraction, { once: true });
+    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
+    window.addEventListener('keydown', handleFirstInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('click', handleFirstInteraction);
+      window.removeEventListener('touchstart', handleFirstInteraction);
+      window.removeEventListener('keydown', handleFirstInteraction);
+    };
+  }, [hasInteracted]);
+
+  const toggleSound = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation(); // Prevent triggering the global listener if clicked directly
     if (iframeRef.current && iframeRef.current.contentWindow) {
       const action = isMuted ? 'unMute' : 'mute';
       // Send postMessage command to YouTube iframe to avoid reloading the video src
@@ -52,6 +82,7 @@ const Hero: React.FC = () => {
         args: []
       }), '*');
       setIsMuted(!isMuted);
+      setHasInteracted(true);
     }
   };
 
@@ -82,7 +113,7 @@ const Hero: React.FC = () => {
           <iframe
             ref={iframeRef}
             className="w-full h-full object-cover scale-[1.35] -translate-y-[15%] opacity-60 pointer-events-auto"
-            src="https://www.youtube.com/embed/RfiLxYAGQYY?autoplay=1&mute=1&loop=1&playlist=RfiLxYAGQYY&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1"
+            src="https://www.youtube.com/embed/RfiLxYAGQYY?autoplay=1&mute=1&loop=1&playlist=RfiLxYAGQYY&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1"
             title="Hero Background"
             frameBorder="0"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
@@ -135,13 +166,13 @@ const Hero: React.FC = () => {
             <Button
               variant="primary"
               className="bg-gradient-to-r from-[#FFD700] via-[#C5A059] to-[#B8860B] text-black border-none shadow-[0_0_30px_rgba(197,160,89,0.4)] hover:bg-none hover:bg-white hover:text-black hover:shadow-[0_0_50px_rgba(255,255,255,0.6)] text-base md:text-lg px-8 md:px-12 py-4 md:py-5 uppercase font-black tracking-widest w-full md:w-auto transform transition-all hover:-translate-y-1"
-              onClick={() => window.location.hash = '#membership-packages'}
+              onClick={(e) => handleHashClick(e, '#membership-packages')}
             >
               {content.cta} <ArrowRight className="ml-2 w-5 h-5 md:w-6 md:h-6" />
             </Button>
 
             <button
-              onClick={() => document.getElementById('billiards')?.scrollIntoView({ behavior: 'smooth' })}
+              onClick={() => scrollToElement('services')}
               className="text-gray-400 hover:text-white font-bold uppercase tracking-widest text-xs md:text-sm border-b border-gray-500 hover:border-white pb-1 transition-all"
             >
               View Facilities!

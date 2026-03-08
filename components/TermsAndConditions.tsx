@@ -28,6 +28,7 @@ const TermsAndConditions: React.FC = () => {
                   <li>Please respect other players and keep noise levels reasonable.</li>
                   <li>Smoking is only allowed in designated areas.</li>
                   <li>Outside food and drinks are strictly not permitted.</li>
+                  <li>Gambling is strictly prohibited on the premises.</li>
                 </ul>
               </div>
 

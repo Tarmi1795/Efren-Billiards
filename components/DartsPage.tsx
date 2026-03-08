@@ -4,6 +4,9 @@ import { Trophy, Share2, Award, Zap, TrendingUp, ChevronUp, ChevronDown } from '
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
+import GameTournamentSection from './GameTournamentSection';
+import TournamentCTA from './TournamentCTA';
+import { handleHashClick } from '../lib/scroll';
 
 // Web Share API Utility
 const handleShareScore = async () => {
@@ -87,10 +90,11 @@ const DartsPage: React.FC = () => {
                     </div>
 
                     <div className="flex justify-center md:justify-start">
-                        <Button variant="primary" onClick={() => window.location.hash = '#contact'} className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full hover:scale-105 transition-transform duration-300">
+                        <Button variant="primary" onClick={(e) => handleHashClick(e, '#contact')} className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full hover:scale-105 transition-transform duration-300">
                             Book a Board
                         </Button>
                     </div>
+                    <TournamentCTA gameType="darts" />
                 </Reveal>
 
                 {/* Gamification Widget: Leaderboards */}
@@ -152,6 +156,8 @@ const DartsPage: React.FC = () => {
                     </div>
                 </Reveal>
             </Section>
+
+            <GameTournamentSection gameType="darts" />
         </div>
     );
 }

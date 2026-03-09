@@ -5,6 +5,7 @@ import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
 import { handleHashClick } from '../lib/scroll';
+import { supabase } from '../lib/supabase';
 
 // Mock Data Types
 type EventType = 'Corporate event' | 'Tournament' | 'Birthday';
@@ -16,22 +17,28 @@ interface EventData {
     description: string;
 }
 
+const DEFAULT_PRICES: Record<EventType, number> = {
+    'Corporate event': 150,
+    'Tournament': 100,
+    'Birthday': 80,
+};
+
 const eventTypes: Record<EventType, EventData> = {
     'Corporate event': {
         type: 'Corporate event',
-        basePrice: 150,
+        basePrice: DEFAULT_PRICES['Corporate event'],
         image: 'https://iili.io/q2MS4TJ.md.jpg',
         description: 'Elegant seating, buffet setup, and premium lighting.'
     },
     Tournament: {
         type: 'Tournament',
-        basePrice: 100,
+        basePrice: DEFAULT_PRICES['Tournament'],
         image: 'https://iili.io/q2MSgpa.md.jpg',
         description: 'Optimized floorplan for competitive play and spectator viewing.'
     },
     Birthday: {
         type: 'Birthday',
-        basePrice: 80,
+        basePrice: DEFAULT_PRICES['Birthday'],
         image: 'https://iili.io/q2MSjhx.md.jpg',
         description: 'Casual layout with dance floor and catering stations.'
     }
@@ -43,8 +50,29 @@ const EventPlacePage: React.FC = () => {
     // Calculator State
     const [eventType, setEventType] = useState<EventType>('Corporate event');
     const [guests, setGuests] = useState<number>(50);
+    const [basePrices, setBasePrices] = useState<Record<EventType, number>>(DEFAULT_PRICES);
 
-    const estimatedCost = guests * eventTypes[eventType].basePrice;
+    // Fetch CMS pricing
+    useEffect(() => {
+        (async () => {
+            try {
+                const { data, error } = await (supabase.from('cms_content') as any)
+                    .select('body')
+                    .eq('slug', 'event-place-pricing')
+                    .single();
+                if (!error && data?.body) {
+                    const cms = JSON.parse(data.body);
+                    setBasePrices({
+                        'Corporate event': cms.corporate ?? DEFAULT_PRICES['Corporate event'],
+                        'Tournament': cms.tournament ?? DEFAULT_PRICES['Tournament'],
+                        'Birthday': cms.birthday ?? DEFAULT_PRICES['Birthday'],
+                    });
+                }
+            } catch { /* use defaults */ }
+        })();
+    }, []);
+
+    const estimatedCost = guests * basePrices[eventType];
 
     return (
         <div className="pt-24 min-h-screen bg-dark-900">

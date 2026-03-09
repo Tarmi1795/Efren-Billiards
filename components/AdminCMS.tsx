@@ -22,9 +22,10 @@ import AdminRankings from './admin/AdminRankings';
 import AdminOfferings from './admin/AdminOfferings';
 import AdminVisualTour from './admin/AdminVisualTour';
 import AdminMatchMyGame from './admin/AdminMatchMyGame';
+import AdminEventPricing from './admin/AdminEventPricing';
 import type { Profile, MembershipTier } from '../types/database';
 
-type CMSModule = 'hero' | 'gallery' | 'offerings' | 'visual-tour' | 'site-images' | 'videos' | 'food-menu' | 'match-my-game' | 'weekly-schedule' | 'membership-plans' | 'contact-info' | 'social-links' | 'tournaments' | 'players' | 'members' | 'rankings' | 'settings';
+type CMSModule = 'hero' | 'gallery' | 'offerings' | 'visual-tour' | 'site-images' | 'videos' | 'food-menu' | 'match-my-game' | 'weekly-schedule' | 'membership-plans' | 'contact-info' | 'social-links' | 'tournaments' | 'players' | 'members' | 'rankings' | 'event-pricing' | 'settings';
 
 const AdminCMS: React.FC = () => {
     const { profile, loading: authLoading } = useAuth();
@@ -231,6 +232,9 @@ const AdminCMS: React.FC = () => {
                                 </button>
                                 <button onClick={() => setActiveModule('membership-plans')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'membership-plans' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
                                     <Crown size={18} /> Membership Plans
+                                </button>
+                                <button onClick={() => setActiveModule('event-pricing')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'event-pricing' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <Calendar size={18} /> Event Pricing
                                 </button>
                             </nav>
                         </div>
@@ -567,6 +571,11 @@ const AdminCMS: React.FC = () => {
                     {/* Membership Plans Module */}
                     {activeModule === 'membership-plans' && (
                         <AdminMembershipPlans />
+                    )}
+
+                    {/* Event Pricing Module */}
+                    {activeModule === 'event-pricing' && (
+                        <AdminEventPricing />
                     )}
 
                     {/* Placeholder for other modules */}

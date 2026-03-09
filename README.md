@@ -1,30 +1,50 @@
+# Efren Billiards & Events — Doha, Qatar 🎱🎯♟️
 
+A premium, state-of-the-art web application built for **Efren Billiards & Events**. This platform combines high-end aesthetics with powerful tournament management and content control systems.
 
-# Efren Billiards & Events — Qatar 🎱
+## 🚀 Key Features
 
-A premium React + TypeScript web application for **Efren Billiards & Events** in Doha, Qatar.
+- 🏆 **Professional Bracket System** — Advanced tournament visualizer with **dynamic elimination logic**. Advance winners and manage match outcomes directly from the admin panel.
+- 🛠️ **Custom Admin CMS** — A full-scale management suite. Control pricing, site text, tournament brackets, image galleries, and user membership levels without touching code.
+- � **Dynamic Budget Estimator** — Real-time event cost calculator for the Premium Event Place, with base prices adjustable via the CMS.
+- 📊 **Live Leaderboards** — Separate ranking systems for Billiards, Darts, and Chess synced with a Supabase PostgreSQL backend.
+- 🛡️ **Role-Based Security** — Secure authentication system distinguishing between Guests, Players, and Administrators.
+- � **Premium UI/UX** — Modern, glassmorphic design featuring smooth animations (Framer Motion) and responsive layouts for mobile/desktop.
 
-## Features
+## 🛠️ Tech Stack
 
-- 🏆 **Tournament Bracket System** — Live brackets for Chess, Darts, and Billiards
-- 📋 **Tournament Registration** — Ready for Supabase PostgreSQL integration
-- 🎯 **Service Pages** — Dedicated pages for Billiards, Darts, Chess, Karaoke, Coffee Menu, Events
-- 📊 **Membership Tiers** — Bronze, Silver, Gold plans
-- 🛡️ **Supabase-Ready Architecture** — Relational data models with UUIDs
+- **Frontend**: React 19, TypeScript, Tailwind CSS, Lucide icons.
+- **Backend**: Supabase (Postgres, Auth, Storage).
+- **Animations**: Framer Motion for ultra-smooth transitions.
+- **State Management**: Context API for global Authentication and UI state.
 
-## Run Locally
+## 💻 Getting Started
 
-**Prerequisites:** Node.js
+### Prerequisites
+- Node.js (Latest LTS recommended)
+- Supabase Project (for live data features)
 
-1. Install dependencies:
-   `npm install`
-2. Run the app:
-   `npm run dev`
+### Installation
+1. Clone the repository
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file from `.env.example` and add your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=your_project_url
+   VITE_SUPABASE_ANON_KEY=your_anon_key
+   ```
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
 
-## Tech Stack
+## 📂 Project Structure
 
-- React 19 + TypeScript
-- Tailwind CSS + Framer Motion
-- Vite
-- Supabase (PostgreSQL) — *integration pending*
-
+- `/components`: Reusable UI elements and modular page sections.
+- `/components/admin`: Specialized modules for the CMS.
+- `/contexts`: Global state providers (Authentication).
+- `/lib`: Helper utilities and Supabase client library.
+- `/supabase`: SQL migrations and schema definitions for the database.
+- `/types`: TypeScript interfaces for database consistency.

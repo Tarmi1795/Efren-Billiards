@@ -16,6 +16,19 @@ export interface Player {
     created_at: string;
 }
 
+export interface Ranking {
+    id: string;
+    game_type: TournamentCategory;
+    rank: number;
+    player_name: string;
+    user_id: string | null;
+    score: number;
+    trend: 'up' | 'down' | 'same';
+    company: string | null;
+    created_at?: string;
+    updated_at?: string;
+}
+
 /** Profile row — maps to `public.profiles` table */
 export interface Profile {
     id: string;                       // UUID — references auth.users.id
@@ -197,6 +210,34 @@ export interface Database {
                     status?: 'pending' | 'in_progress' | 'completed';
                     next_match_id?: string | null;
                     created_at?: string;
+                };
+                Relationships: [];
+            };
+            rankings: {
+                Row: Ranking;
+                Insert: {
+                    id?: string;
+                    game_type: TournamentCategory;
+                    rank: number;
+                    player_name: string;
+                    user_id?: string | null;
+                    score?: number;
+                    trend?: 'up' | 'down' | 'same';
+                    company?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    game_type?: TournamentCategory;
+                    rank?: number;
+                    player_name?: string;
+                    user_id?: string | null;
+                    score?: number;
+                    trend?: 'up' | 'down' | 'same';
+                    company?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
                 };
                 Relationships: [];
             };

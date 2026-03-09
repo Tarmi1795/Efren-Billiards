@@ -2,21 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, ChevronUp, ChevronDown, TrendingUp, Loader2 } from 'lucide-react';
+import type { Ranking } from '../types/database';
 
 interface RankingSectionProps {
     gameType: 'darts' | 'chess' | 'billiards';
     title?: string;
     showTabs?: boolean;
-}
-
-interface Ranking {
-    id: string;
-    game_type: string;
-    rank: number;
-    player_name: string;
-    score: number;
-    trend: 'up' | 'down' | 'same';
-    company?: string;
 }
 
 const RankingSection: React.FC<RankingSectionProps> = ({ gameType, title = "Hall of Fame", showTabs = true }) => {
@@ -27,6 +18,8 @@ const RankingSection: React.FC<RankingSectionProps> = ({ gameType, title = "Hall
     useEffect(() => {
         if (gameType === 'billiards') {
             setActiveTab('individual');
+        } else if (gameType === 'darts') {
+            setActiveTab('corporate');
         }
         fetchRankings();
     }, [gameType]);
@@ -48,9 +41,11 @@ const RankingSection: React.FC<RankingSectionProps> = ({ gameType, title = "Hall
         }
     };
 
-    const individualRankings = rankings.filter(r => !r.company);
+    const individualRankings = gameType === 'billiards'
+        ? rankings
+        : rankings.filter(r => !r.company);
     const corporateRankings = rankings.filter(r => r.company);
-    
+
     const displayData = activeTab === 'individual' ? individualRankings : corporateRankings;
 
     if (loading) {
@@ -61,7 +56,7 @@ const RankingSection: React.FC<RankingSectionProps> = ({ gameType, title = "Hall
         );
     }
 
-    const showCorporateTab = showTabs && gameType !== 'billiards';
+    const showCorporateTab = showTabs && gameType !== 'billiards' && gameType !== 'darts';
 
     return (
         <div className="bg-dark-800 rounded-3xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">

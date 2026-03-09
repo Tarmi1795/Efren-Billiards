@@ -3,20 +3,9 @@ import { supabase } from '../../lib/supabase';
 import { useToast } from '../ui/Toast';
 import { Loader2, Plus, Trash2, Save, Trophy, ChevronUp, ChevronDown, TrendingUp, Filter } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import type { Ranking, TournamentCategory as GameType } from '../../types/database';
 
-type GameType = 'darts' | 'chess' | 'billiards';
 type Trend = 'up' | 'down' | 'same';
-
-interface Ranking {
-    id: string;
-    game_type: GameType;
-    rank: number;
-    player_name: string;
-    user_id?: string;
-    score: number;
-    trend: Trend;
-    company?: string;
-}
 
 interface PlayerProfile {
     id: string;
@@ -40,7 +29,7 @@ const AdminRankings: React.FC = () => {
         setLoading(true);
         try {
             // Fetch rankings
-            const { data: rankData, error: rankError } = await (supabase.from('rankings') as any)
+            const { data: rankData, error: rankError } = await supabase.from('rankings')
                 .select('*')
                 .order('rank', { ascending: true });
 
@@ -68,6 +57,7 @@ const AdminRankings: React.FC = () => {
             game_type: activeGameType,
             rank: rankings.filter(r => r.game_type === activeGameType).length + 1,
             player_name: '',
+            user_id: null,
             score: 0,
             trend: 'same',
             company: ''
@@ -80,7 +70,7 @@ const AdminRankings: React.FC = () => {
             const { error } = await (supabase.from('rankings') as any)
                 .delete()
                 .eq('id', id);
-            
+
             if (error) {
                 setRankings(rankings.filter(r => r.id !== id));
             } else {
@@ -95,10 +85,10 @@ const AdminRankings: React.FC = () => {
     const handleUpdateRow = (id: string, field: keyof Ranking, value: any) => {
         if (field === 'user_id') {
             const selectedProfile = profiles.find(p => p.id === value);
-            setRankings(rankings.map(r => r.id === id ? { 
-                ...r, 
-                user_id: value, 
-                player_name: selectedProfile?.full_name || r.player_name 
+            setRankings(rankings.map(r => r.id === id ? {
+                ...r,
+                user_id: value,
+                player_name: selectedProfile?.full_name || r.player_name
             } : r));
         } else {
             setRankings(rankings.map(r => r.id === id ? { ...r, [field]: value } : r));
@@ -109,8 +99,8 @@ const AdminRankings: React.FC = () => {
         setSaving(true);
         try {
             // Filter out empty names or missing user_ids
-            const validRankings = rankings.filter(r => r.player_name.trim() !== '' && r.user_id);
-            
+            const validRankings = rankings.filter(r => r.player_name.trim() !== '');
+
             if (validRankings.length < rankings.length) {
                 showToast('Some rows were skipped because no registered player was selected.', 'info');
             }
@@ -208,19 +198,26 @@ const AdminRankings: React.FC = () => {
                                             className="w-16 bg-white/5 border border-white/10 rounded-lg px-2 py-1.5 text-white font-mono text-sm focus:outline-none focus:border-brand/50"
                                         />
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 space-y-2">
                                         <select
                                             value={ranking.user_id || ''}
                                             onChange={e => handleUpdateRow(ranking.id, 'user_id', e.target.value)}
-                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white font-bold text-sm focus:outline-none focus:border-brand/50 appearance-none"
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white font-bold text-xs focus:outline-none focus:border-brand/50 appearance-none"
                                         >
-                                            <option value="" disabled>Select Registered Player</option>
+                                            <option value="">-- Manual Entry / No Link --</option>
                                             {profiles.map(p => (
                                                 <option key={p.id} value={p.id} className="bg-dark-900">
                                                     {p.full_name}
                                                 </option>
                                             ))}
                                         </select>
+                                        <input
+                                            type="text"
+                                            value={ranking.player_name}
+                                            onChange={e => handleUpdateRow(ranking.id, 'player_name', e.target.value)}
+                                            placeholder="Enter Player Name"
+                                            className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-brand/50"
+                                        />
                                     </td>
                                     <td className="px-6 py-4">
                                         <input

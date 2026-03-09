@@ -69,7 +69,7 @@ const DartsPage: React.FC = () => {
 
             <Section id="content" className="py-20 max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
                 <Reveal variant="slide-right">
-                    <p className="text-brand font-bold uppercase tracking-widest mb-4 flex items-center justify-center md:justify-start gap-2"><Zap size={18} /> Precision & Focus</p>
+                    <p className="text-brand font-bold uppercase tracking-widest mb-4 flex items-center justify-center md:justify-start gap-2">Precision & Focus</p>
                     <h2 className="text-3xl md:text-5xl font-black text-white uppercase leading-tight mb-8 text-center md:text-left">
                         Step up to the <br /> oche zone.
                     </h2>
@@ -97,7 +97,7 @@ const DartsPage: React.FC = () => {
 
                 {/* Gamification Widget: Leaderboards */}
                 <Reveal variant="slide-left">
-                    <RankingSection gameType="darts" />
+                    <RankingSection gameType="darts" title="Rankings" />
                 </Reveal>
             </Section>
 

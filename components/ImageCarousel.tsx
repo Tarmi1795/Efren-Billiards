@@ -1,33 +1,38 @@
 import React, { useRef } from 'react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { useCMSContent } from '../hooks/useCMSContent';
 
 const ImageCarousel: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const images = [
-    { src: "https://iili.io/q2MSG29.md.jpg", alt: "Premium Tables" },
-    { src: "https://iili.io/q2MSWmb.md.jpg", alt: "Team Play" },
-    { src: "https://iili.io/q2MSM7e.md.jpg", alt: "Events" },
-    { src: "https://iili.io/q2MSVku.md.jpg", alt: "Lounge Vibes" },
-    { src: "https://iili.io/q2MSjhx.md.jpg", alt: "Parties" },
-    { src: "https://iili.io/q2MSOBV.md.jpg", alt: "Haircut" },
-    { src: "https://iili.io/q2MSwLQ.md.jpg", alt: "Darts" },
-    { src: "https://iili.io/q2MSeEB.md.jpg", alt: "Darts" },
-    { src: "https://iili.io/q2MSSYF.md.jpg", alt: "Lounge" },
-    { src: "https://iili.io/q2MSUkg.md.jpg", alt: "Billiards" },
-    { src: "https://iili.io/q2MSgpa.md.jpg", alt: "Caterings" },
-    { src: "https://iili.io/q2MS4TJ.md.jpg", alt: "Events" },
-    { src: "https://iili.io/q2MSPQR.md.jpg", alt: "Events" },
-    { src: "https://iili.io/q2MSsBp.md.jpg", alt: "Team Play" },
-    { src: "https://iili.io/q2MSLEN.md.jpg", alt: "Tournament" },
-    { src: "https://iili.io/q2MSQ4I.md.jpg", alt: "The Hall" },
-    { src: "https://iili.io/q2MSbvn.md.jpg", alt: "Practice" },
-    { src: "https://iili.io/q2MSmps.md.jpg", alt: "Efren Billiards Hall" },
-    { src: "https://iili.io/q2MU9jf.md.jpg", alt: "Efren Billiards" },
-    { src: "https://iili.io/q2MUdCl.md.jpg", alt: "Efren Billiards" },
-  ];
+  const { data, loading } = useCMSContent('visual-tour', {
+    images: [
+      { url: "https://iili.io/q2MSG29.md.jpg", description: "Premium Tables" },
+      { url: "https://iili.io/q2MSWmb.md.jpg", description: "Team Play" },
+      { url: "https://iili.io/q2MSM7e.md.jpg", description: "Events" },
+      { url: "https://iili.io/q2MSVku.md.jpg", description: "Lounge Vibes" },
+      { url: "https://iili.io/q2MSjhx.md.jpg", description: "Parties" },
+      { url: "https://iili.io/q2MSOBV.md.jpg", description: "Haircut" },
+      { url: "https://iili.io/q2MSwLQ.md.jpg", description: "Darts" },
+      { url: "https://iili.io/q2MSeEB.md.jpg", description: "Darts" },
+      { url: "https://iili.io/q2MSSYF.md.jpg", description: "Lounge" },
+      { url: "https://iili.io/q2MSUkg.md.jpg", description: "Billiards" },
+      { url: "https://iili.io/q2MSgpa.md.jpg", description: "Caterings" },
+      { url: "https://iili.io/q2MS4TJ.md.jpg", description: "Events" },
+      { url: "https://iili.io/q2MSPQR.md.jpg", description: "Events" },
+      { url: "https://iili.io/q2MSsBp.md.jpg", description: "Team Play" },
+      { url: "https://iili.io/q2MSLEN.md.jpg", description: "Tournament" },
+      { url: "https://iili.io/q2MSQ4I.md.jpg", description: "The Hall" },
+      { url: "https://iili.io/q2MSbvn.md.jpg", description: "Practice" },
+      { url: "https://iili.io/q2MSmps.md.jpg", description: "Efren Billiards Hall" },
+      { url: "https://iili.io/q2MU9jf.md.jpg", description: "Efren Billiards" },
+      { url: "https://iili.io/q2MUdCl.md.jpg", description: "Efren Billiards" },
+    ]
+  });
+
+  const images = data.images || [];
 
   const scroll = (direction: 'left' | 'right') => {
     if (scrollRef.current) {
@@ -74,20 +79,24 @@ const ImageCarousel: React.FC = () => {
             className="flex gap-6 overflow-x-auto snap-x snap-mandatory pb-8 no-scrollbar scroll-smooth relative z-10 px-1"
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
-            {images.map((img, idx) => (
+            {loading ? (
+              <div className="flex-none w-full h-[300px] flex items-center justify-center">
+                <Loader2 size={32} className="animate-spin text-brand" />
+              </div>
+            ) : images.map((img: any, idx: number) => (
               <div
                 key={idx}
                 className="flex-none w-[300px] md:w-[450px] aspect-video relative group/item snap-center rounded-xl overflow-hidden cursor-pointer shadow-lg bg-dark-800"
               >
                 <img
-                  src={img.src}
-                  alt={img.alt}
+                  src={img.url}
+                  alt={img.description}
                   className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-110 group-hover/item:rotate-1"
                   loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-dark-900/90 via-transparent to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
                   <p className="text-white font-bold uppercase tracking-wider translate-y-4 group-hover/item:translate-y-0 transition-transform duration-300">
-                    {img.alt}
+                    {img.description}
                   </p>
                 </div>
               </div>

@@ -6,6 +6,7 @@ import Reveal from './ui/Reveal';
 import Button from './ui/Button';
 import GameTournamentSection from './GameTournamentSection';
 import TournamentCTA from './TournamentCTA';
+import RankingSection from './RankingSection';
 import { handleHashClick } from '../lib/scroll';
 
 // Mock Data Types
@@ -71,6 +72,12 @@ const BilliardsPage: React.FC = () => {
             </Section>
 
             <GameTournamentSection gameType="billiards" />
+
+            <Section className="py-20 max-w-4xl mx-auto px-6">
+                <Reveal variant="fade-up">
+                    <RankingSection gameType="billiards" title="Billiards Hall of Fame" />
+                </Reveal>
+            </Section>
 
             {/* Coaching Questionnaire Modal */}
             <AnimatePresence>

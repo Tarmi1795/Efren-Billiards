@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import TournamentBracket from './TournamentBracket';
 import Button from './ui/Button';
 import AuthModal from './auth/AuthModal';
+import TournamentSuccessOverlay from './TournamentSuccessOverlay';
 import { Trophy, Users, Calendar, UserPlus, UserMinus, CheckCircle, Loader2, X, ChevronDown, ChevronUp } from 'lucide-react';
 import type { Tournament } from '../types/database';
 
@@ -23,6 +24,7 @@ const TournamentInstance: React.FC<{ tournament: Tournament; user: any; profile:
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [profileData, setProfileData] = useState({ full_name: '', phone: '' });
     const [savingProfile, setSavingProfile] = useState(false);
+    const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
 
     useEffect(() => {
         if (!user || !tournament) return;
@@ -71,6 +73,7 @@ const TournamentInstance: React.FC<{ tournament: Tournament; user: any; profile:
                 }
             } else {
                 setRegistered(true);
+                setShowSuccessOverlay(true);
             }
         } catch (err: any) {
             setRegError(err.message || 'Registration failed.');
@@ -126,6 +129,14 @@ const TournamentInstance: React.FC<{ tournament: Tournament; user: any; profile:
 
     return (
         <div className="bg-dark-800/50 border border-white/10 rounded-3xl overflow-hidden mb-8">
+            <TournamentSuccessOverlay 
+                isOpen={showSuccessOverlay}
+                onClose={() => setShowSuccessOverlay(false)}
+                tournamentName={tournament.name}
+                gameType={tournament.game_type}
+                playerName={profile?.full_name || undefined}
+                date={tournament.start_date ? new Date(tournament.start_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : undefined}
+            />
             {/* Profile Onboarding Modal */}
             {showProfileModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">

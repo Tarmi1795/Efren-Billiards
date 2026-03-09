@@ -2,67 +2,72 @@ import React, { useState } from 'react';
 import Section from './ui/Section';
 import Button from './ui/Button';
 import Reveal from './ui/Reveal';
-import { Check, Crown, Star } from 'lucide-react';
+import { Check, Crown, Star, Loader2 } from 'lucide-react';
+import { useCMSContent } from '../hooks/useCMSContent';
 
 const Membership: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(false);
+  const { data: cmsData, loading } = useCMSContent('membership-plans', {
+    plans: [
+      {
+        id: "gold",
+        name: "Gold",
+        desc: "The ultimate VIP experience.",
+        priceMonthly: 85,
+        priceAnnual: 59,
+        features: [
+          "Free 3 hours playing time monthly",
+          "Discounted table rate: QAR30/hour with Free 1 large Efren signature coffee per visit",
+          "Free haircut (Soon to offer)",
+          "Free use of event place for 3 hours on your birthday (Valued @ QAR600)",
+          "20% Discounts in food and drinks",
+          "20% discount on event place rental",
+          "20% discount on photobooth and 360 videbooth rental",
+          "Free 7 sessions of professional career coaching (transferrable)"
+        ],
+        isGold: true,
+        popular: false
+      },
+      {
+        id: "silver",
+        name: "Silver",
+        desc: "For the regular enthusiast.",
+        priceMonthly: 60,
+        priceAnnual: 42,
+        features: [
+          "Free 2 hours playing time monthly",
+          "Discounted table rate: QAR30/hour",
+          "Free haircut (Soon to offer)",
+          "Free use of event place for 2 hours on your birthday (Valued @ QAR400)",
+          "20% Discounts in food and drinks",
+          "20% discount on event place rental",
+          "20% discount on photobooth and 360 videbooth rental",
+          "Free 5 sessions of professional career coaching (transferrable)"
+        ],
+        popular: false
+      },
+      {
+        id: "bronze",
+        name: "Bronze",
+        desc: "Perfect for casual players.",
+        priceMonthly: 35,
+        priceAnnual: 24,
+        features: [
+          "Free 1 hour playing time monthly",
+          "Discounted table rate: QAR30/hour",
+          "Free haircut (Soon to offer)",
+          "Free use of event place for 1 hour on your birthday (Valued @ QAR200)",
+          "20% Discounts in food and drinks",
+          "20% discount on event place rental",
+          "20% discount on photobooth and 360 videbooth rental",
+          "Free 3 sessions of professional career coaching (transferrable)"
+        ],
+        popular: false
+      }
+    ]
+  });
 
-  // Math logic: Monthly price * 0.7 (30% off) for annual rate display, rounded down.
-  const plans = [
-    {
-      id: "gold",
-      name: "Gold",
-      desc: "The ultimate VIP experience.",
-      priceMonthly: 85,
-      priceAnnual: 59, // 85 * 0.7 = 59.5 -> 59
-      features: [
-        "Free 3 hours playing time monthly",
-        "Discounted table rate: QAR30/hour with Free 1 large Efren signature coffee per visit",
-        "Free haircut (Soon to offer)",
-        "Free use of event place for 3 hours on your birthday (Valued @ QAR600)",
-        "20% Discounts in food and drinks",
-        "20% discount on event place rental",
-        "20% discount on photobooth and 360 videbooth rental",
-        "Free 7 sessions of professional career coaching (transferrable)"
-      ],
-      isGold: true
-    },
-    {
-      id: "silver",
-      name: "Silver",
-      desc: "For the regular enthusiast.",
-      priceMonthly: 60,
-      priceAnnual: 42, // 60 * 0.7 = 42
-      features: [
-        "Free 2 hours playing time monthly",
-        "Discounted table rate: QAR30/hour",
-        "Free haircut (Soon to offer)",
-        "Free use of event place for 2 hours on your birthday (Valued @ QAR400)",
-        "20% Discounts in food and drinks",
-        "20% discount on event place rental",
-        "20% discount on photobooth and 360 videbooth rental",
-        "Free 5 sessions of professional career coaching (transferrable)"
-      ],
-      popular: true
-    },
-    {
-      id: "bronze",
-      name: "Bronze",
-      desc: "Perfect for casual players.",
-      priceMonthly: 35,
-      priceAnnual: 24, // 35 * 0.7 = 24.5 -> 24
-      features: [
-        "Free 1 hour playing time monthly",
-        "Discounted table rate: QAR30/hour",
-        "Free haircut (Soon to offer)",
-        "Free use of event place for 1 hour on your birthday (Valued @ QAR200)",
-        "20% Discounts in food and drinks",
-        "20% discount on event place rental",
-        "20% discount on photobooth and 360 videbooth rental",
-        "Free 3 sessions of professional career coaching (transferrable)"
-      ]
-    }
-  ];
+  const plans = cmsData.plans || [];
 
   const handleJoinClick = (planName: string, price: number) => {
     const period = isAnnual ? 'Annual' : 'Monthly';
@@ -114,9 +119,11 @@ const Membership: React.FC = () => {
               className={`relative rounded-2xl p-8 border transition-all duration-300 hover:-translate-y-2 hover:scale-105 
                 ${plan.isGold
                   ? 'bg-gradient-to-b from-dark-800 to-black border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.2)] hover:shadow-[0_0_50px_rgba(234,179,8,0.4)] z-30 scale-105'
-                  : plan.popular
-                    ? 'bg-dark-800 border-brand shadow-2xl shadow-brand/10 z-20 hover:shadow-glow'
-                    : 'bg-dark-800 border-dark-700 hover:border-gray-500'
+                  : plan.id === 'silver'
+                    ? 'bg-gradient-to-b from-dark-800 to-black border-slate-400 shadow-[0_0_30px_rgba(148,163,184,0.2)] hover:shadow-[0_0_50px_rgba(148,163,184,0.4)] z-20'
+                    : plan.popular
+                      ? 'bg-dark-800 border-brand shadow-2xl shadow-brand/10 z-20 hover:shadow-glow'
+                      : 'bg-dark-800 border-dark-700 hover:border-gray-500'
                 }
               `}
             >
@@ -131,13 +138,14 @@ const Membership: React.FC = () => {
                 </div>
               )}
 
-              <h3 className={`text-2xl font-bold uppercase flex items-center gap-2 ${plan.isGold ? 'text-yellow-500 drop-shadow-sm' : 'text-white'}`}>
+              <h3 className={`text-2xl font-bold uppercase flex items-center gap-2 ${plan.isGold ? 'text-yellow-500 drop-shadow-sm' : plan.id === 'silver' ? 'text-slate-300' : 'text-white'}`}>
                 {plan.name} {plan.isGold && <Star size={20} className="fill-yellow-500 text-yellow-500" />}
+                {plan.id === 'silver' && <Star size={20} className="fill-slate-400 text-slate-400" />}
               </h3>
               <p className="text-gray-500 text-sm mt-2 min-h-[20px]">{plan.desc}</p>
 
               <div className="my-8">
-                <span className={`text-4xl font-extrabold ${plan.isGold ? 'text-yellow-400' : 'text-white'}`}>
+                <span className={`text-4xl font-extrabold ${plan.isGold ? 'text-yellow-400' : plan.id === 'silver' ? 'text-slate-300' : 'text-white'}`}>
                   QAR {isAnnual ? plan.priceAnnual : plan.priceMonthly}
                 </span>
                 <span className="text-gray-500 font-medium"> / month</span>
@@ -146,7 +154,7 @@ const Membership: React.FC = () => {
               <ul className="space-y-4 mb-8">
                 {plan.features.map((feat, i) => (
                   <li key={i} className="flex items-start text-gray-300 text-sm">
-                    <Check size={16} className={`${plan.isGold ? 'text-yellow-500' : 'text-brand'} mr-3 shrink-0 mt-0.5`} />
+                    <Check size={16} className={`${plan.isGold ? 'text-yellow-500' : plan.id === 'silver' ? 'text-slate-400' : 'text-brand'} mr-3 shrink-0 mt-0.5`} />
                     <span className="leading-tight">{feat}</span>
                   </li>
                 ))}
@@ -157,9 +165,15 @@ const Membership: React.FC = () => {
               </p>
 
               <Button
-                variant={plan.popular || plan.isGold ? 'primary' : 'outline'}
+                variant={plan.popular || plan.isGold || plan.id === 'silver' ? 'primary' : 'outline'}
                 fullWidth
-                className={plan.isGold ? 'bg-yellow-500 text-black hover:bg-yellow-400 border-none' : ''}
+                className={
+                  plan.isGold 
+                    ? 'bg-yellow-500 text-black hover:bg-yellow-400 border-none' 
+                    : plan.id === 'silver'
+                      ? 'bg-slate-400 text-black hover:bg-slate-300 border-none'
+                      : ''
+                }
                 onClick={() => handleJoinClick(plan.name, isAnnual ? plan.priceAnnual : plan.priceMonthly)}
               >
                 Join Us Now

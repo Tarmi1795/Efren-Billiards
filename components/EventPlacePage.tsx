@@ -7,7 +7,7 @@ import Button from './ui/Button';
 import { handleHashClick } from '../lib/scroll';
 
 // Mock Data Types
-type EventType = 'Gala' | 'Tournament' | 'Birthday';
+type EventType = 'Corporate event' | 'Tournament' | 'Birthday';
 
 interface EventData {
     type: EventType;
@@ -17,8 +17,8 @@ interface EventData {
 }
 
 const eventTypes: Record<EventType, EventData> = {
-    Gala: {
-        type: 'Gala',
+    'Corporate event': {
+        type: 'Corporate event',
         basePrice: 150,
         image: 'https://iili.io/q2MS4TJ.md.jpg',
         description: 'Elegant seating, buffet setup, and premium lighting.'
@@ -41,7 +41,7 @@ const EventPlacePage: React.FC = () => {
     useEffect(() => { window.scrollTo(0, 0); }, []);
 
     // Calculator State
-    const [eventType, setEventType] = useState<EventType>('Gala');
+    const [eventType, setEventType] = useState<EventType>('Corporate event');
     const [guests, setGuests] = useState<number>(50);
 
     const estimatedCost = guests * eventTypes[eventType].basePrice;

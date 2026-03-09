@@ -3,21 +3,34 @@ import {
     Users, Trophy, Coffee, Layout, Settings,
     Search, Filter, Shield, UserPlus,
     ChevronRight, MoreVertical, CheckCircle, XCircle, Loader2,
-    Image as ImageIcon, Plus, Save, ExternalLink
+    Image as ImageIcon, Plus, Save, ExternalLink, Video, Calendar, Phone, Link as LinkIcon, Crown, Zap
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from './ui/Toast';
 import AdminTournaments from './AdminTournaments';
 import AdminPlayers from './AdminPlayers';
+import AdminSiteImages from './admin/AdminSiteImages';
+import AdminGallery from './admin/AdminGallery';
+import AdminVideos from './admin/AdminVideos';
+import AdminFoodMenu from './admin/AdminFoodMenu';
+import AdminWeeklySchedule from './admin/AdminWeeklySchedule';
+import AdminContactInfo from './admin/AdminContactInfo';
+import AdminSocialLinks from './admin/AdminSocialLinks';
+import AdminMembershipPlans from './admin/AdminMembershipPlans';
+import AdminRankings from './admin/AdminRankings';
+import AdminOfferings from './admin/AdminOfferings';
+import AdminVisualTour from './admin/AdminVisualTour';
+import AdminMatchMyGame from './admin/AdminMatchMyGame';
 import type { Profile, MembershipTier } from '../types/database';
 
-type CMSModule = 'hero' | 'gallery' | 'tournaments' | 'players' | 'members' | 'settings';
+type CMSModule = 'hero' | 'gallery' | 'offerings' | 'visual-tour' | 'site-images' | 'videos' | 'food-menu' | 'match-my-game' | 'weekly-schedule' | 'membership-plans' | 'contact-info' | 'social-links' | 'tournaments' | 'players' | 'members' | 'rankings' | 'settings';
 
 const AdminCMS: React.FC = () => {
     const { profile, loading: authLoading } = useAuth();
     const { showToast, ToastContainer } = useToast();
     const [activeModule, setActiveModule] = useState<CMSModule>('hero');
+    // Members State
     const [members, setMembers] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -30,10 +43,6 @@ const AdminCMS: React.FC = () => {
         cta: ''
     });
 
-    // Gallery State
-    const [galleryImages, setGalleryImages] = useState<string[]>([]);
-    const [newImageUrl, setNewImageUrl] = useState('');
-
     // Redirect if not admin
     useEffect(() => {
         if (!authLoading && (!profile || profile.tier !== 'Admin')) {
@@ -45,8 +54,6 @@ const AdminCMS: React.FC = () => {
     useEffect(() => {
         if (activeModule === 'hero') {
             fetchHeroData();
-        } else if (activeModule === 'gallery') {
-            fetchGalleryData();
         }
     }, [activeModule]);
 
@@ -76,35 +83,6 @@ const AdminCMS: React.FC = () => {
             }
         } catch (err: any) {
             console.error('Error fetching hero content:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchGalleryData = async () => {
-        setLoading(true);
-        try {
-            const { data, error } = await (supabase.from('cms_content') as any)
-                .select('*')
-                .eq('slug', 'homepage-gallery')
-                .single();
-
-            if (error && error.code !== 'PGRST116') throw error;
-
-            if (data) {
-                const content = JSON.parse(data.body);
-                setGalleryImages(content.images || []);
-            } else {
-                // Initial defaults
-                setGalleryImages([
-                    "https://iili.io/qfWIEss.jpg",
-                    "https://iili.io/qFN1vwb.jpg",
-                    "https://iili.io/qFNV7xs.jpg",
-                    "https://iili.io/q2fFdAP.jpg"
-                ]);
-            }
-        } catch (err: any) {
-            console.error('Error fetching gallery content:', err);
         } finally {
             setLoading(false);
         }
@@ -189,62 +167,6 @@ const AdminCMS: React.FC = () => {
         }
     };
 
-    const handleSaveGallery = async () => {
-        setSaving(true);
-        try {
-            const body = JSON.stringify({ images: galleryImages });
-
-            const { error } = await (supabase.from('cms_content') as any)
-                .upsert({
-                    slug: 'homepage-gallery',
-                    title: 'Image Gallery',
-                    body: body,
-                    published: true,
-                    author_id: profile?.id
-                }, { onConflict: 'slug' });
-
-            if (error) throw error;
-            showToast('Gallery updated successfully!', 'success');
-        } catch (err: any) {
-            showToast(err.message, 'error');
-        } finally {
-            setSaving(false);
-        }
-    };
-
-    const addGalleryImage = () => {
-        if (!newImageUrl) return;
-        setGalleryImages([newImageUrl, ...galleryImages]);
-        setNewImageUrl('');
-    };
-
-    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        setSaving(true);
-        try {
-            const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}.${fileExt}`;
-            const { error } = await supabase.storage
-                .from('cms_uploads')
-                .upload(fileName, file);
-
-            if (error) throw error;
-
-            const { data: publicUrlData } = supabase.storage
-                .from('cms_uploads')
-                .getPublicUrl(fileName);
-
-            setGalleryImages([publicUrlData.publicUrl, ...galleryImages]);
-            showToast('Image uploaded successfully', 'success');
-        } catch (err: any) {
-            showToast(err.message || 'Error uploading file', 'error');
-        } finally {
-            setSaving(false);
-        }
-    };
-
     if (authLoading || !profile || profile.tier !== 'Admin') {
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#0a0a0c]">
@@ -267,28 +189,69 @@ const AdminCMS: React.FC = () => {
             <aside className="w-72 border-r border-white/5 bg-[#0d0d0f] flex flex-col pt-24 shadow-2xl">
                 <div className="flex-1 px-4 space-y-8">
                     {/* Site Builder Section */}
-                    <div className="space-y-2">
-                        <div className="px-4 mb-4">
-                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Site Builder</p>
+                    <div className="space-y-6">
+                        {/* Branding & Visuals */}
+                        <div className="space-y-2">
+                            <div className="px-4 mb-2">
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Branding & Visuals</p>
+                            </div>
+                            <nav className="space-y-1">
+                                <button onClick={() => setActiveModule('hero')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'hero' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <Layout size={18} /> Hero Section
+                                </button>
+                                <button onClick={() => setActiveModule('site-images')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'site-images' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <ImageIcon size={18} /> Site Images
+                                </button>
+                                <button onClick={() => setActiveModule('gallery')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'gallery' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <ImageIcon size={18} /> Image Gallery
+                                </button>
+                                <button onClick={() => setActiveModule('videos')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'videos' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <Video size={18} /> YouTube Videos
+                                </button>
+                                <button onClick={() => setActiveModule('visual-tour')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'visual-tour' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <Layout size={18} /> Visual Tour
+                                </button>
+                            </nav>
                         </div>
-                        <nav className="space-y-1">
-                            <button
-                                onClick={() => setActiveModule('hero')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'hero' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                    }`}
-                            >
-                                <Layout size={18} />
-                                Hero Section
-                            </button>
-                            <button
-                                onClick={() => setActiveModule('gallery')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'gallery' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                    }`}
-                            >
-                                <ImageIcon size={18} />
-                                Image Gallery
-                            </button>
-                        </nav>
+
+                        {/* Services & Menu */}
+                        <div className="space-y-2">
+                            <div className="px-4 mb-2">
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Services & Menu</p>
+                            </div>
+                            <nav className="space-y-1">
+                                <button onClick={() => setActiveModule('offerings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'offerings' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <Trophy size={18} /> Our Offerings
+                                </button>
+                                <button onClick={() => setActiveModule('food-menu')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'food-menu' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <Coffee size={18} /> Food Menu
+                                </button>
+                                <button onClick={() => setActiveModule('match-my-game')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'match-my-game' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <Zap size={18} /> Match My Game
+                                </button>
+                                <button onClick={() => setActiveModule('membership-plans')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'membership-plans' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <Crown size={18} /> Membership Plans
+                                </button>
+                            </nav>
+                        </div>
+
+                        {/* Operations & Contact */}
+                        <div className="space-y-2">
+                            <div className="px-4 mb-2">
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Operations & Contact</p>
+                            </div>
+                            <nav className="space-y-1">
+                                <button onClick={() => setActiveModule('weekly-schedule')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'weekly-schedule' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <Calendar size={18} /> Weekly Schedule
+                                </button>
+                                <button onClick={() => setActiveModule('contact-info')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'contact-info' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <Phone size={18} /> Contact Info
+                                </button>
+                                <button onClick={() => setActiveModule('social-links')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'social-links' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <LinkIcon size={18} /> Social Links
+                                </button>
+                            </nav>
+                        </div>
                     </div>
 
                     {/* Club Management Section */}
@@ -312,6 +275,14 @@ const AdminCMS: React.FC = () => {
                             >
                                 <Users size={18} />
                                 Players
+                            </button>
+                            <button
+                                onClick={() => setActiveModule('rankings')}
+                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'rankings' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                    }`}
+                            >
+                                <Trophy size={18} />
+                                Rankings
                             </button>
                             <button
                                 onClick={() => setActiveModule('members')}
@@ -433,77 +404,17 @@ const AdminCMS: React.FC = () => {
 
                     {/* Gallery Module */}
                     {activeModule === 'gallery' && (
-                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h1 className="text-3xl font-black text-white uppercase tracking-tighter">Image Gallery</h1>
-                                    <p className="text-gray-500 text-sm mt-1">Manage images shown in the homepage carousel/gallery.</p>
-                                </div>
-                                <button
-                                    onClick={handleSaveGallery}
-                                    disabled={saving}
-                                    className="flex items-center gap-2 px-6 py-2.5 bg-brand text-white rounded-xl text-sm font-bold hover:bg-brand/90 transition-all shadow-lg shadow-brand/20 disabled:opacity-50"
-                                >
-                                    {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
-                                    Save Gallery
-                                </button>
-                            </div>
+                        <AdminGallery />
+                    )}
 
-                            <div className="p-6 rounded-2xl bg-white/[0.02] border border-white/10 backdrop-blur-xl flex flex-col gap-4">
-                                <div className="flex gap-4 items-center">
-                                    <input
-                                        type="text"
-                                        placeholder="Paste image URL (e.g. from Unsplash or Imgur)"
-                                        value={newImageUrl}
-                                        onChange={(e) => setNewImageUrl(e.target.value)}
-                                        className="flex-1 bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand/40"
-                                    />
-                                    <button
-                                        onClick={addGalleryImage}
-                                        disabled={!newImageUrl}
-                                        className="px-6 py-3 bg-white text-black font-bold text-sm rounded-xl hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-                                    >
-                                        <Plus size={18} />
-                                        Add URL
-                                    </button>
-                                </div>
+                    {/* Offerings Module */}
+                    {activeModule === 'offerings' && (
+                        <AdminOfferings />
+                    )}
 
-                                <div className="flex items-center gap-4 text-sm font-bold text-gray-400">
-                                    <span className="w-10 h-px bg-white/10"></span> OR <span className="w-10 h-px bg-white/10"></span>
-                                </div>
-
-                                <div className="flex gap-4 items-center">
-                                    <label className="flex-1 cursor-pointer bg-white/[0.03] border border-dashed border-white/20 hover:border-brand/50 rounded-xl px-4 py-6 text-center text-white text-sm transition-all relative">
-                                        <div className="flex flex-col items-center justify-center gap-2">
-                                            <ImageIcon size={24} className="text-brand opacity-80" />
-                                            <span>Click to upload image file securely</span>
-                                        </div>
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            onChange={handleFileUpload}
-                                            className="absolute inset-0 opacity-0 cursor-pointer"
-                                        />
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                                {galleryImages.map((img, idx) => (
-                                    <div key={idx} className="aspect-[4/5] rounded-xl bg-black border border-white/10 flex items-center justify-center text-gray-600 relative group overflow-hidden">
-                                        <img src={img} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
-                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center p-4">
-                                            <button
-                                                onClick={() => setGalleryImages(galleryImages.filter((_, i) => i !== idx))}
-                                                className="px-4 py-2 bg-red-500/80 text-white rounded-lg text-xs font-bold hover:bg-red-500 transition-colors uppercase tracking-widest shadow-xl"
-                                            >
-                                                Delete
-                                            </button>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                    {/* Visual Tour Module */}
+                    {activeModule === 'visual-tour' && (
+                        <AdminVisualTour />
                     )}
 
                     {/* Members Module */}
@@ -609,6 +520,53 @@ const AdminCMS: React.FC = () => {
                     {/* Players Module */}
                     {activeModule === 'players' && (
                         <AdminPlayers />
+                    )}
+
+                    {/* Rankings Module */}
+                    {activeModule === 'rankings' && (
+                        <AdminRankings />
+                    )}
+
+                    {/* Site Images Module */}
+                    {activeModule === 'site-images' && (
+                        <AdminSiteImages />
+                    )}
+
+                    {/* Videos Module */}
+                    {activeModule === 'videos' && (
+                        <AdminVideos />
+                    )}
+
+
+
+                    {/* Food Menu Module */}
+                    {activeModule === 'food-menu' && (
+                        <AdminFoodMenu />
+                    )}
+
+                    {/* Match My Game Module */}
+                    {activeModule === 'match-my-game' && (
+                        <AdminMatchMyGame />
+                    )}
+
+                    {/* Weekly Schedule Module */}
+                    {activeModule === 'weekly-schedule' && (
+                        <AdminWeeklySchedule />
+                    )}
+
+                    {/* Contact Info Module */}
+                    {activeModule === 'contact-info' && (
+                        <AdminContactInfo />
+                    )}
+
+                    {/* Social Links Module */}
+                    {activeModule === 'social-links' && (
+                        <AdminSocialLinks />
+                    )}
+
+                    {/* Membership Plans Module */}
+                    {activeModule === 'membership-plans' && (
+                        <AdminMembershipPlans />
                     )}
 
                     {/* Placeholder for other modules */}

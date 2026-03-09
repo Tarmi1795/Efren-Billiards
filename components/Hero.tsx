@@ -4,6 +4,7 @@ import { Timer, ArrowRight, Volume2, VolumeX } from 'lucide-react';
 import Reveal from './ui/Reveal';
 import { supabase } from '../lib/supabase';
 import { scrollToElement, handleHashClick } from '../lib/scroll';
+import { useCMSContent } from '../hooks/useCMSContent';
 
 const Hero: React.FC = () => {
   const [isMuted, setIsMuted] = useState(true);
@@ -16,6 +17,35 @@ const Hero: React.FC = () => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const [hasInteracted, setHasInteracted] = useState(false);
+
+  const { data: siteImages } = useCMSContent('site-images', {
+    'hero-background': 'https://www.youtube.com/embed/RfiLxYAGQYY'
+  });
+
+  const { data: videoData } = useCMSContent('videos', {
+    videos: []
+  });
+
+  const cmsVideoUrl = videoData.videos?.[0]?.url;
+  const bgUrl = cmsVideoUrl || siteImages['hero-background'] || 'https://www.youtube.com/embed/RfiLxYAGQYY';
+  const isVideo = bgUrl.includes('youtube.com') || bgUrl.includes('youtu.be');
+
+  // If it's a youtube link, ensure it has the right embed params
+  let embedUrl = bgUrl;
+  if (isVideo) {
+      let videoId = '';
+      if (bgUrl.includes('v=')) {
+          videoId = bgUrl.split('v=')[1]?.split('&')[0];
+      } else if (bgUrl.includes('youtu.be/')) {
+          videoId = bgUrl.split('youtu.be/')[1]?.split('?')[0];
+      } else if (bgUrl.includes('embed/')) {
+          videoId = bgUrl.split('embed/')[1]?.split('?')[0];
+      }
+      
+      if (videoId) {
+          embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1`;
+      }
+  }
 
   useEffect(() => {
     const fetchContent = async () => {
@@ -46,7 +76,7 @@ const Hero: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (hasInteracted) return;
+    if (hasInteracted || !isVideo) return;
 
     const handleFirstInteraction = () => {
       if (!hasInteracted && iframeRef.current && iframeRef.current.contentWindow) {
@@ -69,7 +99,7 @@ const Hero: React.FC = () => {
       window.removeEventListener('touchstart', handleFirstInteraction);
       window.removeEventListener('keydown', handleFirstInteraction);
     };
-  }, [hasInteracted]);
+  }, [hasInteracted, isVideo]);
 
   const toggleSound = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation(); // Prevent triggering the global listener if clicked directly
@@ -110,15 +140,23 @@ const Hero: React.FC = () => {
             WebkitClipPath: 'polygon(0 0, 100% 0, 100% calc(85% - 4px), 50% calc(100% - 4px), 0 calc(85% - 4px))'
           }}
         >
-          <iframe
-            ref={iframeRef}
-            className="w-full h-full object-cover scale-[1.35] -translate-y-[15%] opacity-60 pointer-events-auto"
-            src="https://www.youtube.com/embed/RfiLxYAGQYY?autoplay=1&mute=1&loop=1&playlist=RfiLxYAGQYY&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1"
-            title="Hero Background"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          ></iframe>
+          {isVideo ? (
+            <iframe
+              ref={iframeRef}
+              className="w-full h-full object-cover scale-[1.35] -translate-y-[15%] opacity-60 pointer-events-auto"
+              src={embedUrl}
+              title="Hero Background"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            ></iframe>
+          ) : (
+            <img
+              src={bgUrl}
+              alt="Hero Background"
+              className="w-full h-full object-cover opacity-60"
+            />
+          )}
           {/* Dark overlay for text visibility */}
           <div className="absolute inset-0 bg-dark-900/60 pointer-events-none"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-dark-900 via-transparent to-dark-900/20 pointer-events-none"></div>
@@ -126,15 +164,17 @@ const Hero: React.FC = () => {
       </div>
 
       {/* Sound Toggle Button */}
-      <div className="absolute bottom-32 right-6 md:bottom-24 md:right-10 z-20">
-        <button
-          onClick={toggleSound}
-          className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-full text-white hover:bg-brand hover:border-brand transition-all duration-300 group shadow-lg"
-          aria-label="Toggle Sound"
-        >
-          {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
-        </button>
-      </div>
+      {isVideo && (
+        <div className="absolute bottom-32 right-6 md:bottom-24 md:right-10 z-20">
+          <button
+            onClick={toggleSound}
+            className="bg-white/10 backdrop-blur-md border border-white/20 p-3 rounded-full text-white hover:bg-brand hover:border-brand transition-all duration-300 group shadow-lg"
+            aria-label="Toggle Sound"
+          >
+            {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+          </button>
+        </div>
+      )}
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 flex flex-col items-center text-center">
 

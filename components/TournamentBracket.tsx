@@ -15,11 +15,11 @@ interface BracketNodeProps {
 const MatchPlayerNode: React.FC<{ player?: Profile | null, isWinner: boolean }> = ({ player, isWinner }) => {
     return (
         <div className={`p-3 border-b last:border-b-0 border-white/10 flex items-center justify-between ${isWinner ? 'bg-brand/10' : 'bg-dark-900'} transition-colors`}>
-            <span className={`text-sm font-bold truncate pr-3 ${isWinner ? 'text-brand' : 'text-gray-300'}`}>
+            <span className={`text-sm font-bold truncate pr-3 ${player ? 'text-brand' : 'text-gray-500'}`}>
                 {player ? player.full_name : 'TBD'}
             </span>
             {player?.tier && (
-                <span className="text-[10px] text-gray-500 font-mono bg-dark-800 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] font-mono bg-brand/5 text-brand px-1.5 py-0.5 rounded border border-brand/20">
                     {player.tier}
                 </span>
             )}

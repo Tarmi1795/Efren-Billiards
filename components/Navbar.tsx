@@ -4,6 +4,7 @@ import Button from './ui/Button';
 import { useAuth } from '../contexts/AuthContext';
 import AuthModal from './auth/AuthModal';
 import { scrollToElement, handleHashClick } from '../lib/scroll';
+import { useCMSContent } from '../hooks/useCMSContent';
 
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -11,6 +12,8 @@ const Navbar: React.FC = () => {
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { user, profile, isAdmin, signOut } = useAuth();
+  const { data: siteImages } = useCMSContent('site-images', { 'site-logo': 'https://iili.io/q2fcFYN.png' });
+
 
   useEffect(() => {
     const handleScroll = () => {
@@ -71,7 +74,7 @@ const Navbar: React.FC = () => {
           {/* Logo */}
           <a href="#home" className="flex items-center gap-3 z-50 group" onClick={(e) => handleNavClick(e, '#home')}>
             <img
-              src="https://iili.io/q2fcFYN.png"
+              src={siteImages['site-logo'] || 'https://iili.io/q2fcFYN.png'}
               alt="Efren Billiards Logo"
               className="h-10 w-auto md:h-12 object-contain"
             />
@@ -171,9 +174,9 @@ const Navbar: React.FC = () => {
             {!user && (
               <button 
                 onClick={() => setIsAuthModalOpen(true)}
-                className="text-white hover:text-brand transition-colors"
+                className="px-3 py-1.5 bg-brand text-black text-xs font-bold uppercase rounded-lg hover:bg-brand/90 transition-colors"
               >
-                <LogIn size={24} />
+                Sign In
               </button>
             )}
             <button

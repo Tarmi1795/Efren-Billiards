@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Calendar, CheckCircle, Loader2, UserPlus, UserMinus, Users, ChevronDown, ChevronUp, X } from 'lucide-react';
 import Button from './ui/Button';
 import AuthModal from './auth/AuthModal';
+import TournamentSuccessOverlay from './TournamentSuccessOverlay';
 import type { Tournament, Registration, Profile } from '../types/database';
 
 interface TournamentWithParticipants extends Tournament {
@@ -27,14 +28,14 @@ const TournamentCard: React.FC<{
             setShowParticipants(!showParticipants);
             return;
         }
-        
+
         setLoadingParticipants(true);
         try {
             const { data, error } = await supabase
                 .from('registrations')
                 .select('user_id, profiles(*)')
                 .eq('tournament_id', tournament.id);
-            
+
             if (error) throw error;
             setParticipants(data as any || []);
             setShowParticipants(true);
@@ -48,7 +49,7 @@ const TournamentCard: React.FC<{
     const showRegisterButton = ['billiards', 'darts', 'chess'].includes(tournament.game_type?.toLowerCase());
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             className="bg-dark-800 border border-white/10 rounded-2xl p-6 flex flex-col h-full hover:border-brand/30 transition-colors"
@@ -65,7 +66,7 @@ const TournamentCard: React.FC<{
                 )}
                 <div className="flex flex-wrap gap-4 text-gray-400 text-xs font-bold uppercase tracking-wider mb-6">
                     <div className="flex items-center gap-2">
-                        <Calendar size={14} className="text-brand" /> 
+                        <Calendar size={14} className="text-brand" />
                         {tournament.start_date ? new Date(tournament.start_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : new Date(tournament.created_at || Date.now()).toLocaleDateString()}
                     </div>
                     {tournament.prize_amount && (
@@ -77,7 +78,7 @@ const TournamentCard: React.FC<{
             </div>
 
             <div className="mt-auto pt-4 border-t border-white/5">
-                <button 
+                <button
                     onClick={fetchParticipants}
                     className="flex items-center justify-between w-full text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors mb-4"
                 >
@@ -87,7 +88,7 @@ const TournamentCard: React.FC<{
 
                 <AnimatePresence>
                     {showParticipants && (
-                        <motion.div 
+                        <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: 'auto', opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
@@ -156,17 +157,21 @@ const TournamentPage: React.FC = () => {
     const [tournaments, setTournaments] = useState<TournamentWithParticipants[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    
+
     // Map of tournamentId -> registration status
     const [registrations, setRegistrations] = useState<Record<string, boolean>>({});
     const [inFlight, setInFlight] = useState<Record<string, boolean>>({});
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    
+
     // Profile Onboarding State
     const [showProfileModal, setShowProfileModal] = useState(false);
     const [profileData, setProfileData] = useState({ full_name: '', phone: '' });
     const [savingProfile, setSavingProfile] = useState(false);
     const [pendingTournamentId, setPendingTournamentId] = useState<string | null>(null);
+
+    // Success Overlay State
+    const [showSuccessOverlay, setShowSuccessOverlay] = useState(false);
+    const [registeredTournament, setRegisteredTournament] = useState<Tournament | null>(null);
 
     useEffect(() => {
         window.scrollTo(0, 0);
@@ -186,7 +191,7 @@ const TournamentPage: React.FC = () => {
             const { data, error } = await (supabase.from('tournaments') as any)
                 .select('*')
                 .order('created_at', { ascending: false });
-            
+
             if (error) throw error;
             setTournaments(data || []);
         } catch (err: any) {
@@ -202,9 +207,9 @@ const TournamentPage: React.FC = () => {
             const { data, error } = await (supabase.from('registrations') as any)
                 .select('tournament_id')
                 .eq('user_id', user.id);
-            
+
             if (error) throw error;
-            
+
             const regMap: Record<string, boolean> = {};
             data?.forEach((r: any) => {
                 regMap[r.tournament_id] = true;
@@ -239,13 +244,13 @@ const TournamentPage: React.FC = () => {
     const processRegistration = async (tournamentId: string) => {
         if (!user) return;
         setInFlight(prev => ({ ...prev, [tournamentId]: true }));
-        
+
         try {
             const { error: rErr } = await (supabase.from('registrations') as any).insert({
                 tournament_id: tournamentId,
                 user_id: user.id,
             });
-            
+
             if (rErr) {
                 // Handle 409 (Already Registered) gracefully
                 if (rErr.code === '23505') {
@@ -255,6 +260,13 @@ const TournamentPage: React.FC = () => {
                 }
             } else {
                 setRegistrations(prev => ({ ...prev, [tournamentId]: true }));
+
+                // Show success overlay
+                const tournament = tournaments.find(t => t.id === tournamentId);
+                if (tournament) {
+                    setRegisteredTournament(tournament);
+                    setShowSuccessOverlay(true);
+                }
             }
         } catch (err: any) {
             console.error('Registration failed:', err);
@@ -271,13 +283,13 @@ const TournamentPage: React.FC = () => {
     const handleUnregister = async (tournamentId: string) => {
         if (!user) return;
         setInFlight(prev => ({ ...prev, [tournamentId]: true }));
-        
+
         try {
             const { error: rErr } = await (supabase.from('registrations') as any)
                 .delete()
                 .eq('tournament_id', tournamentId)
                 .eq('user_id', user.id);
-            
+
             if (rErr) throw rErr;
             setRegistrations(prev => ({ ...prev, [tournamentId]: false }));
         } catch (err: any) {
@@ -291,7 +303,7 @@ const TournamentPage: React.FC = () => {
     const handleSaveProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!user) return;
-        
+
         setSavingProfile(true);
         try {
             const { error } = await (supabase.from('profiles') as any)
@@ -300,9 +312,9 @@ const TournamentPage: React.FC = () => {
                     phone: profileData.phone
                 })
                 .eq('id', user.id);
-                
+
             if (error) throw error;
-            
+
             await refreshProfile(); // Refresh profile in context
             setShowProfileModal(false);
             if (pendingTournamentId) {
@@ -333,7 +345,7 @@ const TournamentPage: React.FC = () => {
             <div className="pt-24 min-h-screen bg-dark-900 px-6 text-center flex flex-col items-center">
                 <div className="w-64 h-12 bg-dark-800 animate-pulse rounded-lg mb-8"></div>
                 <div className="w-full max-w-4xl h-[60vh] bg-dark-800 animate-pulse rounded-3xl border border-white/10"></div>
-                <p className="mt-8 text-brand font-bold uppercase tracking-widest animate-pulse">Syncing with Supabase...</p>
+                <p className="mt-8 text-brand font-bold uppercase tracking-widest animate-pulse">Preparing the Winner’s Circle... clearing out the dust from table now.</p>
             </div>
         );
     }
@@ -352,7 +364,16 @@ const TournamentPage: React.FC = () => {
     return (
         <div className="pt-24 min-h-screen bg-dark-900">
             <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
-            
+
+            <TournamentSuccessOverlay
+                isOpen={showSuccessOverlay}
+                onClose={() => setShowSuccessOverlay(false)}
+                tournamentName={registeredTournament?.name || ''}
+                gameType={registeredTournament?.game_type || ''}
+                playerName={profile?.full_name || undefined}
+                date={registeredTournament?.start_date ? new Date(registeredTournament.start_date).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' }) : undefined}
+            />
+
             {/* Profile Onboarding Modal */}
             {showProfileModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -417,7 +438,7 @@ const TournamentPage: React.FC = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {tournaments.map((tournament) => (
-                        <TournamentCard 
+                        <TournamentCard
                             key={tournament.id}
                             tournament={tournament}
                             isRegistered={!!registrations[tournament.id]}
@@ -426,7 +447,7 @@ const TournamentPage: React.FC = () => {
                             onUnregister={handleUnregister}
                         />
                     ))}
-                    
+
                     {tournaments.length === 0 && (
                         <div className="col-span-full text-center py-12 text-gray-500">
                             No tournaments available at the moment.

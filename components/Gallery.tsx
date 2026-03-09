@@ -1,52 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import { X, Loader2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { useCMSContent } from '../hooks/useCMSContent';
+
+interface GalleryImage {
+    url: string;
+    description: string;
+    category: string;
+}
 
 const Gallery: React.FC = () => {
-  const [selectedImg, setSelectedImg] = useState<string | null>(null);
+  const [selectedImg, setSelectedImg] = useState<GalleryImage | null>(null);
 
-  const [images, setImages] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, loading } = useCMSContent('gallery', {
+    images: [
+      { url: "https://iili.io/qfWIEss.jpg", description: "Billiards Balls", category: "billiards" },
+      { url: "https://iili.io/qFN1vwb.jpg", description: "Darts", category: "darts" },
+      { url: "https://iili.io/qFNV7xs.jpg", description: "Chess", category: "chess" },
+      { url: "https://iili.io/q2fFdAP.jpg", description: "Action Shot", category: "general" },
+      { url: "https://iili.io/qFNMwcN.jpg", description: "Darts 2", category: "darts" },
+      { url: "https://iili.io/qfWIMqG.jpg", description: "Coffee/Vibe", category: "cafe" },
+      { url: "https://iili.io/qFNMXPR.jpg", description: "Chess 2", category: "chess" },
+      { url: "https://iili.io/qfWI1Xn.jpg", description: "Party/Event", category: "events" },
+      { url: "https://iili.io/q2f3Qte.jpg", description: "Dark Vibe", category: "general" },
+      { url: "https://iili.io/qfWIhdl.jpg", description: "Table Detail", category: "billiards" },
+    ]
+  });
 
-  useEffect(() => {
-    const fetchImages = async () => {
-      try {
-        const { data, error } = await (supabase.from('cms_content') as any)
-          .select('*')
-          .eq('slug', 'homepage-gallery')
-          .single();
-
-        if (error && error.code !== 'PGRST116') throw error;
-
-        if (data) {
-          const content = JSON.parse(data.body);
-          setImages(content.images || []);
-        } else {
-          // Reliable, high-quality Billiards & Lounge images from Unsplash
-          setImages([
-            "https://iili.io/qfWIEss.jpg", // Billiards Balls
-            "https://iili.io/qFN1vwb.jpg", // Darts 1
-            "https://iili.io/qFNV7xs.jpg", // Chess 1
-            "https://iili.io/q2fFdAP.jpg", // Action Shot
-            "https://iili.io/qFNMwcN.jpg", // Darts 2
-            "https://iili.io/qfWIMqG.jpg", // Coffee/Vibe
-            "https://iili.io/qFNMXPR.jpg", // Chess 2
-            "https://iili.io/qfWI1Xn.jpg", // Party/Event
-            "https://iili.io/q2f3Qte.jpg", // Dark Vibe
-            "https://iili.io/qfWIhdl.jpg", // Table Detail
-          ]);
-        }
-      } catch (err) {
-        console.error('Error fetching gallery images:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchImages();
-  }, []);
+  const images = data.images || [];
 
   return (
     <Section id="gallery" className="bg-dark-900 pt-0">
@@ -62,15 +44,15 @@ const Gallery: React.FC = () => {
             <Loader2 size={32} className="animate-spin text-brand" />
           </div>
         ) : images.length > 0 ? (
-          images.map((src, idx) => (
+          images.map((img: GalleryImage, idx: number) => (
             <Reveal key={idx} delay={idx * 50}>
               <div
                 className="break-inside-avoid relative group cursor-pointer overflow-hidden rounded-lg mb-4"
-                onClick={() => setSelectedImg(src)}
+                onClick={() => setSelectedImg(img)}
               >
                 <img
-                  src={src}
-                  alt="Club gallery"
+                  src={img.url}
+                  alt={img.description || "Club gallery"}
                   className="w-full h-auto object-cover transition-transform duration-500 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-maroon/20 transition-colors"></div>
@@ -87,12 +69,19 @@ const Gallery: React.FC = () => {
       {selectedImg && (
         <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4">
           <button
-            className="absolute top-4 right-4 text-white hover:text-brand"
+            className="absolute top-4 right-4 text-white hover:text-brand bg-black/50 rounded-full p-2"
             onClick={() => setSelectedImg(null)}
           >
-            <X size={40} />
+            <X size={32} />
           </button>
-          <img src={selectedImg} alt="Enlarged view" className="max-w-full max-h-[90vh] rounded-md shadow-2xl border-2 border-brand" />
+          <div className="flex flex-col items-center max-w-full max-h-[90vh]">
+            <img src={selectedImg.url} alt={selectedImg.description || "Enlarged view"} className="max-w-full max-h-[80vh] rounded-md shadow-2xl border-2 border-brand object-contain" />
+            {selectedImg.description && (
+                <p className="text-white mt-4 text-center font-medium bg-black/50 px-6 py-2 rounded-full backdrop-blur-sm">
+                    {selectedImg.description}
+                </p>
+            )}
+          </div>
         </div>
       )}
     </Section>

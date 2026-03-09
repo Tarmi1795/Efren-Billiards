@@ -6,6 +6,7 @@ import Reveal from './ui/Reveal';
 import Button from './ui/Button';
 import GameTournamentSection from './GameTournamentSection';
 import TournamentCTA from './TournamentCTA';
+import RankingSection from './RankingSection';
 import { handleHashClick } from '../lib/scroll';
 
 // Web Share API Utility
@@ -55,9 +56,6 @@ const corporateRivalry: Player[] = [
 const DartsPage: React.FC = () => {
     useEffect(() => { window.scrollTo(0, 0); }, []);
 
-    const [activeTab, setActiveTab] = useState<'individual' | 'corporate'>('individual');
-    const leaderboardData = activeTab === 'individual' ? hallOfFame : corporateRivalry;
-
     return (
         <div className="pt-24 min-h-screen bg-dark-900">
             <Reveal>
@@ -85,7 +83,7 @@ const DartsPage: React.FC = () => {
                             <p className="text-gray-500 text-sm">Not registered yet</p>
                         </div>
                         <Button variant="outline" onClick={handleShareScore} className="px-4 py-2 text-xs flex items-center gap-2 border-white/10 hover:border-brand">
-                            <Share2 size={14} /> Brag to Friends
+                            <Share2 size={14} /> Share Rankings to Friends
                         </Button>
                     </div>
 
@@ -99,61 +97,7 @@ const DartsPage: React.FC = () => {
 
                 {/* Gamification Widget: Leaderboards */}
                 <Reveal variant="slide-left">
-                    <div className="bg-dark-800 rounded-3xl border border-white/10 overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]">
-                        {/* Tabs */}
-                        <div className="flex border-b border-white/5">
-                            <button
-                                onClick={() => setActiveTab('individual')}
-                                className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-colors ${activeTab === 'individual' ? 'bg-dark-700 text-brand' : 'text-gray-500 hover:text-white hover:bg-dark-700/50'}`}
-                            >
-                                Hall of Fame
-                            </button>
-                            <button
-                                onClick={() => setActiveTab('corporate')}
-                                className={`flex-1 py-4 text-xs font-bold uppercase tracking-widest transition-colors ${activeTab === 'corporate' ? 'bg-dark-700 text-brand' : 'text-gray-500 hover:text-white hover:bg-dark-700/50'}`}
-                            >
-                                Corporate Rivalry
-                            </button>
-                        </div>
-
-                        {/* List */}
-                        <div className="p-6">
-                            <AnimatePresence mode="wait">
-                                <motion.div
-                                    key={activeTab}
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: -20 }}
-                                    transition={{ duration: 0.3 }}
-                                    className="space-y-3"
-                                >
-                                    {leaderboardData.map((player) => (
-                                        <div key={player.id} className="flex items-center p-4 bg-dark-900 rounded-xl border border-white/5 hover:border-brand/30 transition-colors">
-                                            <div className="w-8 font-black text-gray-500 flex items-center justify-center">
-                                                {player.rank === 1 ? <Trophy size={20} className="text-gold" /> : `#${player.rank}`}
-                                            </div>
-                                            <div className="ml-4 flex-1">
-                                                <p className="text-white font-bold uppercase tracking-wider text-sm">{player.name}</p>
-                                                {player.company && <p className="text-xs text-gray-500 uppercase tracking-widest">{player.company}</p>}
-                                            </div>
-                                            <div className="text-right">
-                                                <p className="font-mono text-brand font-black text-lg">{player.score.toLocaleString()}</p>
-                                            </div>
-                                            <div className="ml-4 w-6 flex justify-end text-xs">
-                                                {player.trend === 'up' && <ChevronUp className="text-green-500" />}
-                                                {player.trend === 'down' && <ChevronDown className="text-red-500" />}
-                                                {player.trend === 'same' && <TrendingUp className="text-gray-600 scale-75 opacity-50" />}
-                                            </div>
-                                        </div>
-                                    ))}
-
-                                    <div className="pt-4 text-center">
-                                        <span className="text-[10px] text-gray-600 uppercase tracking-widest">Resets at end of month</span>
-                                    </div>
-                                </motion.div>
-                            </AnimatePresence>
-                        </div>
-                    </div>
+                    <RankingSection gameType="darts" />
                 </Reveal>
             </Section>
 

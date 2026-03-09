@@ -3,9 +3,26 @@ import Section from './ui/Section';
 import Button from './ui/Button';
 import Reveal from './ui/Reveal';
 import { Phone, Mail, Clock, MapPin, Send } from 'lucide-react';
+import { useCMSContent } from '../hooks/useCMSContent';
 
 const Contact: React.FC = () => {
   const [formState, setFormState] = useState({ name: '', email: '', type: 'Table Booking', message: '' });
+
+  const { data: contactInfo } = useCMSContent('contact-info', {
+    address: "5th Floor Captsone Bldg., Al Mansoura\nDoha, Qatar",
+    phone: "+974 50986454, +974 66953450",
+    email: "efrenbilliards@gmail.com",
+    hours: "Open 24 Hours Daily",
+    whatsapp: "97451622111",
+    mapsUrl: "https://maps.app.goo.gl/NAggUvmWoE7Vh7cA6?g_st=ic"
+  });
+
+  const { data: socialLinks } = useCMSContent('social-links', {
+    facebook: "https://www.facebook.com/share/1DZ7ux6Qmi/?mibextid=wwXIfr",
+    instagram: "https://www.instagram.com/efrenbilliards?igsh=YnQwdDI1MjJ0aDZm",
+    tiktok: "https://www.tiktok.com/@efren.billiards.m?_r=1&_t=ZS-93hdvwpNUdp",
+    whatsapp: "https://wa.me/97451622111"
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,7 +35,7 @@ const Contact: React.FC = () => {
       `*Message:* ${formState.message || 'No additional details provided.'}`;
 
     // Open WhatsApp API (using universal link)
-    const whatsappUrl = `https://wa.me/97451622111?text=${text}`;
+    const whatsappUrl = `https://wa.me/${contactInfo.whatsapp}?text=${text}`;
     window.open(whatsappUrl, '_blank');
   };
 
@@ -42,12 +59,17 @@ const Contact: React.FC = () => {
                 <div>
                   <h4 className="font-bold text-white uppercase mb-1">Visit Us</h4>
                   <a
-                    href="https://maps.app.goo.gl/NAggUvmWoE7Vh7cA6?g_st=ic"
+                    href={contactInfo.mapsUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-gray-400 hover:text-brand transition-colors"
                   >
-                    5th Floor Captsone Bldg., Al Mansoura<br />Doha, Qatar
+                    {contactInfo.address.split('\n').map((line: string, i: number) => (
+                        <React.Fragment key={i}>
+                            {line}
+                            {i !== contactInfo.address.split('\n').length - 1 && <br />}
+                        </React.Fragment>
+                    ))}
                   </a>
                 </div>
               </div>
@@ -59,7 +81,7 @@ const Contact: React.FC = () => {
                 <div>
                   <h4 className="font-bold text-white uppercase mb-1">Opening Hours</h4>
                   <div className="text-gray-400 text-sm font-medium text-lg">
-                    Open 24 Hours Daily
+                    {contactInfo.hours}
                   </div>
                 </div>
               </div>
@@ -70,8 +92,8 @@ const Contact: React.FC = () => {
                 <div className="bg-maroon p-3 rounded text-white"><Phone /></div>
                 <div>
                   <h4 className="font-bold text-white uppercase mb-1">Contact</h4>
-                  <p className="text-gray-400">Call: +974 50986454, +974 66953450</p>
-                  <p className="text-gray-400">efrenbilliards@gmail.com</p>
+                  <p className="text-gray-400">Call: {contactInfo.phone}</p>
+                  <p className="text-gray-400">{contactInfo.email}</p>
                 </div>
               </div>
             </Reveal>
@@ -80,8 +102,9 @@ const Contact: React.FC = () => {
             <Reveal delay={400}>
               <div className="flex flex-wrap gap-4 mt-6">
                 {/* WhatsApp */}
+                {socialLinks.whatsapp && (
                 <a
-                  href="https://wa.me/97451622111"
+                  href={socialLinks.whatsapp}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 bg-[#25D366] hover:bg-[#128C7E] text-white px-5 py-3 rounded-full transition-colors font-bold"
@@ -91,10 +114,12 @@ const Contact: React.FC = () => {
                   </svg>
                   WhatsApp
                 </a>
+                )}
 
                 {/* Facebook */}
+                {socialLinks.facebook && (
                 <a
-                  href="https://www.facebook.com/share/1DZ7ux6Qmi/?mibextid=wwXIfr"
+                  href={socialLinks.facebook}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 bg-[#1877F2] hover:bg-[#166FE5] text-white px-5 py-3 rounded-full transition-colors font-bold"
@@ -104,10 +129,12 @@ const Contact: React.FC = () => {
                   </svg>
                   Facebook
                 </a>
+                )}
 
                 {/* Instagram */}
+                {socialLinks.instagram && (
                 <a
-                  href="https://www.instagram.com/efrenbilliards?igsh=YnQwdDI1MjJ0aDZm"
+                  href={socialLinks.instagram}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] hover:opacity-90 text-white px-5 py-3 rounded-full transition-all font-bold"
@@ -117,10 +144,12 @@ const Contact: React.FC = () => {
                   </svg>
                   Instagram
                 </a>
+                )}
 
                 {/* TikTok */}
+                {socialLinks.tiktok && (
                 <a
-                  href="https://www.tiktok.com/@efren.billiards.m?_r=1&_t=ZS-93hdvwpNUdp"
+                  href={socialLinks.tiktok}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center gap-3 bg-black hover:bg-gray-900 border border-gray-800 text-white px-5 py-3 rounded-full transition-colors font-bold"
@@ -130,6 +159,7 @@ const Contact: React.FC = () => {
                   </svg>
                   TikTok
                 </a>
+                )}
               </div>
             </Reveal>
           </div>

@@ -20,42 +20,50 @@ const Facilities: React.FC = () => {
     {
       icon: <Award className="text-brand" size={40} />,
       title: "Pro Equipment",
-      desc: "Play on well-maintained Yalin Pro Billiards table used in Qatar Billiard World Cup Tournament Events tailored for the perfect game."
+      desc: "Play on well-maintained Yalin Pro Billiards table used in Qatar Billiard World Cup Tournament Events tailored for the perfect game.",
+      link: "#billiards-service"
     },
     {
       icon: <Trophy className="text-brand" size={40} />,
       title: "Leagues & Tournaments",
-      desc: "Join our vibrant competitive scene. Weekly leagues and monthly cash-prize tournaments."
+      desc: "Join our vibrant competitive scene. Weekly leagues and monthly cash-prize tournaments.",
+      link: "#tournament"
     },
     {
       icon: <Crown className="text-brand" size={40} />,
       title: "VIP Rooms",
-      desc: "Exclusive private spaces with premium service, perfect for groups who want privacy."
+      desc: "Exclusive private spaces with premium service, perfect for groups who want privacy.",
+      link: "#event-place"
     },
     {
       icon: <GraduationCap className="text-brand" size={40} />,
       title: "Coaching",
-      desc: "Improve your technique with tips from our resident pros. Beginners welcome."
+      desc: "Improve your technique with tips from our resident pros. Beginners welcome.",
+      link: "#billiards-service"
     },
     {
       icon: <DartsIcon className="text-brand" size={40} />,
       title: "Darts",
-      desc: "Test your aim on our professional dart boards. Perfect for casual play or friendly competition."
+      desc: "Test your aim on our professional dart boards. Perfect for casual play or friendly competition.",
+      link: "#darts"
     },
     {
       icon: <ChessIcon className="text-brand" size={40} />,
       title: "Chess",
-      desc: "Test your strategy and focus. Our chess corner is available for players of all skill levels."
+      desc: "Test your strategy and focus. Our chess corner is available for players of all skill levels.",
+      link: "#chess"
     },
     {
       icon: <Users className="text-brand" size={40} />,
       title: "Social Vibe",
-      desc: "Great music, dim lighting, and a community of players make every night memorable."
+      desc: "Great music, dim lighting, and a community of players make every night memorable.",
+      link: "#gallery"
     },
     {
       icon: <CalendarClock className="text-brand" size={40} />,
       title: "Easy Booking",
-      desc: "Reserve specific tables in advance for you and your friends to guarantee your spot."
+      desc: "Reserve specific tables in advance for you and your friends to guarantee your spot.",
+      link: "#contact"
     }
   ];
 
@@ -80,7 +88,10 @@ const Facilities: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {features.map((feat, idx) => (
           <Reveal key={idx} delay={idx * 100} variant="slide-left">
-            <div className="bg-dark-800 p-8 rounded-xl border border-dark-700 h-full group transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:border-brand hover:shadow-glow">
+            <a 
+              href={feat.link}
+              className="block bg-dark-800 p-8 rounded-xl border border-dark-700 h-full group transition-all duration-300 hover:-translate-y-2 hover:scale-105 hover:border-brand hover:shadow-glow"
+            >
               <div className="bg-dark-900 w-16 h-16 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform shadow-lg shadow-brand/10 group-hover:shadow-brand/30">
                 {feat.icon}
               </div>
@@ -88,7 +99,7 @@ const Facilities: React.FC = () => {
               <p className="text-gray-400 leading-relaxed text-sm group-hover:text-gray-300">
                 {feat.desc}
               </p>
-            </div>
+            </a>
           </Reveal>
         ))}
       </div>

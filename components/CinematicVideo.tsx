@@ -1,11 +1,38 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Reveal from './ui/Reveal';
 import { Volume2, VolumeX } from 'lucide-react';
+import { useCMSContent } from '../hooks/useCMSContent';
 
 const CinematicVideo: React.FC = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [hasInteracted, setHasInteracted] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const { data: videoData } = useCMSContent('videos', {
+    videos: [
+      { title: 'Hero Background', url: 'https://www.youtube.com/embed/RfiLxYAGQYY' },
+      { title: 'Cinematic Highlights', url: 'https://www.youtube.com/embed/KfPa315R4DI' }
+    ]
+  });
+
+  const videoUrl = videoData.videos?.[1]?.url || videoData.videos?.[0]?.url || 'https://www.youtube.com/embed/KfPa315R4DI';
+  const isYoutube = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be');
+
+  let embedUrl = videoUrl;
+  if (isYoutube) {
+      let videoId = '';
+      if (videoUrl.includes('v=')) {
+          videoId = videoUrl.split('v=')[1]?.split('&')[0];
+      } else if (videoUrl.includes('youtu.be/')) {
+          videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0];
+      } else if (videoUrl.includes('embed/')) {
+          videoId = videoUrl.split('embed/')[1]?.split('?')[0];
+      }
+      
+      if (videoId) {
+          embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1`;
+      }
+  }
 
   useEffect(() => {
     if (hasInteracted) return;
@@ -52,28 +79,17 @@ const CinematicVideo: React.FC = () => {
       <div className="relative h-[50vh] md:h-[70vh] w-full overflow-hidden">
         
         {/* Soft Edges / Vignette Effect */}
-        {/* Top Fade */}
         <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-dark-900 via-dark-900/60 to-transparent z-20 pointer-events-none"></div>
-        
-        {/* Bottom Fade */}
         <div className="absolute bottom-0 left-0 w-full h-40 bg-gradient-to-t from-dark-900 via-dark-900/60 to-transparent z-20 pointer-events-none"></div>
-
-        {/* Side/Corner Vignette */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,#0F0F11_100%)] z-20 pointer-events-none opacity-80"></div>
-
-        {/* Color Grading Overlay */}
         <div className="absolute inset-0 bg-brand/10 mix-blend-overlay z-10 pointer-events-none"></div>
 
         {/* YouTube Embed Container */}
         <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
-            {/* 
-                scale-[1.35]: Zooms in to ensure coverage and remove potential black bars.
-                opacity-60: Blends video into the dark background for a subtle cinematic feel.
-            */}
             <iframe 
                 ref={iframeRef}
                 className="w-full h-full object-cover scale-[1.35] opacity-60 pointer-events-auto"
-                src="https://www.youtube.com/embed/KfPa315R4DI?autoplay=1&mute=1&loop=1&playlist=KfPa315R4DI&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1" 
+                src={embedUrl}
                 title="Cinematic Video" 
                 frameBorder="0" 
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 

@@ -2,54 +2,68 @@ import React from 'react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import { handleHashClick } from '../lib/scroll';
-
-const activities = [
-  {
-    id: 'billiards-detail',
-    title: 'Professional Billiards',
-    description: 'Experience the game on our world-class Yalin Pro tables, the same equipment used in international championships. Whether you are practicing your break or competing in a tournament, our professional-grade environment ensures every shot counts.',
-    image: 'https://iili.io/q2fFdAP.jpg', // Using existing high-quality action shot
-    align: 'left'
-  },
-  {
-    id: 'darts-detail',
-    title: 'Precision Darts',
-    description: 'Aim for the bullseye in our dedicated darts zone. Featuring professional-standard boards and a relaxed atmosphere, it is the perfect place to sharpen your focus or enjoy a friendly match with friends.',
-    image: 'https://iili.io/qFN1vwb.jpg', // Using user-provided darts image
-    align: 'right'
-  },
-  {
-    id: 'events-detail',
-    title: 'Premier Event Space',
-    description: 'From corporate team building to private celebrations, our versatile event space is designed to impress. With customizable layouts, premium catering options, and full AV support, we make your special occasions unforgettable.',
-    image: 'https://iili.io/q2fF3DF.jpg', // Using existing event image
-    align: 'left'
-  },
-  {
-    id: 'karaoke-detail',
-    title: 'Private Karaoke',
-    description: 'Sing your heart out in our state-of-the-art private karaoke rooms. Equipped with the latest sound systems and an extensive library of hits, it is the ultimate destination for music lovers and party-goers alike.',
-    image: 'https://picsum.photos/seed/karaoke-lounge/800/600', // Placeholder for Karaoke
-    align: 'right'
-  }
-];
+import { useCMSContent } from '../hooks/useCMSContent';
+import { Loader2 } from 'lucide-react';
 
 const ActivitySections: React.FC = () => {
+  const { data, loading } = useCMSContent('offerings', {
+    items: [
+      {
+        id: 'billiards-detail',
+        title: 'Professional Billiards',
+        description: 'Experience the game on our world-class Yalin Pro tables, the same equipment used in international championships. Whether you are practicing your break or competing in a tournament, our professional-grade environment ensures every shot counts.',
+        url: 'https://iili.io/q2fFdAP.jpg',
+        align: 'left'
+      },
+      {
+        id: 'darts-detail',
+        title: 'Precision Darts',
+        description: 'Aim for the bullseye in our dedicated darts zone. Featuring professional-standard boards and a relaxed atmosphere, it is the perfect place to sharpen your focus or enjoy a friendly match with friends.',
+        url: 'https://iili.io/qFN1vwb.jpg',
+        align: 'right'
+      },
+      {
+        id: 'events-detail',
+        title: 'Premier Event Space',
+        description: 'From corporate team building to private celebrations, our versatile event space is designed to impress. With customizable layouts, premium catering options, and full AV support, we make your special occasions unforgettable.',
+        url: 'https://iili.io/q2fF3DF.jpg',
+        align: 'left'
+      },
+      {
+        id: 'karaoke-detail',
+        title: 'Private Karaoke',
+        description: 'Sing your heart out in our state-of-the-art private karaoke rooms. Equipped with the latest sound systems and an extensive library of hits, it is the ultimate destination for music lovers and party-goers alike.',
+        url: 'https://picsum.photos/seed/karaoke-lounge/800/600',
+        align: 'right'
+      }
+    ]
+  });
+
+  const activities = data.items || [];
+
+  if (loading) {
+    return (
+      <div className="bg-dark-900 py-20 flex justify-center">
+        <Loader2 size={32} className="animate-spin text-brand" />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-dark-900">
-      {activities.map((activity, index) => (
+      {activities.map((activity: any, index: number) => (
         <Section 
-          key={activity.id} 
-          id={activity.id} 
+          key={activity.id || index} 
+          id={activity.id || `offering-${index}`} 
           className={index % 2 === 0 ? 'bg-dark-900' : 'bg-dark-800'}
         >
-          <div className={`flex flex-col lg:flex-row items-center gap-12 ${activity.align === 'right' ? 'lg:flex-row-reverse' : ''}`}>
+          <div className={`flex flex-col lg:flex-row items-center gap-12 ${(activity.align || (index % 2 !== 0 ? 'right' : 'left')) === 'right' ? 'lg:flex-row-reverse' : ''}`}>
             {/* Image Side */}
             <div className="w-full lg:w-1/2">
-              <Reveal variant={activity.align === 'left' ? 'slide-left' : 'slide-right'}>
+              <Reveal variant={(activity.align || (index % 2 !== 0 ? 'right' : 'left')) === 'left' ? 'slide-left' : 'slide-right'}>
                 <div className="relative group overflow-hidden rounded-2xl border border-white/5 shadow-2xl">
                   <img 
-                    src={activity.image} 
+                    src={activity.url} 
                     alt={activity.title} 
                     className="w-full h-[400px] object-cover transition-transform duration-700 group-hover:scale-110"
                     referrerPolicy="no-referrer"

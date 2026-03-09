@@ -1,8 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Check, X, Facebook, Instagram, Volume2, VolumeX } from 'lucide-react';
+import { Check, X, Facebook, Instagram, Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useCMSContent } from '../hooks/useCMSContent';
 
 // Utility for merging classes
 function cn(...inputs: ClassValue[]) {
@@ -13,81 +14,16 @@ function cn(...inputs: ClassValue[]) {
 type Plan = {
   id: string;
   name: string;
-  initial: string;
+  initial?: string;
   monthlyPrice: number;
   annualPrice: number;
   features: string[];
   notIncluded?: string[];
   highlight?: boolean;
-  metallicGradient: string;
-  textColor: string;
-  borderColor: string;
+  metallicGradient?: string;
+  textColor?: string;
+  borderColor?: string;
 };
-
-const plans: Plan[] = [
-  {
-    id: 'gold',
-    name: 'Gold',
-    initial: 'G',
-    monthlyPrice: 85,
-    annualPrice: 59,
-    features: [
-      'Free 3 hours playing time monthly',
-      'Discounted table rate: QAR30/hour',
-      'Free 1 large Efren signature coffee per visit',
-      'Free haircut (Soon to offer)',
-      'Free use of event place for 3 hours on your birthday (Valued @ QAR600)',
-      '20% Discounts in food and drinks',
-      '20% discount on event place rental',
-      '20% discount on photobooth and 360 videbooth rental',
-      'Free 7 sessions of professional career coaching (transferrable)'
-    ],
-    highlight: true,
-    metallicGradient: 'bg-gradient-to-br from-[#FFFACD]/90 via-[#FFD700]/90 to-[#B8860B]/90',
-    textColor: 'text-black',
-    borderColor: 'border-[#8B6508]/20',
-  },
-  {
-    id: 'silver',
-    name: 'Silver',
-    initial: 'S',
-    monthlyPrice: 60,
-    annualPrice: 42,
-    features: [
-      'Free 2 hours playing time monthly',
-      'Discounted table rate: QAR30/hour',
-      'Free haircut (Soon to offer)',
-      'Free use of event place for 2 hours on your birthday (Valued @ QAR400)',
-      '20% Discounts in food and drinks',
-      '20% discount on event place rental',
-      '20% discount on photobooth and 360 videbooth rental',
-      'Free 5 sessions of professional career coaching (transferrable)'
-    ],
-    metallicGradient: 'bg-gradient-to-br from-[#F5F5F5]/90 via-[#C0C0C0]/90 to-[#757575]/90',
-    textColor: 'text-black',
-    borderColor: 'border-[#404040]/20',
-  },
-  {
-    id: 'bronze',
-    name: 'Bronze',
-    initial: 'B',
-    monthlyPrice: 35,
-    annualPrice: 24,
-    features: [
-      'Free 1 hour playing time monthly',
-      'Discounted table rate: QAR30/hour',
-      'Free haircut (Soon to offer)',
-      'Free use of event place for 1 hour on your birthday (Valued @ QAR200)',
-      '20% Discounts in food and drinks',
-      '20% discount on event place rental',
-      '20% discount on photobooth and 360 videbooth rental',
-      'Free 3 sessions of professional career coaching (transferrable)'
-    ],
-    metallicGradient: 'bg-gradient-to-br from-[#E8C39E]/90 via-[#CD7F32]/90 to-[#8B4513]/90',
-    textColor: 'text-black',
-    borderColor: 'border-[#5D2906]/20',
-  },
-];
 
 const MembershipLanding: React.FC = () => {
   const [isAnnual, setIsAnnual] = useState(true);
@@ -95,8 +31,110 @@ const MembershipLanding: React.FC = () => {
   const [hasInteracted, setHasInteracted] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
+  const { data: cmsData, loading } = useCMSContent('membership-plans', {
+    plans: [
+      {
+        id: 'gold',
+        name: 'Gold',
+        priceMonthly: 85,
+        priceAnnual: 59,
+        features: [
+          'Free 3 hours playing time monthly',
+          'Discounted table rate: QAR30/hour',
+          'Free 1 large Efren signature coffee per visit',
+          'Free haircut (Soon to offer)',
+          'Free use of event place for 3 hours on your birthday (Valued @ QAR600)',
+          '20% Discounts in food and drinks',
+          '20% discount on event place rental',
+          '20% discount on photobooth and 360 videbooth rental',
+          'Free 7 sessions of professional career coaching (transferrable)'
+        ],
+        highlight: true,
+      },
+      {
+        id: 'silver',
+        name: 'Silver',
+        priceMonthly: 60,
+        priceAnnual: 42,
+        features: [
+          'Free 2 hours playing time monthly',
+          'Discounted table rate: QAR30/hour',
+          'Free haircut (Soon to offer)',
+          'Free use of event place for 2 hours on your birthday (Valued @ QAR400)',
+          '20% Discounts in food and drinks',
+          '20% discount on event place rental',
+          '20% discount on photobooth and 360 videbooth rental',
+          'Free 5 sessions of professional career coaching (transferrable)'
+        ],
+      },
+      {
+        id: 'bronze',
+        name: 'Bronze',
+        priceMonthly: 35,
+        priceAnnual: 24,
+        features: [
+          'Free 1 hour playing time monthly',
+          'Discounted table rate: QAR30/hour',
+          'Free haircut (Soon to offer)',
+          'Free use of event place for 1 hour on your birthday (Valued @ QAR200)',
+          '20% Discounts in food and drinks',
+          '20% discount on event place rental',
+          '20% discount on photobooth and 360 videbooth rental',
+          'Free 3 sessions of professional career coaching (transferrable)'
+        ],
+      },
+    ]
+  });
+
+  const plans: Plan[] = (cmsData.plans || []).map((p: any) => ({
+    ...p,
+    initial: p.name?.[0] || 'M',
+    monthlyPrice: p.priceMonthly,
+    annualPrice: p.priceAnnual,
+    highlight: p.isGold || p.popular,
+    metallicGradient: p.isGold || p.id === 'gold'
+      ? 'bg-gradient-to-br from-[#FFFACD]/90 via-[#FFD700]/90 to-[#B8860B]/90' 
+      : p.popular || p.id === 'silver'
+        ? 'bg-gradient-to-br from-[#F5F5F5]/90 via-[#C0C0C0]/90 to-[#757575]/90'
+        : 'bg-gradient-to-br from-[#E8C39E]/90 via-[#CD7F32]/90 to-[#8B4513]/90',
+    textColor: 'text-black',
+    borderColor: p.isGold || p.id === 'gold'
+      ? 'border-[#8B6508]/20' 
+      : p.popular || p.id === 'silver'
+        ? 'border-[#404040]/20'
+        : 'border-[#5D2906]/20'
+  }));
+
+  const { data: videoData } = useCMSContent('videos', {
+    videos: [
+      { title: 'Hero Background', url: 'https://www.youtube.com/embed/RfiLxYAGQYY' },
+      { title: 'Cinematic Highlights', url: 'https://www.youtube.com/embed/KfPa315R4DI' },
+      { title: 'Membership Background', url: 'https://www.youtube.com/embed/RfiLxYAGQYY' }
+    ]
+  });
+
+  const cmsVideoUrl = videoData.videos?.[2]?.url || videoData.videos?.[0]?.url;
+  const bgUrl = cmsVideoUrl || 'https://www.youtube.com/embed/RfiLxYAGQYY';
+  const isVideo = bgUrl.includes('youtube.com') || bgUrl.includes('youtu.be');
+
+  let embedUrl = bgUrl;
+  if (isVideo) {
+      let videoId = '';
+      if (bgUrl.includes('v=')) {
+          videoId = bgUrl.split('v=')[1]?.split('&')[0];
+      } else if (bgUrl.includes('youtu.be/')) {
+          videoId = bgUrl.split('youtu.be/')[1]?.split('?')[0];
+      } else if (bgUrl.includes('embed/')) {
+          videoId = bgUrl.split('embed/')[1]?.split('?')[0];
+      }
+      
+      if (videoId) {
+          embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1`;
+      }
+  }
+
   useEffect(() => {
-    if (hasInteracted) return;
+    if (hasInteracted || !isVideo) return;
 
     const handleFirstInteraction = () => {
       if (!hasInteracted && iframeRef.current && iframeRef.current.contentWindow) {
@@ -180,7 +218,7 @@ const MembershipLanding: React.FC = () => {
         <iframe
           ref={iframeRef}
           className="w-full h-full object-cover scale-[1.35] pointer-events-auto"
-          src="https://www.youtube.com/embed/RfiLxYAGQYY?autoplay=1&mute=1&loop=1&playlist=RfiLxYAGQYY&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1"
+          src={embedUrl}
           title="Background Video"
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           style={{ border: 'none' }}
@@ -278,7 +316,7 @@ const MembershipLanding: React.FC = () => {
               {/* Most Popular Ribbon */}
               {plan.highlight && (
                 <div className="absolute top-0 inset-x-0 bg-black/90 text-gold text-[10px] font-bold uppercase tracking-[0.2em] py-2 text-center z-20 border-b border-gold/30">
-                  Most Popular ★
+                  {plan.id === 'gold' || (plan as any).isGold ? 'Best Value ★' : 'Most Popular ★'}
                 </div>
               )}
 

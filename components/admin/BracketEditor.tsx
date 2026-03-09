@@ -243,6 +243,72 @@ export const BracketEditor: React.FC<Props> = ({ tournament }) => {
         }
     };
 
+    const autoAssignPlayers = async () => {
+        const round1Matches = matches.filter(m => m.round === 1);
+        if (round1Matches.length === 0) {
+            showToast('No Round 1 matches found. Please generate a bracket first.', 'error');
+            return;
+        }
+
+        // Filter unassigned players
+        const assignedPlayerIds = new Set<string>();
+        matches.forEach(m => {
+            if (m.player1_id) assignedPlayerIds.add(m.player1_id);
+            if (m.player2_id) assignedPlayerIds.add(m.player2_id);
+        });
+        const availablePlayers = [...registrations.filter(p => !assignedPlayerIds.has(p.id))];
+        
+        if (availablePlayers.length === 0) {
+            showToast('All players are already assigned.', 'info');
+            return;
+        }
+
+        // Shuffle players
+        for (let i = availablePlayers.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [availablePlayers[i], availablePlayers[j]] = [availablePlayers[j], availablePlayers[i]];
+        }
+
+        setSaving(true);
+        try {
+            let playerIdx = 0;
+            for (const match of round1Matches) {
+                const updates: any = {};
+                if (!match.player1_id && playerIdx < availablePlayers.length) {
+                    updates.player1_id = availablePlayers[playerIdx++].id;
+                }
+                if (!match.player2_id && playerIdx < availablePlayers.length) {
+                    updates.player2_id = availablePlayers[playerIdx++].id;
+                }
+
+                if (Object.keys(updates).length > 0) {
+                    // Ensure players exist in players table
+                    for (const pid of Object.values(updates) as string[]) {
+                        const { data: existingPlayer } = await (supabase.from('players') as any).select('id').eq('id', pid).maybeSingle();
+                        if (!existingPlayer) {
+                            const profile = registrations.find(p => p.id === pid);
+                            await (supabase.from('players') as any).insert([{
+                                id: pid,
+                                name: profile?.full_name || 'Unknown Player',
+                                rating: 1500,
+                                wins: 0,
+                                losses: 0
+                            }]);
+                        }
+                    }
+                    await updateMatch(match.id, updates);
+                }
+                
+                if (playerIdx >= availablePlayers.length) break;
+            }
+            showToast(`Auto-assigned ${playerIdx} players to Round 1.`, 'success');
+        } catch (err: any) {
+            showToast(err.message, 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
     // Filter unassigned players
     const assignedPlayerIds = new Set<string>();
     matches.forEach(m => {
@@ -265,6 +331,15 @@ export const BracketEditor: React.FC<Props> = ({ tournament }) => {
                         </p>
                     </div>
                     <div className="flex gap-2">
+                        <button 
+                            onClick={autoAssignPlayers} 
+                            disabled={saving || generating || unassignedPlayers.length === 0}
+                            className="px-3 py-1.5 bg-brand/20 hover:bg-brand/30 border border-brand/30 rounded-lg text-xs font-bold text-brand flex items-center gap-2 transition-colors disabled:opacity-50"
+                        >
+                            {saving ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
+                            Auto Assign
+                        </button>
+                        <div className="w-px h-8 bg-white/10 mx-2" />
                         <button onClick={() => generateBracket(4)} disabled={generating} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold text-white">Gen 4</button>
                         <button onClick={() => generateBracket(8)} disabled={generating} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold text-white">Gen 8</button>
                         <button onClick={() => generateBracket(16)} disabled={generating} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold text-white">Gen 16</button>

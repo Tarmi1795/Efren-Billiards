@@ -67,7 +67,7 @@ const TournamentCTA: React.FC<Props> = ({ gameType }) => {
                 }`}
             >
                 <Trophy size={20} />
-                {isRegistered ? 'View Tournament Bracket' : 'Register for Tournament'}
+                {isRegistered ? 'View Tournament ' : 'Register for Tournament'}
             </a>
             {tournament.start_date && (
                 <p className="mt-3 text-xs text-gray-400 font-mono flex items-center gap-2">

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Section from './ui/Section';
 import Button from './ui/Button';
 import Reveal from './ui/Reveal';
@@ -144,10 +145,19 @@ const Membership: React.FC = () => {
               </h3>
               <p className="text-gray-500 text-sm mt-2 min-h-[20px]">{plan.desc}</p>
 
-              <div className="my-8">
-                <span className={`text-4xl font-extrabold ${plan.isGold ? 'text-yellow-400' : plan.id === 'silver' ? 'text-slate-300' : 'text-white'}`}>
-                  QAR {isAnnual ? plan.priceAnnual : plan.priceMonthly}
-                </span>
+              <div className="my-8 flex items-baseline gap-2 min-h-[48px]">
+                <AnimatePresence mode="popLayout">
+                  <motion.span
+                    key={isAnnual ? 'annual' : 'monthly'}
+                    initial={{ opacity: 0, scale: 0.8, y: 15 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.8, y: -15 }}
+                    transition={{ type: "spring", bounce: 0.4, duration: 0.5 }}
+                    className={`text-4xl font-extrabold ${plan.isGold ? 'text-yellow-400' : plan.id === 'silver' ? 'text-slate-300' : 'text-white'}`}
+                  >
+                    QAR {isAnnual ? plan.priceAnnual : plan.priceMonthly}
+                  </motion.span>
+                </AnimatePresence>
                 <span className="text-gray-500 font-medium"> / month</span>
               </div>
 

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Check, X, Facebook, Instagram, Volume2, VolumeX, Loader2, Star } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -22,6 +22,7 @@ type Plan = {
   highlight?: boolean;
   metallicGradient?: string;
   textColor?: string;
+  priceColor?: string;
   borderColor?: string;
 };
 
@@ -93,18 +94,18 @@ const MembershipLanding: React.FC = () => {
     monthlyPrice: p.priceMonthly,
     annualPrice: p.priceAnnual,
     highlight: p.isGold || p.popular || p.id === 'gold',
-    metallicGradient: 'bg-[#121214]/80 backdrop-blur-xl',
-    textColor: 'text-white',
-    priceColor: p.isGold || p.id === 'gold'
-      ? 'text-[#FFD700]' 
+    metallicGradient: p.isGold || p.id === 'gold'
+      ? 'bg-gradient-to-br from-[#FFFACD]/90 via-[#D4AF37]/90 to-[#996515]/90' 
       : p.popular || p.id === 'silver'
-        ? 'text-[#E2E8F0]'
-        : 'text-[#CD7F32]',
+        ? 'bg-gradient-to-br from-[#FFFFFF]/90 via-[#C0C0C0]/90 to-[#808080]/90'
+        : 'bg-gradient-to-br from-[#FFE4C4]/90 via-[#CD7F32]/90 to-[#8B4513]/90',
+    textColor: 'text-black',
+    priceColor: 'text-black',
     borderColor: p.isGold || p.id === 'gold'
-      ? 'border-[#FFD700]/30' 
+      ? 'border-[#996515]/30' 
       : p.popular || p.id === 'silver'
-        ? 'border-[#E2E8F0]/20'
-        : 'border-[#CD7F32]/20'
+        ? 'border-[#808080]/20'
+        : 'border-[#8B4513]/20'
   }));
 
   const { data: videoData } = useCMSContent('videos', {
@@ -187,14 +188,21 @@ const MembershipLanding: React.FC = () => {
     },
   };
 
-  const cardVariants = {
-    hidden: (index: number) => ({
-      x: typeof window !== 'undefined' && window.innerWidth >= 768 ? `-${index * 110}%` : 0, // Stack on left for desktop
-      y: typeof window !== 'undefined' && window.innerWidth < 768 ? 50 : 0, // Slide up for mobile
-      opacity: 0,
-      scale: 0.9,
-      rotate: typeof window !== 'undefined' && window.innerWidth >= 768 ? -5 * (2 - index) : 0, // Fan effect
-    }),
+  const scatterVariants = {
+    hidden: (index: number) => {
+      // Calculate random offsets for the "scattered" disassembled look
+      const randomX = (index - 1) * 150 + (Math.random() * 100 - 50);
+      const randomY = Math.random() * 150 + 50;
+      const randomRotate = Math.random() * 40 - 20;
+
+      return {
+        x: typeof window !== 'undefined' && window.innerWidth >= 768 ? randomX : 0,
+        y: typeof window !== 'undefined' && window.innerWidth < 768 ? 100 : randomY,
+        opacity: 0,
+        scale: 0.6,
+        rotate: typeof window !== 'undefined' && window.innerWidth >= 768 ? randomRotate : 0,
+      };
+    },
     visible: (index: number) => ({
       x: 0,
       y: 0,
@@ -206,7 +214,7 @@ const MembershipLanding: React.FC = () => {
         stiffness: 60,
         damping: 12,
         mass: 1,
-        delay: index * 0.15, // Manual stagger
+        delay: index * 0.15,
       },
     }),
   };
@@ -302,18 +310,22 @@ const MembershipLanding: React.FC = () => {
             <motion.div
               key={plan.id}
               custom={index}
-              variants={cardVariants}
+              variants={scatterVariants}
               initial="hidden"
               whileInView="visible"
-              viewport={{ once: false, amount: 0.2 }}
+              viewport={{ once: false, amount: 0.2 }} // bi-directional scattering trigger
               className={cn(
-                "relative flex flex-col border transition-transform duration-300 hover:-translate-y-2 rounded-xl overflow-hidden shadow-2xl backdrop-blur-sm",
+                "relative flex flex-col border rounded-xl overflow-hidden backdrop-blur-sm group transition-transform duration-500 hover:-translate-y-4 hover:scale-[1.02]",
                 plan.metallicGradient,
                 plan.borderColor
               )}
             >
+              {/* Responsive Radial Bloom Glow on Hover */}
+              <div className="absolute inset-x-0 -top-24 h-48 bg-white opacity-0 group-hover:opacity-20 blur-3xl transition-opacity duration-700 pointer-events-none rounded-full" />
+              <div className="absolute inset-x-0 bottom-0 h-32 bg-white opacity-0 group-hover:opacity-20 blur-3xl transition-opacity duration-700 pointer-events-none rounded-full" />
+              
               {/* Shine Effect Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/30 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/40 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
               {/* Most Popular Ribbon */}
               {plan.highlight && (
@@ -327,19 +339,28 @@ const MembershipLanding: React.FC = () => {
                 {/* Header */}
                 <div className="flex justify-between items-start mb-1 mt-4">
                   <div className="flex-1">
-                    <h3 className={cn("text-3xl font-black uppercase tracking-tighter mb-1 flex items-center gap-2", (plan as any).priceColor)}>
+                    <h3 className={cn("text-3xl font-black uppercase tracking-tighter mb-1 flex items-center gap-2", plan.priceColor)}>
                       {plan.name}
-                      <Star className="w-4 h-4 fill-current" />
+                      <Star className="w-5 h-5 fill-current opacity-80" />
                     </h3>
-                    <p className="text-white/50 text-xs mb-8">
+                    <p className="text-black/60 text-xs mb-8 font-bold uppercase tracking-widest">
                       {(plan as any).desc}
                     </p>
                     
-                    <div className={cn("flex items-baseline gap-2 mb-10", (plan as any).priceColor)}>
-                      <span className="text-5xl font-black tracking-tighter">
-                        QAR {isAnnual ? plan.annualPrice : plan.monthlyPrice}
-                      </span>
-                      <span className="text-white/30 text-xs font-medium">/ month</span>
+                    <div className={cn("flex items-baseline gap-2 mb-10 min-h-[50px]", plan.priceColor)}>
+                      <AnimatePresence mode="popLayout">
+                        <motion.span 
+                          key={isAnnual ? 'annual' : 'monthly'}
+                          initial={{ opacity: 0, scale: 0.8, y: 15 }}
+                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.8, y: -15 }}
+                          transition={{ type: "spring", bounce: 0.4, duration: 0.5 }}
+                          className="text-5xl font-black tracking-tighter drop-shadow-sm"
+                        >
+                          QAR {isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                        </motion.span>
+                      </AnimatePresence>
+                      <span className="text-black/50 text-xs font-bold tracking-widest uppercase">/ month</span>
                     </div>
                   </div>
                 </div>
@@ -348,14 +369,14 @@ const MembershipLanding: React.FC = () => {
                 <div className="space-y-4 mb-12 flex-grow">
                   {plan.features.map((feature, i) => (
                     <div key={i} className="flex items-start gap-4">
-                      <Check size={16} strokeWidth={3} className={cn("shrink-0 mt-0.5", (plan as any).priceColor)} />
-                      <span className="text-sm font-bold leading-tight text-white/90">{feature}</span>
+                      <Check size={16} strokeWidth={3} className={cn("shrink-0 mt-0.5 opacity-80", plan.priceColor)} />
+                      <span className="text-xs font-bold leading-relaxed text-black/90 uppercase tracking-widest">{feature}</span>
                     </div>
                   ))}
                   {plan.notIncluded?.map((feature, i) => (
                     <div key={i} className="flex items-start gap-4 opacity-40">
                       <X size={16} strokeWidth={2} className="shrink-0 mt-0.5" />
-                      <span className="text-xs uppercase tracking-wider leading-relaxed">{feature}</span>
+                      <span className="text-xs uppercase tracking-wider leading-relaxed text-black">{feature}</span>
                     </div>
                   ))}
                 </div>
@@ -367,19 +388,15 @@ const MembershipLanding: React.FC = () => {
                     window.open(`https://wa.me/97451622111?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                   className={cn(
-                    'w-full py-5 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 rounded-xl shadow-lg hover:scale-[1.02] active:scale-95',
-                    plan.id === 'gold' || (plan as any).isGold
-                      ? 'bg-[#FFD700] text-black hover:bg-[#FFD700]/90 shadow-[#FFD700]/20'
-                      : plan.id === 'silver'
-                        ? 'bg-white text-black hover:bg-white/90 shadow-white/10'
-                        : 'bg-white/10 border border-white/20 text-white hover:bg-white/20'
+                    'w-full py-5 text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 rounded-xl shadow-[0_10px_30px_rgba(0,0,0,0.15)] group-hover:shadow-[0_15px_40px_rgba(0,0,0,0.25)] hover:scale-[1.03] active:scale-95 border border-black/10',
+                    'bg-black/95 text-white hover:bg-black'
                   )}
                 >
                   Be A {plan.name} Member Now!
                 </button>
 
-                <p className="text-[10px] text-center mt-6 opacity-50 uppercase tracking-widest">
-                  <a href="#terms" className="hover:text-gold transition-colors underline">Terms & Conditions Apply</a>
+                <p className="text-[10px] text-center mt-6 opacity-60 uppercase tracking-widest text-black font-bold">
+                  <a href="#terms" className="hover:text-black/80 transition-colors underline">Terms & Conditions Apply</a>
                 </p>
               </div>
             </motion.div>

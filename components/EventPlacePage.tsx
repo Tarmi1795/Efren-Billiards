@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Users, Clock, ArrowRight, Music, AlertCircle, Calculator, Building } from 'lucide-react';
+import { Calendar, Users, Clock, ArrowRight, Music, AlertCircle, Calculator, Building, Gift } from 'lucide-react';
 import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
@@ -151,15 +151,31 @@ const EventPlacePage: React.FC = () => {
                                     >
                                         {estimatedCost.toLocaleString()} <span className="text-lg text-brand">QAR</span>
                                     </motion.p>
-                                    <p className="text-xs text-gray-500 mt-2">Get up to 3 hours free.</p>
                                 </div>
 
-                                <Button variant="primary" fullWidth onClick={(e) => handleHashClick(e, '#contact')} className="py-4">
+                                <Button variant="primary" fullWidth onClick={(e) => handleHashClick(e, '#contact')} className="py-4 shadow-lg shadow-brand/20">
                                     Request Formal Quote
                                 </Button>
                                 
-                                <div className="pt-2 text-center">
-                                    <a href="/#/membership-landing" className="inline-block text-xs font-bold text-brand uppercase tracking-widest hover:text-white transition-colors border-b border-brand border-dashed pb-1">
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.8, duration: 0.5 }}
+                                    className="mt-4 flex items-center justify-center gap-2 group cursor-default"
+                                >
+                                    <motion.div
+                                        animate={{ scale: [1, 1.1, 1] }}
+                                        transition={{ repeat: Infinity, duration: 2 }}
+                                    >
+                                        <Gift size={16} className="text-yellow-500" />
+                                    </motion.div>
+                                    <p className="text-[11px] md:text-xs font-bold italic text-brand tracking-tight">
+                                        Don't leave time on the table, get up to <span className="text-yellow-500 not-italic font-black underline decoration-yellow-500/30 underline-offset-4">3 hours FREE</span> as a member!
+                                    </p>
+                                </motion.div>
+
+                                <div className="mt-3 text-center">
+                                    <a href="/#/membership-landing" className="inline-block text-xs font-bold text-gray-400 uppercase tracking-widest hover:text-white transition-colors border-b border-gray-600 hover:border-white border-dashed pb-1">
                                         Click Here to Become A Member
                                     </a>
                                 </div>

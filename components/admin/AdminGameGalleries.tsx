@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../ui/Toast';
-import { Loader2, Save, Plus, Trash2, Image as ImageIcon } from 'lucide-react';
+import { Loader2, Save, Plus, Trash2, Image as ImageIcon, Upload } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 interface GalleryData {
@@ -30,6 +30,7 @@ const AdminGameGalleries: React.FC = () => {
     const [galleries, setGalleries] = useState<Record<string, GalleryData>>(defaultContent);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState<string | null>(null);
+    const [uploadingImage, setUploadingImage] = useState<{ gameType: string, index: number } | null>(null);
 
     const gameTypes = ['billiards', 'chess', 'darts'];
 
@@ -81,6 +82,33 @@ const AdminGameGalleries: React.FC = () => {
             showToast(err.message, 'error');
         } finally {
             setSaving(null);
+        }
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, gameType: string, index: number) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingImage({ gameType, index });
+        try {
+            const fileExt = file.name.split('.').pop();
+            const fileName = `game-gallery-${gameType}-${Date.now()}.${fileExt}`;
+            const { error } = await supabase.storage
+                .from('cms_uploads')
+                .upload(fileName, file);
+
+            if (error) throw error;
+
+            const { data: publicUrlData } = supabase.storage
+                .from('cms_uploads')
+                .getPublicUrl(fileName);
+
+            updateImage(gameType, index, publicUrlData.publicUrl);
+            showToast('Image uploaded successfully', 'success');
+        } catch (err: any) {
+            showToast(err.message || 'Error uploading file', 'error');
+        } finally {
+            setUploadingImage(null);
         }
     };
 
@@ -187,8 +215,25 @@ const AdminGameGalleries: React.FC = () => {
                                                     value={imgUrl}
                                                     onChange={(e) => updateImage(gameType, index, e.target.value)}
                                                     placeholder="https://..."
-                                                    className="flex-1 bg-transparent border-none text-white text-sm focus:outline-none placeholder-gray-600"
+                                                    className="flex-1 w-24 bg-transparent border-none text-white text-sm focus:outline-none placeholder-gray-600"
                                                 />
+                                                <div className="relative overflow-hidden group/upload shrink-0 ml-2 border-l border-white/10 pl-2">
+                                                    <label className="cursor-pointer hover:bg-white/10 text-white rounded-lg px-2 py-1.5 flex items-center justify-center transition-all gap-2">
+                                                        {uploadingImage?.gameType === gameType && uploadingImage?.index === index ? (
+                                                            <Loader2 size={14} className="animate-spin text-brand" />
+                                                        ) : (
+                                                            <Upload size={14} className="text-gray-400 group-hover/upload:text-white" />
+                                                        )}
+                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover/upload:text-white">Upload</span>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            className="hidden"
+                                                            onChange={(e) => handleFileUpload(e, gameType, index)}
+                                                            disabled={!!uploadingImage}
+                                                        />
+                                                    </label>
+                                                </div>
                                                 <button
                                                     onClick={() => removeImage(gameType, index)}
                                                     className="p-2 text-gray-500 hover:text-red-500 transition-colors shrink-0"

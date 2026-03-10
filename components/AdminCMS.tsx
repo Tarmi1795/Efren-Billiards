@@ -207,6 +207,9 @@ const AdminCMS: React.FC = () => {
                                 <button onClick={() => setActiveModule('gallery')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'gallery' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
                                     <ImageIcon size={18} /> Image Gallery
                                 </button>
+                                <button onClick={() => setActiveModule('game-galleries')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'game-galleries' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <ImageIcon size={18} /> Game Galleries
+                                </button>
                                 <button onClick={() => setActiveModule('videos')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'videos' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
                                     <Video size={18} /> YouTube Videos
                                 </button>
@@ -236,9 +239,6 @@ const AdminCMS: React.FC = () => {
                                 </button>
                                 <button onClick={() => setActiveModule('event-pricing')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'event-pricing' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
                                     <Calendar size={18} /> Event Pricing
-                                </button>
-                                <button onClick={() => setActiveModule('game-galleries')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'game-galleries' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <ImageIcon size={18} /> Game Galleries
                                 </button>
                             </nav>
                         </div>

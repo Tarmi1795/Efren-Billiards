@@ -68,41 +68,45 @@ const DartsPage: React.FC = () => {
                 </div>
             </Reveal>
 
-            <Section id="content" className="py-20 max-w-6xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-                <Reveal variant="slide-right">
-                    <p className="text-brand font-bold uppercase tracking-widest mb-4 flex items-center justify-center md:justify-start gap-2">Precision & Focus</p>
-                    <h2 className="text-3xl md:text-5xl font-black text-white uppercase leading-tight mb-8 text-center md:text-left">
-                        Step up to the <br /> oche zone.
-                    </h2>
-                    <p className="text-lg leading-relaxed mb-10 text-gray-400 text-center md:text-left">
-                        Featuring tournament-grade boards and a focused atmosphere, it's the perfect place to sharpen your aim or challenge friends. Get your favorite drink from the cafe and let the friendly competition begin!
-                    </p>
+            <Section id="content" className="py-20 max-w-6xl mx-auto px-6">
+                <div className="grid md:grid-cols-2 gap-16 items-center">
+                    <Reveal variant="slide-right">
+                        <p className="text-brand font-bold uppercase tracking-widest mb-4 flex items-center justify-center md:justify-start gap-2">Precision & Focus</p>
+                        <h2 className="text-3xl md:text-5xl font-black text-white uppercase leading-tight mb-8 text-center md:text-left">
+                            Step up to the <br /> oche zone.
+                        </h2>
+                        <p className="text-lg leading-relaxed mb-10 text-gray-400 text-center md:text-left">
+                            Featuring tournament-grade boards and a focused atmosphere, it's the perfect place to sharpen your aim or challenge friends. Get your favorite drink from the cafe and let the friendly competition begin!
+                        </p>
 
-                    <div className="bg-dark-800 p-6 rounded-2xl border border-white/5 mb-8 flex items-center justify-between shadow-2xl">
-                        <div>
-                            <p className="text-white font-bold uppercase tracking-wider mb-1">Your Personal Best</p>
-                            <p className="text-gray-500 text-sm">Not registered yet</p>
+                        <div className="bg-dark-800 p-6 rounded-2xl border border-white/5 mb-8 flex items-center justify-between shadow-2xl">
+                            <div>
+                                <p className="text-white font-bold uppercase tracking-wider mb-1">Your Personal Best</p>
+                                <p className="text-gray-500 text-sm">Not registered yet</p>
+                            </div>
+                            <Button variant="outline" onClick={handleShareScore} className="px-4 py-2 text-xs flex items-center gap-2 border-white/10 hover:border-brand">
+                                <Share2 size={14} /> Share Rankings to Friends
+                            </Button>
                         </div>
-                        <Button variant="outline" onClick={handleShareScore} className="px-4 py-2 text-xs flex items-center gap-2 border-white/10 hover:border-brand">
-                            <Share2 size={14} /> Share Rankings to Friends
-                        </Button>
-                    </div>
 
-                    <div className="flex justify-center md:justify-start">
-                        <Button variant="primary" onClick={(e) => handleHashClick(e, '#contact')} className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full hover:scale-105 transition-transform duration-300">
-                            Book a Board
-                        </Button>
-                    </div>
-                    <TournamentCTA gameType="darts" />
-                </Reveal>
+                        <div className="flex justify-center md:justify-start">
+                            <Button variant="primary" onClick={(e) => handleHashClick(e, '#contact')} className="px-12 py-5 text-sm uppercase tracking-[0.2em] font-black rounded-full hover:scale-105 transition-transform duration-300">
+                                Book a Board
+                            </Button>
+                        </div>
+                        <TournamentCTA gameType="darts" />
+                    </Reveal>
 
-                {/* Gamification Widget: Leaderboards */}
-                <Reveal variant="slide-left">
-                    <RankingSection gameType="darts" title="Rankings" />
-                </Reveal>
+                    {/* Gamification Widget: Leaderboards */}
+                    <Reveal variant="slide-left">
+                        <RankingSection gameType="darts" title="Rankings" />
+                    </Reveal>
+                </div>
+
+                <div className="mt-16 -mx-4 md:-mx-8 lg:-mx-16">
+                    <GameGallery gameType="darts" />
+                </div>
             </Section>
-
-            <GameGallery gameType="darts" />
 
             <GameTournamentSection gameType="darts" />
         </div>

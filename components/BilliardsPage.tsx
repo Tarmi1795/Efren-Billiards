@@ -70,6 +70,10 @@ const BilliardsPage: React.FC = () => {
                     </div>
                     <TournamentCTA gameType="billiards" />
                 </Reveal>
+
+                <div className="mt-16 -mx-4 md:-mx-8 lg:-mx-16">
+                    <GameGallery gameType="billiards" />
+                </div>
             </Section>
 
             <GameTournamentSection gameType="billiards" />

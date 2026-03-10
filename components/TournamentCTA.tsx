@@ -69,12 +69,6 @@ const TournamentCTA: React.FC<Props> = ({ gameType }) => {
                 <Trophy size={20} />
                 {isRegistered ? 'View Tournament ' : 'Register for Tournament'}
             </a>
-            {tournament.start_date && (
-                <p className="mt-3 text-xs text-gray-400 font-mono flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-brand animate-pulse"></span>
-                    Starts: {new Date(tournament.start_date).toLocaleString()}
-                </p>
-            )}
         </div>
     );
 };

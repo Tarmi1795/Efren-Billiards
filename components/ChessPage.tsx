@@ -68,6 +68,10 @@ const ChessPage: React.FC = () => {
                     <TournamentCTA gameType="chess" />
                 </Reveal>
 
+                <div className="mt-16 -mx-4 md:-mx-8 lg:-mx-16">
+                    <GameGallery gameType="chess" />
+                </div>
+
                 {/* Grandmaster Simul & Player Challenges */}
                 <Reveal delay={200} className="mt-24">
                     <div className="bg-dark-800 rounded-3xl p-8 md:p-12 border border-brand/20 shadow-[0_0_40px_rgba(197,160,89,0.1)] relative overflow-hidden text-left">
@@ -106,8 +110,6 @@ const ChessPage: React.FC = () => {
                     </div>
                 </Reveal>
             </Section>
-
-            <GameGallery gameType="chess" />
 
             <GameTournamentSection gameType="chess" />
 

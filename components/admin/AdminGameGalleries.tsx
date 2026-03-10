@@ -4,23 +4,36 @@ import { useToast } from '../ui/Toast';
 import { Loader2, Save, Plus, Trash2, Image as ImageIcon, Upload } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
+interface GalleryImage {
+    url: string;
+    title?: string;
+    description?: string;
+}
+
 interface GalleryData {
     title: string;
-    images: string[];
+    images: (string | GalleryImage)[];
 }
 
 const defaultContent: Record<string, GalleryData> = {
     billiards: {
         title: "World-Class Yalin Tables",
-        images: ["https://images.unsplash.com/photo-1595859703086-1d1230e87dcb?q=80&w=1470&auto=format&fit=crop"]
+        images: [
+            { url: "https://images.unsplash.com/photo-1595859703086-1d1230e87dcb?q=80&w=1470&auto=format&fit=crop", title: "Precision Strike", description: "A showcase of pinpoint accuracy and professional-grade Yalin tables, built for champions." },
+            { url: "https://images.unsplash.com/photo-1549488344-c6b12a0614f1?q=80&w=1470&auto=format&fit=crop", title: "Masterful Break", description: "Analyzing the geometry of the table before executing the perfect sequence of shots." }
+        ]
     },
     chess: {
         title: "Premium Chess Lounge",
-        images: ["https://images.unsplash.com/photo-1529699211952-734e80c4d42b?q=80&w=1471&auto=format&fit=crop"]
+        images: [
+            { url: "https://images.unsplash.com/photo-1529699211952-734e80c4d42b?q=80&w=1471&auto=format&fit=crop", title: "Grandmaster's Vision", description: "Surrounded by an atmosphere of deep focus, where every move dictates the outcome." }
+        ]
     },
     darts: {
         title: "Tournament-Grade Darts",
-        images: ["https://images.unsplash.com/photo-1629168953153-f7cc8cbee015?q=80&w=1470&auto=format&fit=crop"]
+        images: [
+            { url: "https://images.unsplash.com/photo-1629168953153-f7cc8cbee015?q=80&w=1470&auto=format&fit=crop", title: "Bullseye Focus", description: "Precision is key. Every throw is a calculated arc towards perfection." }
+        ]
     }
 };
 
@@ -103,7 +116,7 @@ const AdminGameGalleries: React.FC = () => {
                 .from('cms_uploads')
                 .getPublicUrl(fileName);
 
-            updateImage(gameType, index, publicUrlData.publicUrl);
+            updateImageField(gameType, index, 'url', publicUrlData.publicUrl);
             showToast('Image uploaded successfully', 'success');
         } catch (err: any) {
             showToast(err.message || 'Error uploading file', 'error');
@@ -122,14 +135,21 @@ const AdminGameGalleries: React.FC = () => {
     const addImage = (gameType: string) => {
         setGalleries(prev => ({
             ...prev,
-            [gameType]: { ...prev[gameType], images: [...prev[gameType].images, ''] }
+            [gameType]: { ...prev[gameType], images: [...prev[gameType].images, { url: '', title: '', description: '' }] }
         }));
     };
 
-    const updateImage = (gameType: string, index: number, value: string) => {
+    const updateImageField = (gameType: string, index: number, field: keyof GalleryImage, value: string) => {
         setGalleries(prev => {
             const newImages = [...prev[gameType].images];
-            newImages[index] = value;
+            const currentImg = newImages[index];
+            
+            if (typeof currentImg === 'string') {
+                newImages[index] = { url: field === 'url' ? value : currentImg, [field]: value };
+            } else {
+                newImages[index] = { ...currentImg, [field]: value };
+            }
+            
             return {
                 ...prev,
                 [gameType]: { ...prev[gameType], images: newImages }
@@ -200,49 +220,84 @@ const AdminGameGalleries: React.FC = () => {
 
                                 <div>
                                     <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold mb-4 block">Images</label>
-                                    <div className="space-y-3">
-                                        {gallery.images.map((imgUrl, index) => (
-                                            <div key={index} className="flex gap-4 items-center bg-black/20 border border-white/5 p-3 rounded-xl">
-                                                <div className="w-16 h-12 bg-dark-900 rounded-lg border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
-                                                    {imgUrl ? (
-                                                        <img src={imgUrl} alt="preview" className="w-full h-full object-cover" />
-                                                    ) : (
-                                                        <ImageIcon size={16} className="text-gray-600" />
-                                                    )}
+                                    <div className="space-y-4">
+                                        {gallery.images.map((img, index) => {
+                                            const imgUrl = typeof img === 'string' ? img : img.url;
+                                            const imgTitle = typeof img === 'string' ? '' : (img.title || '');
+                                            const imgDesc = typeof img === 'string' ? '' : (img.description || '');
+
+                                            return (
+                                                <div key={index} className="bg-black/20 border border-white/5 p-4 rounded-2xl space-y-4">
+                                                    <div className="flex gap-4 items-center">
+                                                        <div className="w-20 h-16 bg-dark-900 rounded-xl border border-white/10 overflow-hidden shrink-0 flex items-center justify-center">
+                                                            {imgUrl ? (
+                                                                <img src={imgUrl} alt="preview" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <ImageIcon size={20} className="text-gray-600" />
+                                                            )}
+                                                        </div>
+                                                        <div className="flex-1 space-y-2">
+                                                            <div className="flex gap-2">
+                                                                <input
+                                                                    type="url"
+                                                                    value={imgUrl}
+                                                                    onChange={(e) => updateImageField(gameType, index, 'url', e.target.value)}
+                                                                    placeholder="Image URL (https://...)"
+                                                                    className="flex-1 bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-brand/40"
+                                                                />
+                                                                <div className="relative overflow-hidden group/upload shrink-0">
+                                                                    <label className="cursor-pointer bg-white/5 hover:bg-brand text-white rounded-lg px-4 py-2 flex items-center justify-center transition-all gap-2 border border-white/10">
+                                                                        {uploadingImage?.gameType === gameType && uploadingImage?.index === index ? (
+                                                                            <Loader2 size={14} className="animate-spin" />
+                                                                        ) : (
+                                                                            <Upload size={14} />
+                                                                        )}
+                                                                        <span className="text-[10px] font-bold uppercase tracking-widest">Upload</span>
+                                                                        <input
+                                                                            type="file"
+                                                                            accept="image/*"
+                                                                            className="hidden"
+                                                                            onChange={(e) => handleFileUpload(e, gameType, index)}
+                                                                            disabled={!!uploadingImage}
+                                                                        />
+                                                                    </label>
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => removeImage(gameType, index)}
+                                                                    className="p-2 text-gray-500 hover:text-red-500 transition-colors shrink-0"
+                                                                    title="Remove Image"
+                                                                >
+                                                                    <Trash2 size={18} />
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-24">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Photo Sub-title</label>
+                                                            <input
+                                                                type="text"
+                                                                value={imgTitle}
+                                                                onChange={(e) => updateImageField(gameType, index, 'title', e.target.value)}
+                                                                placeholder="e.g. Precision Strike"
+                                                                className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-brand/40"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] uppercase tracking-widest text-gray-500 font-bold">Photo Description</label>
+                                                            <textarea
+                                                                value={imgDesc}
+                                                                onChange={(e) => updateImageField(gameType, index, 'description', e.target.value)}
+                                                                placeholder="Tell the story behind this photo..."
+                                                                rows={2}
+                                                                className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-brand/40 resize-none"
+                                                            />
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <input
-                                                    type="url"
-                                                    value={imgUrl}
-                                                    onChange={(e) => updateImage(gameType, index, e.target.value)}
-                                                    placeholder="https://..."
-                                                    className="flex-1 w-24 bg-transparent border-none text-white text-sm focus:outline-none placeholder-gray-600"
-                                                />
-                                                <div className="relative overflow-hidden group/upload shrink-0 ml-2 border-l border-white/10 pl-2">
-                                                    <label className="cursor-pointer hover:bg-white/10 text-white rounded-lg px-2 py-1.5 flex items-center justify-center transition-all gap-2">
-                                                        {uploadingImage?.gameType === gameType && uploadingImage?.index === index ? (
-                                                            <Loader2 size={14} className="animate-spin text-brand" />
-                                                        ) : (
-                                                            <Upload size={14} className="text-gray-400 group-hover/upload:text-white" />
-                                                        )}
-                                                        <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400 group-hover/upload:text-white">Upload</span>
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            className="hidden"
-                                                            onChange={(e) => handleFileUpload(e, gameType, index)}
-                                                            disabled={!!uploadingImage}
-                                                        />
-                                                    </label>
-                                                </div>
-                                                <button
-                                                    onClick={() => removeImage(gameType, index)}
-                                                    className="p-2 text-gray-500 hover:text-red-500 transition-colors shrink-0"
-                                                    title="Remove Image"
-                                                >
-                                                    <Trash2 size={18} />
-                                                </button>
-                                            </div>
-                                        ))}
+                                            );
+                                        })}
 
                                         <button
                                             onClick={() => addImage(gameType)}

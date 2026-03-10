@@ -19,16 +19,10 @@ const TournamentCard: React.FC<{
     onRegister: (id: string) => void;
     onUnregister: (id: string) => void;
 }> = ({ tournament, isRegistered, isRegistering, onRegister, onUnregister }) => {
-    const [showParticipants, setShowParticipants] = useState(false);
     const [participants, setParticipants] = useState<{ user_id: string; profiles: Profile }[]>([]);
     const [loadingParticipants, setLoadingParticipants] = useState(false);
 
     const fetchParticipants = async () => {
-        if (participants.length > 0) {
-            setShowParticipants(!showParticipants);
-            return;
-        }
-
         setLoadingParticipants(true);
         try {
             const { data, error } = await supabase
@@ -38,13 +32,16 @@ const TournamentCard: React.FC<{
 
             if (error) throw error;
             setParticipants(data as any || []);
-            setShowParticipants(true);
         } catch (err) {
             console.error('Failed to fetch participants', err);
         } finally {
             setLoadingParticipants(false);
         }
     };
+
+    useEffect(() => {
+        fetchParticipants();
+    }, [tournament.id, isRegistered]);
 
     const showRegisterButton = ['billiards', 'darts', 'chess'].includes(tournament.game_type?.toLowerCase());
 
@@ -78,39 +75,27 @@ const TournamentCard: React.FC<{
             </div>
 
             <div className="mt-auto pt-4 border-t border-white/5">
-                <button
-                    onClick={fetchParticipants}
-                    className="flex items-center justify-between w-full text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors mb-4"
-                >
+                <div className="flex items-center justify-between w-full text-xs font-bold uppercase tracking-widest text-gray-400 mb-4">
                     <span className="flex items-center gap-2"><Users size={14} /> Participants</span>
-                    {loadingParticipants ? <Loader2 size={14} className="animate-spin" /> : showParticipants ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                </button>
+                    {loadingParticipants && <Loader2 size={14} className="animate-spin" />}
+                </div>
 
-                <AnimatePresence>
-                    {showParticipants && (
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            className="overflow-hidden mb-4"
-                        >
-                            {participants.length === 0 ? (
-                                <p className="text-xs text-gray-500 italic">No participants yet.</p>
-                            ) : (
-                                <ul className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                                    {participants.map((p, idx) => (
-                                        <li key={idx} className="text-sm text-gray-300 flex items-center gap-2 bg-dark-900 p-2 rounded-lg border border-white/5">
-                                            <div className="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center text-[10px] font-bold text-brand">
-                                                {p.profiles?.full_name?.charAt(0) || 'U'}
-                                            </div>
-                                            {p.profiles?.full_name || 'Unknown Player'}
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </motion.div>
+                <div className="mb-4">
+                    {participants.length === 0 ? (
+                        <p className="text-xs text-gray-500 italic">No participants yet.</p>
+                    ) : (
+                        <ul className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                            {participants.map((p, idx) => (
+                                <li key={idx} className="text-sm text-gray-300 flex items-center gap-2 bg-dark-900 p-2 rounded-lg border border-white/5">
+                                    <div className="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center text-[10px] font-bold text-brand">
+                                        {p.profiles?.full_name?.charAt(0) || 'U'}
+                                    </div>
+                                    {p.profiles?.full_name || 'Unknown Player'}
+                                </li>
+                            ))}
+                        </ul>
                     )}
-                </AnimatePresence>
+                </div>
 
                 {showRegisterButton && (
                     <div className="pt-4 border-t border-white/5">

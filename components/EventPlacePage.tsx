@@ -49,7 +49,7 @@ const EventPlacePage: React.FC = () => {
 
     // Calculator State
     const [eventType, setEventType] = useState<EventType>('Corporate event');
-    const [guests, setGuests] = useState<number>(50);
+    const [hours, setHours] = useState<number>(4);
     const [basePrices, setBasePrices] = useState<Record<EventType, number>>(DEFAULT_PRICES);
 
     // Fetch CMS pricing
@@ -72,7 +72,7 @@ const EventPlacePage: React.FC = () => {
         })();
     }, []);
 
-    const estimatedCost = guests * basePrices[eventType];
+    const estimatedCost = hours * basePrices[eventType];
 
     return (
         <div className="pt-24 min-h-screen bg-dark-900">
@@ -124,19 +124,20 @@ const EventPlacePage: React.FC = () => {
 
                                 <div>
                                     <label className="flex justify-between text-sm font-bold uppercase tracking-wider text-gray-400 mb-4">
-                                        <span>Guest Count</span>
-                                        <span className="text-brand">{guests} Guests</span>
+                                        <span>Duration</span>
+                                        <span className="text-brand">{hours} Hours</span>
                                     </label>
                                     <input
                                         type="range"
-                                        min="10"
-                                        max="200"
-                                        value={guests}
-                                        onChange={(e) => setGuests(parseInt(e.target.value))}
+                                        min="1"
+                                        max="12"
+                                        step="1"
+                                        value={hours}
+                                        onChange={(e) => setHours(parseInt(e.target.value))}
                                         className="w-full h-2 bg-dark-900 rounded-lg appearance-none cursor-pointer accent-brand"
                                     />
-                                    {guests >= 200 && (
-                                        <p className="text-xs text-brand/80 mt-2 flex items-center gap-1"><AlertCircle size={12} /> Max capacity reached for standard booking.</p>
+                                    {hours >= 12 && (
+                                        <p className="text-xs text-brand/80 mt-2 flex items-center gap-1"><AlertCircle size={12} /> Contact us for full-day or multi-day booking.</p>
                                     )}
                                 </div>
 
@@ -150,12 +151,18 @@ const EventPlacePage: React.FC = () => {
                                     >
                                         {estimatedCost.toLocaleString()} <span className="text-lg text-brand">QAR</span>
                                     </motion.p>
-                                    <p className="text-xs text-gray-500 mt-2">*Estimate includes base package and catering.</p>
+                                    <p className="text-xs text-gray-500 mt-2">Get up to 3 hours free.</p>
                                 </div>
 
                                 <Button variant="primary" fullWidth onClick={(e) => handleHashClick(e, '#contact')} className="py-4">
                                     Request Formal Quote
                                 </Button>
+                                
+                                <div className="pt-2 text-center">
+                                    <a href="/#/membership-landing" className="inline-block text-xs font-bold text-brand uppercase tracking-widest hover:text-white transition-colors border-b border-brand border-dashed pb-1">
+                                        Click Here to Become A Member
+                                    </a>
+                                </div>
                             </div>
 
                             {/* Event Preview */}

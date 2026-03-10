@@ -23,9 +23,10 @@ import AdminOfferings from './admin/AdminOfferings';
 import AdminVisualTour from './admin/AdminVisualTour';
 import AdminMatchMyGame from './admin/AdminMatchMyGame';
 import AdminEventPricing from './admin/AdminEventPricing';
+import AdminGameGalleries from './admin/AdminGameGalleries';
 import type { Profile, MembershipTier } from '../types/database';
 
-type CMSModule = 'hero' | 'gallery' | 'offerings' | 'visual-tour' | 'site-images' | 'videos' | 'food-menu' | 'match-my-game' | 'weekly-schedule' | 'membership-plans' | 'contact-info' | 'social-links' | 'tournaments' | 'players' | 'members' | 'rankings' | 'event-pricing' | 'settings';
+type CMSModule = 'hero' | 'gallery' | 'offerings' | 'visual-tour' | 'site-images' | 'videos' | 'food-menu' | 'match-my-game' | 'weekly-schedule' | 'membership-plans' | 'contact-info' | 'social-links' | 'tournaments' | 'players' | 'members' | 'rankings' | 'event-pricing' | 'game-galleries' | 'settings';
 
 const AdminCMS: React.FC = () => {
     const { profile, loading: authLoading } = useAuth();
@@ -235,6 +236,9 @@ const AdminCMS: React.FC = () => {
                                 </button>
                                 <button onClick={() => setActiveModule('event-pricing')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'event-pricing' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
                                     <Calendar size={18} /> Event Pricing
+                                </button>
+                                <button onClick={() => setActiveModule('game-galleries')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'game-galleries' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <ImageIcon size={18} /> Game Galleries
                                 </button>
                             </nav>
                         </div>
@@ -576,6 +580,11 @@ const AdminCMS: React.FC = () => {
                     {/* Event Pricing Module */}
                     {activeModule === 'event-pricing' && (
                         <AdminEventPricing />
+                    )}
+
+                    {/* Game Galleries Module */}
+                    {activeModule === 'game-galleries' && (
+                        <AdminGameGalleries />
                     )}
 
                     {/* Placeholder for other modules */}

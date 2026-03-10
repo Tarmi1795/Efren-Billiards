@@ -1,5 +1,5 @@
 import React from 'react';
-import { Instagram, Facebook } from 'lucide-react';
+import { Instagram, Facebook, Linkedin, MapPin } from 'lucide-react';
 import { handleHashClick } from '../lib/scroll';
 import { useCMSContent } from '../hooks/useCMSContent';
 
@@ -8,7 +8,9 @@ const Footer: React.FC = () => {
     facebook: 'https://www.facebook.com/share/1DZ7ux6Qmi/?mibextid=wwXIfr',
     instagram: 'https://www.instagram.com/efrenbilliards?igsh=YnQwdDI1MjJ0aDZm',
     tiktok: 'https://www.tiktok.com/@efren.billiards.m?_r=1&_t=ZS-93hdvwpNUdp',
-    whatsapp: 'https://wa.me/97451622111'
+    whatsapp: 'https://wa.me/97451622111',
+    linkedin: '',
+    googleBusinessProfile: ''
   });
 
   const { data: contactInfo } = useCMSContent('contact-info', {
@@ -36,6 +38,8 @@ const Footer: React.FC = () => {
                   <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.35-1.08 1.08-1.15 1.84-.04.52.16 1.09.43 1.48.56.78 1.55 1.25 2.52 1.25.99.01 1.88-.47 2.45-1.25.43-.59.62-1.36.63-2.09.02-4.99 0-9.98 0-14.96.95-.03 1.92 0 2.88 0z" />
                 </svg>
               </a>}
+              {socialLinks.linkedin && <a href={socialLinks.linkedin} target="_blank" rel="noopener noreferrer" title="LinkedIn" className="text-gray-400 hover:text-brand transition-colors"><Linkedin size={20} /></a>}
+              {socialLinks.googleBusinessProfile && <a href={socialLinks.googleBusinessProfile} target="_blank" rel="noopener noreferrer" title="Google Business Profile" className="text-gray-400 hover:text-brand transition-colors"><MapPin size={20} /></a>}
             </div>
           </div>
 

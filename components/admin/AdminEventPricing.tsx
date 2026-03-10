@@ -69,21 +69,21 @@ const AdminEventPricing: React.FC = () => {
         {
             key: 'corporate' as keyof EventPricing,
             label: 'Corporate Event',
-            description: 'Per-person base rate for corporate team events',
+            description: 'Per-hour base rate for corporate team events',
             icon: Building,
             color: 'blue',
         },
         {
             key: 'tournament' as keyof EventPricing,
             label: 'Tournament',
-            description: 'Per-person base rate for competitive tournaments',
+            description: 'Per-hour base rate for competitive tournaments',
             icon: Trophy,
             color: 'gold',
         },
         {
             key: 'birthday' as keyof EventPricing,
             label: 'Birthday Party',
-            description: 'Per-person base rate for birthday celebrations',
+            description: 'Per-hour base rate for birthday celebrations',
             icon: Cake,
             color: 'pink',
         },
@@ -137,7 +137,7 @@ const AdminEventPricing: React.FC = () => {
 
                         <div className="space-y-2">
                             <label className="text-[10px] uppercase tracking-widest text-gray-500 font-black">
-                                Base Price per Person (QAR)
+                                Base Price per Hour (QAR)
                             </label>
                             <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-brand font-black text-sm">QAR</span>
@@ -152,11 +152,11 @@ const AdminEventPricing: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Live preview calculation for 50 guests */}
+                        {/* Live preview calculation for 4 hours */}
                         <div className="bg-dark-900 rounded-xl p-4 text-center border border-white/5">
-                            <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-1">Example (50 guests)</p>
+                            <p className="text-[10px] text-gray-600 uppercase tracking-widest mb-1">Example (4 hours)</p>
                             <p className="text-2xl font-black text-white">
-                                {(pricing[key] * 50).toLocaleString()} <span className="text-sm text-brand font-bold">QAR</span>
+                                {(pricing[key] * 4).toLocaleString()} <span className="text-sm text-brand font-bold">QAR</span>
                             </p>
                         </div>
                     </div>
@@ -165,7 +165,7 @@ const AdminEventPricing: React.FC = () => {
 
             {/* Info Note */}
             <div className="p-4 rounded-xl bg-brand/5 border border-brand/10 text-sm text-gray-400">
-                <strong className="text-brand">How it works:</strong> The Budget Estimator on the Event Place page multiplies the guest count by the base price for the selected event type. Changes saved here will reflect immediately on the live site.
+                <strong className="text-brand">How it works:</strong> The Budget Estimator on the Event Place page multiplies the duration in hours by the base price for the selected event type. Changes saved here will reflect immediately on the live site.
             </div>
         </div>
     );

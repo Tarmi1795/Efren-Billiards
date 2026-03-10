@@ -11,7 +11,9 @@ const AdminSocialLinks: React.FC = () => {
         facebook: '',
         instagram: '',
         tiktok: '',
-        whatsapp: ''
+        whatsapp: '',
+        linkedin: '',
+        googleBusinessProfile: ''
     });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
@@ -38,7 +40,9 @@ const AdminSocialLinks: React.FC = () => {
                     facebook: "https://www.facebook.com/share/1DZ7ux6Qmi/?mibextid=wwXIfr",
                     instagram: "https://www.instagram.com/efrenbilliards?igsh=YnQwdDI1MjJ0aDZm",
                     tiktok: "https://www.tiktok.com/@efren.billiards.m?_r=1&_t=ZS-93hdvwpNUdp",
-                    whatsapp: "https://wa.me/97451622111"
+                    whatsapp: "https://wa.me/97451622111",
+                    linkedin: "",
+                    googleBusinessProfile: ""
                 });
             }
         } catch (err: any) {
@@ -105,7 +109,7 @@ const AdminSocialLinks: React.FC = () => {
                     <LinkIcon size={120} />
                 </div>
                 
-                {['facebook', 'instagram', 'tiktok', 'whatsapp'].map((platform) => (
+                {['facebook', 'instagram', 'tiktok', 'whatsapp', 'linkedin', 'googleBusinessProfile'].map((platform) => (
                     <div key={platform} className="space-y-2 relative z-10 md:col-span-2">
                         <label className="text-[10px] uppercase tracking-widest text-gray-500 font-black px-1">{platform}</label>
                         <input

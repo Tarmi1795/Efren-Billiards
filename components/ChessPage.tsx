@@ -5,6 +5,7 @@ import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
 import GameTournamentSection from './GameTournamentSection';
+import GameGallery from './GameGallery';
 import TournamentCTA from './TournamentCTA';
 import RankingSection from './RankingSection';
 import { handleHashClick } from '../lib/scroll';
@@ -105,6 +106,8 @@ const ChessPage: React.FC = () => {
                     </div>
                 </Reveal>
             </Section>
+
+            <GameGallery gameType="chess" />
 
             <GameTournamentSection gameType="chess" />
 

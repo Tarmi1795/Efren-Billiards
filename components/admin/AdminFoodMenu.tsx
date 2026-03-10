@@ -7,6 +7,7 @@ import { useAuth } from '../../contexts/AuthContext';
 interface MenuItem {
     name: string;
     price: string;
+    image?: string;
 }
 
 interface MenuCategory {
@@ -114,7 +115,7 @@ const AdminFoodMenu: React.FC = () => {
 
     const addItem = (catIndex: number) => {
         const newCats = [...categories];
-        newCats[catIndex].items.push({ name: '', price: '' });
+        newCats[catIndex].items.push({ name: '', price: '', image: '' });
         setCategories(newCats);
     };
 
@@ -177,7 +178,7 @@ const AdminFoodMenu: React.FC = () => {
                         <div className="space-y-4">
                             {cat.items.map((item, itemIndex) => (
                                 <div key={itemIndex} className="grid grid-cols-1 md:grid-cols-12 gap-4 items-start bg-black/20 p-4 rounded-xl border border-white/5">
-                                    <div className="md:col-span-6 space-y-1">
+                                    <div className="md:col-span-8 space-y-1">
                                         <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Item Name</label>
                                         <input
                                             type="text"
@@ -186,7 +187,7 @@ const AdminFoodMenu: React.FC = () => {
                                             className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand/40"
                                         />
                                     </div>
-                                    <div className="md:col-span-5 space-y-1">
+                                    <div className="md:col-span-3 space-y-1">
                                         <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Price</label>
                                         <input
                                             type="text"
@@ -199,9 +200,20 @@ const AdminFoodMenu: React.FC = () => {
                                         <button
                                             onClick={() => removeItem(catIndex, itemIndex)}
                                             className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                                            title="Remove Item"
                                         >
                                             <Trash2 size={16} />
                                         </button>
+                                    </div>
+                                    <div className="md:col-span-12 space-y-1">
+                                        <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Image URL (Optional)</label>
+                                        <input
+                                            type="url"
+                                            value={item.image || ''}
+                                            onChange={(e) => updateItem(catIndex, itemIndex, 'image', e.target.value)}
+                                            placeholder="https://..."
+                                            className="w-full bg-white/[0.03] border border-white/10 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-brand/40"
+                                        />
                                     </div>
                                 </div>
                             ))}

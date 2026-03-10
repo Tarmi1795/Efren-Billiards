@@ -235,9 +235,16 @@ const CoffeeMenuPage: React.FC = () => {
                   <h3 className="text-xl font-bold text-white uppercase mb-6 pl-1">{cat.category}</h3>
                   <ul className="space-y-6">
                     {cat.items.map((item: any, i: number) => (
-                      <li key={i} className="flex justify-between items-end border-b border-dark-700 pb-2 border-dashed">
-                        <span className="text-gray-300 font-medium">{item.name}</span>
-                        <span className="text-brand font-bold">{item.price}</span>
+                      <li key={i} className="flex justify-between items-center border-b border-dark-700 pb-4 border-dashed">
+                        <div className="flex items-center gap-4 flex-1">
+                          <img 
+                            src={item.image || "https://images.unsplash.com/photo-1559525839-b184a4d698c7?q=80&w=200&auto=format&fit=crop"} 
+                            alt={item.name} 
+                            className="w-12 h-12 object-cover rounded-full border border-dark-700"
+                          />
+                          <span className="text-gray-300 font-medium flex-1">{item.name}</span>
+                        </div>
+                        <span className="text-brand font-bold whitespace-nowrap ml-4">{item.price}</span>
                       </li>
                     ))}
                   </ul>

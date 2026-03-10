@@ -250,7 +250,7 @@ const MembershipLanding: React.FC = () => {
 
           <div className="py-12 md:py-16 px-6">
             <span className="text-gold font-bold uppercase tracking-[0.2em] text-[10px] mb-4 block">Limited Time Membership Open</span>
-            <h2 className="text-3xl md:text-5xl font-black uppercase tracking-tight mb-6 leading-tight">
+            <h2 className="text-4xl md:text-5xl font-extrabold uppercase mb-6 leading-tight">
               Ready to <span className="text-gold">Level Up</span> Your Game?
             </h2>
             <p className="text-white/50 text-[10px] md:text-xs uppercase tracking-widest mb-10 max-w-xl mx-auto leading-loose">
@@ -259,7 +259,7 @@ const MembershipLanding: React.FC = () => {
 
             <button
               onClick={() => window.open('https://wa.me/97451622111?text=Hi! I saw your post. I want to join the Efren Billiards community.', '_blank')}
-              className="group relative inline-flex items-center justify-center px-12 py-5 font-black text-xs uppercase tracking-[0.3em] text-black bg-gold rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(197,160,89,0.3)] hover:shadow-[0_0_50px_rgba(197,160,89,0.5)]"
+              className="group relative inline-flex items-center justify-center px-12 py-5 font-bold text-sm uppercase text-black bg-gold rounded-full transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_0_30px_rgba(197,160,89,0.3)] hover:shadow-[0_0_50px_rgba(197,160,89,0.5)]"
             >
               Get My MEMBERSHIP Access
             </button>
@@ -277,7 +277,7 @@ const MembershipLanding: React.FC = () => {
           <button
             onClick={() => setIsAnnual(false)}
             className={cn(
-              'px-8 py-3 text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-md',
+              'px-8 py-3 text-sm font-bold uppercase transition-all duration-300 rounded-md',
               !isAnnual ? 'bg-white text-black shadow-md' : 'text-white/60 hover:text-white'
             )}
           >
@@ -286,7 +286,7 @@ const MembershipLanding: React.FC = () => {
           <button
             onClick={() => setIsAnnual(true)}
             className={cn(
-              'px-8 py-3 text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-md',
+              'px-8 py-3 text-sm font-bold uppercase transition-all duration-300 rounded-md',
               isAnnual ? 'bg-white text-black shadow-md' : 'text-white/60 hover:text-white'
             )}
           >
@@ -325,12 +325,12 @@ const MembershipLanding: React.FC = () => {
                 {/* Header */}
                 <div className="flex justify-between items-start mb-12 mt-4">
                   <div>
-                    <h3 className="text-xs font-bold uppercase tracking-[0.2em] opacity-70 mb-2">{plan.name} Tier</h3>
+                    <h3 className="text-2xl font-bold uppercase opacity-90 mb-2">{plan.name}</h3>
                     <div className="flex items-baseline gap-1">
-                      <span className="font-serif text-5xl font-black tracking-tighter">
+                      <span className="font-serif text-4xl font-extrabold tracking-tighter">
                         {isAnnual ? plan.annualPrice : plan.monthlyPrice}
                       </span>
-                      <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">QAR / MO</span>
+                      <span className="text-sm font-medium opacity-70"> / month</span>
                     </div>
                   </div>
                   {/* Oversized Initial */}
@@ -362,7 +362,7 @@ const MembershipLanding: React.FC = () => {
                     window.open(`https://wa.me/97451622111?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                   className={cn(
-                    'w-full py-4 text-xs font-black uppercase tracking-[0.2em] transition-all duration-300 border shadow-lg hover:shadow-xl active:scale-95',
+                    'w-full py-4 text-sm font-bold uppercase transition-all duration-300 border shadow-lg hover:shadow-xl active:scale-95',
                     plan.highlight
                       ? 'bg-black text-gold border-black hover:bg-gray-900'
                       : 'bg-black/10 border-black/20 text-black hover:bg-black hover:text-white'

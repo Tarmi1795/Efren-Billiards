@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'motion/react';
-import { Check, X, Facebook, Instagram, Volume2, VolumeX, Loader2 } from 'lucide-react';
+import { Check, X, Facebook, Instagram, Volume2, VolumeX, Loader2, Star } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useCMSContent } from '../hooks/useCMSContent';
@@ -88,21 +88,23 @@ const MembershipLanding: React.FC = () => {
 
   const plans: Plan[] = (cmsData.plans || []).map((p: any) => ({
     ...p,
+    desc: p.desc || (p.id === 'gold' ? 'The ultimate VIP experience.' : p.id === 'silver' ? 'For the regular enthusiast.' : 'Perfect for casual players.'),
     initial: p.name?.[0] || 'M',
     monthlyPrice: p.priceMonthly,
     annualPrice: p.priceAnnual,
-    highlight: p.isGold || p.popular,
-    metallicGradient: p.isGold || p.id === 'gold'
-      ? 'bg-gradient-to-br from-[#FFFACD]/90 via-[#FFD700]/90 to-[#B8860B]/90' 
+    highlight: p.isGold || p.popular || p.id === 'gold',
+    metallicGradient: 'bg-[#121214]/80 backdrop-blur-xl',
+    textColor: 'text-white',
+    priceColor: p.isGold || p.id === 'gold'
+      ? 'text-[#FFD700]' 
       : p.popular || p.id === 'silver'
-        ? 'bg-gradient-to-br from-[#F5F5F5]/90 via-[#C0C0C0]/90 to-[#757575]/90'
-        : 'bg-gradient-to-br from-[#E8C39E]/90 via-[#CD7F32]/90 to-[#8B4513]/90',
-    textColor: 'text-black',
+        ? 'text-[#E2E8F0]'
+        : 'text-[#CD7F32]',
     borderColor: p.isGold || p.id === 'gold'
-      ? 'border-[#8B6508]/20' 
+      ? 'border-[#FFD700]/30' 
       : p.popular || p.id === 'silver'
-        ? 'border-[#404040]/20'
-        : 'border-[#5D2906]/20'
+        ? 'border-[#E2E8F0]/20'
+        : 'border-[#CD7F32]/20'
   }));
 
   const { data: videoData } = useCMSContent('videos', {
@@ -323,28 +325,31 @@ const MembershipLanding: React.FC = () => {
               <div className={cn("p-8 flex flex-col h-full relative z-10", plan.textColor)}>
 
                 {/* Header */}
-                <div className="flex justify-between items-start mb-12 mt-4">
-                  <div>
-                    <h3 className="text-2xl font-bold uppercase opacity-90 mb-2">{plan.name}</h3>
-                    <div className="flex items-baseline gap-1">
-                      <span className="font-serif text-4xl font-extrabold tracking-tighter">
-                        {isAnnual ? plan.annualPrice : plan.monthlyPrice}
+                <div className="flex justify-between items-start mb-1 mt-4">
+                  <div className="flex-1">
+                    <h3 className={cn("text-3xl font-black uppercase tracking-tighter mb-1 flex items-center gap-2", (plan as any).priceColor)}>
+                      {plan.name}
+                      <Star className="w-4 h-4 fill-current" />
+                    </h3>
+                    <p className="text-white/50 text-xs mb-8">
+                      {(plan as any).desc}
+                    </p>
+                    
+                    <div className={cn("flex items-baseline gap-2 mb-10", (plan as any).priceColor)}>
+                      <span className="text-5xl font-black tracking-tighter">
+                        QAR {isAnnual ? plan.annualPrice : plan.monthlyPrice}
                       </span>
-                      <span className="text-sm font-medium opacity-70"> / month</span>
+                      <span className="text-white/30 text-xs font-medium">/ month</span>
                     </div>
                   </div>
-                  {/* Oversized Initial */}
-                  <span className="font-serif text-8xl leading-none opacity-20 mix-blend-overlay">
-                    {plan.initial}
-                  </span>
                 </div>
 
                 {/* Features */}
                 <div className="space-y-4 mb-12 flex-grow">
                   {plan.features.map((feature, i) => (
                     <div key={i} className="flex items-start gap-4">
-                      <Check size={16} strokeWidth={2} className="shrink-0 mt-0.5 opacity-80" />
-                      <span className="text-xs uppercase tracking-wider font-semibold leading-relaxed opacity-90">{feature}</span>
+                      <Check size={16} strokeWidth={3} className={cn("shrink-0 mt-0.5", (plan as any).priceColor)} />
+                      <span className="text-sm font-bold leading-tight text-white/90">{feature}</span>
                     </div>
                   ))}
                   {plan.notIncluded?.map((feature, i) => (
@@ -362,10 +367,12 @@ const MembershipLanding: React.FC = () => {
                     window.open(`https://wa.me/97451622111?text=${encodeURIComponent(text)}`, '_blank');
                   }}
                   className={cn(
-                    'w-full py-4 text-sm font-bold uppercase transition-all duration-300 border shadow-lg hover:shadow-xl active:scale-95',
-                    plan.highlight
-                      ? 'bg-black text-gold border-black hover:bg-gray-900'
-                      : 'bg-black/10 border-black/20 text-black hover:bg-black hover:text-white'
+                    'w-full py-5 text-sm font-black uppercase tracking-[0.2em] transition-all duration-300 rounded-xl shadow-lg hover:scale-[1.02] active:scale-95',
+                    plan.id === 'gold' || (plan as any).isGold
+                      ? 'bg-[#FFD700] text-black hover:bg-[#FFD700]/90 shadow-[#FFD700]/20'
+                      : plan.id === 'silver'
+                        ? 'bg-white text-black hover:bg-white/90 shadow-white/10'
+                        : 'bg-white/10 border border-white/20 text-white hover:bg-white/20'
                   )}
                 >
                   Be A {plan.name} Member Now!

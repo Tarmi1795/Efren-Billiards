@@ -89,7 +89,12 @@ const Footer: React.FC = () => {
         </div>
 
         <div className="border-t border-dark-800 pt-8 flex flex-col md:flex-row justify-between items-center text-gray-600 gap-4">
-          <p>© 2026 Efren Billiards and Events Place. All rights reserved.</p>
+          <div className="flex flex-col gap-1 items-center md:items-start text-center md:text-left">
+            <p>© 2026 Efren Billiards and Events Place. All rights reserved.</p>
+            <p className="text-[10px] text-gray-700 select-none">
+              Developed by <a href="https://onesmartbiz.pro" target="_blank" rel="noopener noreferrer" className="hover:text-brand transition-colors">One SmartBiz Qatar</a>
+            </p>
+          </div>
           <div className="flex gap-6">
             <a href="#terms" onClick={(e) => handleHashClick(e, '#terms')} className="hover:text-white transition-colors">Privacy Policy</a>
             <a href="#terms" onClick={(e) => handleHashClick(e, '#terms')} className="hover:text-white transition-colors">Terms & Conditions</a>

@@ -6,7 +6,12 @@ import { useAuth } from '../../contexts/AuthContext';
 
 const IMAGE_KEYS = [
     { key: 'site-logo', label: 'Site Logo (Navbar/Footer)' },
-    { key: 'promo-banner-bg', label: 'Promo Banner Background' }
+    { key: 'promo-banner-bg', label: 'Promo Banner Background' },
+    { key: 'hero-billiards', label: 'Billiards Page Banner' },
+    { key: 'hero-chess', label: 'Chess Page Banner' },
+    { key: 'hero-darts', label: 'Darts Page Banner' },
+    { key: 'hero-event-place', label: 'Event Place Page Banner' },
+    { key: 'hero-karaoke', label: 'Karaoke Page Banner' }
 ];
 
 const AdminSiteImages: React.FC = () => {

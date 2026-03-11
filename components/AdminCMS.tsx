@@ -24,9 +24,11 @@ import AdminVisualTour from './admin/AdminVisualTour';
 import AdminMatchMyGame from './admin/AdminMatchMyGame';
 import AdminEventPricing from './admin/AdminEventPricing';
 import AdminGameGalleries from './admin/AdminGameGalleries';
+import AdminPageHeroes from './admin/AdminPageHeroes';
+import AdminEventPreviews from './admin/AdminEventPreviews';
 import type { Profile, MembershipTier } from '../types/database';
 
-type CMSModule = 'hero' | 'gallery' | 'offerings' | 'visual-tour' | 'site-images' | 'videos' | 'food-menu' | 'match-my-game' | 'weekly-schedule' | 'membership-plans' | 'contact-info' | 'social-links' | 'tournaments' | 'players' | 'members' | 'rankings' | 'event-pricing' | 'game-galleries' | 'settings';
+type CMSModule = 'hero' | 'gallery' | 'offerings' | 'visual-tour' | 'site-images' | 'videos' | 'food-menu' | 'match-my-game' | 'weekly-schedule' | 'membership-plans' | 'contact-info' | 'social-links' | 'tournaments' | 'players' | 'members' | 'rankings' | 'event-pricing' | 'game-galleries' | 'page-heroes' | 'event-previews' | 'settings';
 
 const AdminCMS: React.FC = () => {
     const { profile, loading: authLoading } = useAuth();
@@ -210,6 +212,9 @@ const AdminCMS: React.FC = () => {
                                 <button onClick={() => setActiveModule('game-galleries')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'game-galleries' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
                                     <ImageIcon size={18} /> Game Galleries
                                 </button>
+                                <button onClick={() => setActiveModule('page-heroes')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'page-heroes' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <Layout size={18} /> Page Heroes
+                                </button>
                                 <button onClick={() => setActiveModule('videos')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'videos' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
                                     <Video size={18} /> YouTube Videos
                                 </button>
@@ -239,6 +244,9 @@ const AdminCMS: React.FC = () => {
                                 </button>
                                 <button onClick={() => setActiveModule('event-pricing')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'event-pricing' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
                                     <Calendar size={18} /> Event Pricing
+                                </button>
+                                <button onClick={() => setActiveModule('event-previews')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'event-previews' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+                                    <ImageIcon size={18} /> Event Previews
                                 </button>
                             </nav>
                         </div>
@@ -585,6 +593,14 @@ const AdminCMS: React.FC = () => {
                     {/* Game Galleries Module */}
                     {activeModule === 'game-galleries' && (
                         <AdminGameGalleries />
+                    )}
+
+                    {activeModule === 'page-heroes' && (
+                        <AdminPageHeroes />
+                    )}
+
+                    {activeModule === 'event-previews' && (
+                        <AdminEventPreviews />
                     )}
 
                     {/* Placeholder for other modules */}

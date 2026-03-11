@@ -9,6 +9,7 @@ import GameGallery from './GameGallery';
 import TournamentCTA from './TournamentCTA';
 import RankingSection from './RankingSection';
 import { handleHashClick } from '../lib/scroll';
+import { useCMSContent } from '../hooks/useCMSContent';
 
 interface TopPlayer {
     id: string;
@@ -41,13 +42,18 @@ const ChessPage: React.FC = () => {
         setShowChallengeModal(true);
     };
 
+    const { data: heroData } = useCMSContent('hero-chess', {
+        url: "https://images.unsplash.com/photo-1529699211952-734e80c4d42b?q=80&w=1471&auto=format&fit=crop",
+        title: "Chess Lounge"
+    });
+
     return (
         <div className="pt-24 min-h-screen bg-dark-900">
             <Reveal>
                 <div className="relative h-[50vh] md:h-[60vh] w-full overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1529699211952-734e80c4d42b?q=80&w=1471&auto=format&fit=crop" className="w-full h-full object-cover scale-105" alt="Chess Lounge" />
+                    <img src={heroData.url} className="w-full h-full object-cover scale-105" alt={heroData.title} />
                     <div className="absolute inset-0 bg-dark-900/60 flex items-center justify-center">
-                        <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-widest text-center px-4">Chess Lounge</h1>
+                        <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-widest text-center px-4">{heroData.title}</h1>
                     </div>
                 </div>
             </Reveal>

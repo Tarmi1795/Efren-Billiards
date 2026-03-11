@@ -9,6 +9,7 @@ import GameGallery from './GameGallery';
 import TournamentCTA from './TournamentCTA';
 import RankingSection from './RankingSection';
 import { handleHashClick } from '../lib/scroll';
+import { useCMSContent } from '../hooks/useCMSContent';
 
 // Web Share API Utility
 const handleShareScore = async () => {
@@ -57,13 +58,18 @@ const corporateRivalry: Player[] = [
 const DartsPage: React.FC = () => {
     useEffect(() => { window.scrollTo(0, 0); }, []);
 
+    const { data: heroData } = useCMSContent('hero-darts', {
+        url: "https://iili.io/qK7s7gs.md.png",
+        title: "Professional Darts"
+    });
+
     return (
         <div className="pt-24 min-h-screen bg-dark-900">
             <Reveal>
                 <div className="relative h-[50vh] md:h-[60vh] w-full overflow-hidden">
-                    <img src="https://iili.io/qK7s7gs.md.png" className="w-full h-full object-cover scale-105" alt="Professional Darts" />
+                    <img src={heroData.url} className="w-full h-full object-cover scale-105" alt={heroData.title} />
                     <div className="absolute inset-0 bg-dark-900/60 flex items-center justify-center">
-                        <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-widest text-center px-4">Professional Darts</h1>
+                        <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-widest text-center px-4">{heroData.title}</h1>
                     </div>
                 </div>
             </Reveal>

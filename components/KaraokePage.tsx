@@ -5,6 +5,7 @@ import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
 import { handleHashClick } from '../lib/scroll';
+import { useCMSContent } from '../hooks/useCMSContent';
 
 // Mock Add-ons Data
 interface ThemeAddon {
@@ -24,13 +25,18 @@ const themeAddons: ThemeAddon[] = [
 const KaraokePage: React.FC = () => {
     useEffect(() => { window.scrollTo(0, 0); }, []);
 
+    const { data: heroData } = useCMSContent('hero-karaoke', {
+        url: "https://iili.io/qK7LeFn.png",
+        title: "Private Karaoke Rooms"
+    });
+
     return (
         <div className="pt-24 min-h-screen bg-dark-900">
             <Reveal>
                 <div className="relative h-[50vh] md:h-[60vh] w-full overflow-hidden">
-                    <img src="https://iili.io/qK7LeFn.png" className="w-full h-full object-cover scale-105" alt="Private Karaoke Rooms" />
+                    <img src={heroData.url} className="w-full h-full object-cover scale-105" alt={heroData.title} />
                     <div className="absolute inset-0 bg-dark-900/60 flex items-center justify-center">
-                        <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-widest text-center px-4">Private Karaoke Rooms</h1>
+                        <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-widest text-center px-4">{heroData.title}</h1>
                     </div>
                 </div>
             </Reveal>

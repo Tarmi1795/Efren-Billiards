@@ -5,6 +5,7 @@ import Section from './ui/Section';
 import Reveal from './ui/Reveal';
 import Button from './ui/Button';
 import { handleHashClick } from '../lib/scroll';
+import { useCMSContent } from '../hooks/useCMSContent';
 import { supabase } from '../lib/supabase';
 
 // Mock Data Types
@@ -23,7 +24,8 @@ const DEFAULT_PRICES: Record<EventType, number> = {
     'Birthday': 80,
 };
 
-const eventTypes: Record<EventType, EventData> = {
+    // Fallbacks handled by useCMSContent
+const defaultEventTypes: Record<EventType, EventData> = {
     'Corporate event': {
         type: 'Corporate event',
         basePrice: DEFAULT_PRICES['Corporate event'],
@@ -52,6 +54,13 @@ const EventPlacePage: React.FC = () => {
     const [hours, setHours] = useState<number>(4);
     const [basePrices, setBasePrices] = useState<Record<EventType, number>>(DEFAULT_PRICES);
 
+    const { data: heroData } = useCMSContent('hero-event-place', {
+        url: "https://iili.io/qK7s4rg.png",
+        title: "Premium Event Place"
+    });
+
+    const { data: cmsEventPreviews } = useCMSContent('event-previews', defaultEventTypes);
+
     // Fetch CMS pricing
     useEffect(() => {
         (async () => {
@@ -72,15 +81,34 @@ const EventPlacePage: React.FC = () => {
         })();
     }, []);
 
+    // Merge pricing with CMS previews
+    const eventTypes: Record<EventType, EventData> = {
+        'Corporate event': {
+            ...defaultEventTypes['Corporate event'],
+            ...(cmsEventPreviews['Corporate event'] || {}),
+            basePrice: basePrices['Corporate event']
+        },
+        'Tournament': {
+            ...defaultEventTypes['Tournament'],
+            ...(cmsEventPreviews['Tournament'] || {}),
+            basePrice: basePrices['Tournament']
+        },
+        'Birthday': {
+            ...defaultEventTypes['Birthday'],
+            ...(cmsEventPreviews['Birthday'] || {}),
+            basePrice: basePrices['Birthday']
+        }
+    };
+
     const estimatedCost = hours * basePrices[eventType];
 
     return (
         <div className="pt-24 min-h-screen bg-dark-900">
             <Reveal>
                 <div className="relative h-[50vh] md:h-[60vh] w-full overflow-hidden">
-                    <img src="https://iili.io/qK7s4rg.png" className="w-full h-full object-cover scale-105" alt="Premium Event Place" />
+                    <img src={heroData.url} className="w-full h-full object-cover scale-105" alt={heroData.title} />
                     <div className="absolute inset-0 bg-dark-900/60 flex items-center justify-center">
-                        <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-widest text-center px-4">Premium Event Place</h1>
+                        <h1 className="text-5xl md:text-7xl font-black text-white uppercase tracking-widest text-center px-4">{heroData.title}</h1>
                     </div>
                 </div>
             </Reveal>

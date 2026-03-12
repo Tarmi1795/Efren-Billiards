@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
     Users, Trophy, Coffee, Layout, Settings,
-    Search, Filter, Shield, UserPlus,
-    ChevronRight, MoreVertical, CheckCircle, XCircle, Loader2,
+    Search, Filter, Shield,
+    ChevronLeft, ChevronRight, MoreVertical, CheckCircle, XCircle, Loader2,
     Image as ImageIcon, Plus, Save, ExternalLink, Video, Calendar, Phone, Link as LinkIcon, Crown, Zap
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -34,6 +34,7 @@ const AdminCMS: React.FC = () => {
     const { profile, loading: authLoading } = useAuth();
     const { showToast, ToastContainer } = useToast();
     const [activeModule, setActiveModule] = useState<CMSModule>('hero');
+    const [sidebarOpen, setSidebarOpen] = useState(true);
     // Members State
     const [members, setMembers] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -190,155 +191,171 @@ const AdminCMS: React.FC = () => {
             <ToastContainer />
 
             {/* ── Sidebar ── */}
-            <aside className="w-72 border-r border-white/5 bg-[#0d0d0f] flex flex-col pt-24 shadow-2xl">
-                <div className="flex-1 px-4 space-y-8">
+            <aside
+                className="border-r border-white/5 bg-[#0d0d0f] flex flex-col pt-24 shadow-2xl relative transition-[width] duration-300 ease-in-out overflow-hidden"
+                style={{ width: sidebarOpen ? '18rem' : '4rem' }}
+            >
+                {/* Toggle Button */}
+                <button
+                    onClick={() => setSidebarOpen(prev => !prev)}
+                    title={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+                    className="absolute top-[5.5rem] -right-3 z-50 w-6 h-6 flex items-center justify-center rounded-full bg-brand text-white shadow-lg shadow-brand/30 border-2 border-[#0d0d0f] hover:bg-brand/90 transition-all"
+                >
+                    {sidebarOpen ? <ChevronLeft size={12} strokeWidth={3} /> : <ChevronRight size={12} strokeWidth={3} />}
+                </button>
+
+                <div className="flex-1 px-2 space-y-8 overflow-y-auto overflow-x-hidden">
                     {/* Site Builder Section */}
                     <div className="space-y-6">
                         {/* Branding & Visuals */}
                         <div className="space-y-2">
-                            <div className="px-4 mb-2">
-                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Branding & Visuals</p>
-                            </div>
+                            {sidebarOpen && (
+                                <div className="px-2 mb-2">
+                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Branding & Visuals</p>
+                                </div>
+                            )}
                             <nav className="space-y-1">
-                                <button onClick={() => setActiveModule('hero')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'hero' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <Layout size={18} /> Hero Section
-                                </button>
-                                <button onClick={() => setActiveModule('site-images')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'site-images' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <ImageIcon size={18} /> Site Images
-                                </button>
-                                <button onClick={() => setActiveModule('gallery')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'gallery' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <ImageIcon size={18} /> Image Gallery
-                                </button>
-                                <button onClick={() => setActiveModule('game-galleries')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'game-galleries' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <ImageIcon size={18} /> Game Galleries
-                                </button>
-                                <button onClick={() => setActiveModule('page-heroes')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'page-heroes' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <Layout size={18} /> Page Heroes
-                                </button>
-                                <button onClick={() => setActiveModule('videos')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'videos' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <Video size={18} /> YouTube Videos
-                                </button>
-                                <button onClick={() => setActiveModule('visual-tour')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'visual-tour' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <Layout size={18} /> Visual Tour
-                                </button>
+                                {([
+                                    { module: 'hero', icon: <Layout size={18} />, label: 'Hero Section' },
+                                    { module: 'site-images', icon: <ImageIcon size={18} />, label: 'Site Images' },
+                                    { module: 'gallery', icon: <ImageIcon size={18} />, label: 'Image Gallery' },
+                                    { module: 'game-galleries', icon: <ImageIcon size={18} />, label: 'Game Galleries' },
+                                    { module: 'page-heroes', icon: <Layout size={18} />, label: 'Page Heroes' },
+                                    { module: 'videos', icon: <Video size={18} />, label: 'YouTube Videos' },
+                                    { module: 'visual-tour', icon: <Layout size={18} />, label: 'Visual Tour' },
+                                ] as { module: CMSModule; icon: React.ReactNode; label: string }[]).map(({ module, icon, label }) => (
+                                    <button
+                                        key={module}
+                                        title={!sidebarOpen ? label : undefined}
+                                        onClick={() => setActiveModule(module)}
+                                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${
+                                            activeModule === module ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                        } ${!sidebarOpen ? 'justify-center' : ''}`}
+                                    >
+                                        <span className="flex-shrink-0">{icon}</span>
+                                        {sidebarOpen && <span className="truncate">{label}</span>}
+                                    </button>
+                                ))}
                             </nav>
                         </div>
 
                         {/* Services & Menu */}
                         <div className="space-y-2">
-                            <div className="px-4 mb-2">
-                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Services & Menu</p>
-                            </div>
+                            {sidebarOpen && (
+                                <div className="px-2 mb-2">
+                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Services & Menu</p>
+                                </div>
+                            )}
                             <nav className="space-y-1">
-                                <button onClick={() => setActiveModule('offerings')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'offerings' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <Trophy size={18} /> Our Offerings
-                                </button>
-                                <button onClick={() => setActiveModule('food-menu')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'food-menu' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <Coffee size={18} /> Food Menu
-                                </button>
-                                <button onClick={() => setActiveModule('match-my-game')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'match-my-game' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <Zap size={18} /> Match My Game
-                                </button>
-                                <button onClick={() => setActiveModule('membership-plans')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'membership-plans' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <Crown size={18} /> Membership Plans
-                                </button>
-                                <button onClick={() => setActiveModule('event-pricing')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'event-pricing' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <Calendar size={18} /> Event Pricing
-                                </button>
-                                <button onClick={() => setActiveModule('event-previews')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'event-previews' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <ImageIcon size={18} /> Event Previews
-                                </button>
+                                {([
+                                    { module: 'offerings', icon: <Trophy size={18} />, label: 'Our Offerings' },
+                                    { module: 'food-menu', icon: <Coffee size={18} />, label: 'Food Menu' },
+                                    { module: 'match-my-game', icon: <Zap size={18} />, label: 'Match My Game' },
+                                    { module: 'membership-plans', icon: <Crown size={18} />, label: 'Membership Plans' },
+                                    { module: 'event-pricing', icon: <Calendar size={18} />, label: 'Event Pricing' },
+                                    { module: 'event-previews', icon: <ImageIcon size={18} />, label: 'Event Previews' },
+                                ] as { module: CMSModule; icon: React.ReactNode; label: string }[]).map(({ module, icon, label }) => (
+                                    <button
+                                        key={module}
+                                        title={!sidebarOpen ? label : undefined}
+                                        onClick={() => setActiveModule(module)}
+                                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${
+                                            activeModule === module ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                        } ${!sidebarOpen ? 'justify-center' : ''}`}
+                                    >
+                                        <span className="flex-shrink-0">{icon}</span>
+                                        {sidebarOpen && <span className="truncate">{label}</span>}
+                                    </button>
+                                ))}
                             </nav>
                         </div>
 
                         {/* Operations & Contact */}
                         <div className="space-y-2">
-                            <div className="px-4 mb-2">
-                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Operations & Contact</p>
-                            </div>
+                            {sidebarOpen && (
+                                <div className="px-2 mb-2">
+                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Operations & Contact</p>
+                                </div>
+                            )}
                             <nav className="space-y-1">
-                                <button onClick={() => setActiveModule('weekly-schedule')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'weekly-schedule' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <Calendar size={18} /> Weekly Schedule
-                                </button>
-                                <button onClick={() => setActiveModule('contact-info')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'contact-info' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <Phone size={18} /> Contact Info
-                                </button>
-                                <button onClick={() => setActiveModule('social-links')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'social-links' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-                                    <LinkIcon size={18} /> Social Links
-                                </button>
+                                {([
+                                    { module: 'weekly-schedule', icon: <Calendar size={18} />, label: 'Weekly Schedule' },
+                                    { module: 'contact-info', icon: <Phone size={18} />, label: 'Contact Info' },
+                                    { module: 'social-links', icon: <LinkIcon size={18} />, label: 'Social Links' },
+                                ] as { module: CMSModule; icon: React.ReactNode; label: string }[]).map(({ module, icon, label }) => (
+                                    <button
+                                        key={module}
+                                        title={!sidebarOpen ? label : undefined}
+                                        onClick={() => setActiveModule(module)}
+                                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${
+                                            activeModule === module ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                        } ${!sidebarOpen ? 'justify-center' : ''}`}
+                                    >
+                                        <span className="flex-shrink-0">{icon}</span>
+                                        {sidebarOpen && <span className="truncate">{label}</span>}
+                                    </button>
+                                ))}
                             </nav>
                         </div>
                     </div>
 
                     {/* Club Management Section */}
                     <div className="space-y-2">
-                        <div className="px-4 mb-4">
-                            <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Club Management</p>
-                        </div>
+                        {sidebarOpen && (
+                            <div className="px-2 mb-4">
+                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap">Club Management</p>
+                            </div>
+                        )}
                         <nav className="space-y-1">
-                            <button
-                                onClick={() => setActiveModule('tournaments')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'tournaments' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                    }`}
-                            >
-                                <Trophy size={18} />
-                                Tournaments
-                            </button>
-                            <button
-                                onClick={() => setActiveModule('players')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'players' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                    }`}
-                            >
-                                <Users size={18} />
-                                Players
-                            </button>
-                            <button
-                                onClick={() => setActiveModule('rankings')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'rankings' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                    }`}
-                            >
-                                <Trophy size={18} />
-                                Rankings
-                            </button>
-                            <button
-                                onClick={() => setActiveModule('members')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'members' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                    }`}
-                            >
-                                <Shield size={18} />
-                                Members
-                            </button>
-                            <button
-                                onClick={() => setActiveModule('settings')}
-                                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all ${activeModule === 'settings' ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                    }`}
-                            >
-                                <Settings size={18} />
-                                Settings
-                            </button>
+                            {([
+                                { module: 'tournaments', icon: <Trophy size={18} />, label: 'Tournaments' },
+                                { module: 'players', icon: <Users size={18} />, label: 'Players' },
+                                { module: 'rankings', icon: <Trophy size={18} />, label: 'Rankings' },
+                                { module: 'members', icon: <Shield size={18} />, label: 'Members' },
+                                { module: 'settings', icon: <Settings size={18} />, label: 'Settings' },
+                            ] as { module: CMSModule; icon: React.ReactNode; label: string }[]).map(({ module, icon, label }) => (
+                                <button
+                                    key={module}
+                                    title={!sidebarOpen ? label : undefined}
+                                    onClick={() => setActiveModule(module)}
+                                    className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-sm font-bold transition-all ${
+                                        activeModule === module ? 'bg-brand text-white shadow-lg shadow-brand/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                    } ${!sidebarOpen ? 'justify-center' : ''}`}
+                                >
+                                    <span className="flex-shrink-0">{icon}</span>
+                                    {sidebarOpen && <span className="truncate">{label}</span>}
+                                </button>
+                            ))}
                         </nav>
                     </div>
                 </div>
 
                 {/* Footer / User Profile */}
-                <div className="p-4 border-t border-white/5 bg-black/20 flex flex-col gap-3">
+                <div className="p-2 border-t border-white/5 bg-black/20 flex flex-col gap-2">
                     <a
                         href="/#"
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 w-full p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-sm transition-all border border-white/10 hover:border-white/20"
+                        title={!sidebarOpen ? 'View Live Site' : undefined}
+                        className={`flex items-center gap-2 w-full p-3 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold text-sm transition-all border border-white/10 hover:border-white/20 ${
+                            !sidebarOpen ? 'justify-center' : 'justify-center'
+                        }`}
                     >
-                        <ExternalLink size={16} />
-                        View Live Site
+                        <ExternalLink size={16} className="flex-shrink-0" />
+                        {sidebarOpen && <span className="truncate">View Live Site</span>}
                     </a>
-                    <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5">
-                        <div className="w-9 h-9 rounded-lg bg-brand/10 flex items-center justify-center text-brand font-black">
+                    <div className={`flex items-center gap-3 p-3 rounded-xl bg-white/[0.03] border border-white/5 ${
+                        !sidebarOpen ? 'justify-center' : ''
+                    }`}>
+                        <div className="w-9 h-9 flex-shrink-0 rounded-lg bg-brand/10 flex items-center justify-center text-brand font-black">
                             {profile.full_name?.[0] || 'A'}
                         </div>
-                        <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-white truncate">{profile.full_name || 'Administrator'}</p>
-                            <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Admin Portal</span>
-                        </div>
+                        {sidebarOpen && (
+                            <div className="flex-1 min-w-0">
+                                <p className="text-xs font-bold text-white truncate">{profile.full_name || 'Administrator'}</p>
+                                <span className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Admin Portal</span>
+                            </div>
+                        )}
                     </div>
                 </div>
             </aside>

@@ -15,7 +15,7 @@ const Membership: React.FC = () => {
         name: "Gold",
         desc: "The ultimate VIP experience.",
         priceMonthly: 85,
-        priceAnnual: 59,
+        priceAnnual: 68,
         features: [
           "Free 3 hours playing time monthly",
           "Discounted table rate: QAR30/hour with Free 1 large Efren signature coffee per visit",
@@ -34,7 +34,7 @@ const Membership: React.FC = () => {
         name: "Silver",
         desc: "For the regular enthusiast.",
         priceMonthly: 60,
-        priceAnnual: 42,
+        priceAnnual: 48,
         features: [
           "Free 2 hours playing time monthly",
           "Discounted table rate: QAR30/hour",
@@ -52,7 +52,7 @@ const Membership: React.FC = () => {
         name: "Bronze",
         desc: "Perfect for casual players.",
         priceMonthly: 35,
-        priceAnnual: 24,
+        priceAnnual: 28,
         features: [
           "Free 1 hour playing time monthly",
           "Discounted table rate: QAR30/hour",
@@ -102,7 +102,7 @@ const Membership: React.FC = () => {
               onClick={() => setIsAnnual(true)}
               className={`px-6 py-2 rounded-full text-sm font-bold uppercase transition-all ${isAnnual ? 'bg-brand text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}
             >
-              Annual <span className="text-[10px] ml-1 opacity-70">(Save 30%)</span>
+              Annual <span className="text-[10px] ml-1 opacity-70">(Save 20%)</span>
             </button>
           </div>
         </Reveal>

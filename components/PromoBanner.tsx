@@ -33,7 +33,7 @@ const PromoBanner: React.FC = () => {
           </div>
           <h2 className="text-2xl md:text-3xl font-black text-white italic uppercase tracking-tight leading-tight">
             🏆 PRO LEVEL ACCESS: <br/>
-            Claim 30% OFF Your First Booking!
+            Claim 20% OFF Your First Booking!
           </h2>
         </div>
 

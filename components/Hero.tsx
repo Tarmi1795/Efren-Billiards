@@ -10,7 +10,7 @@ const Hero: React.FC = () => {
   const [isMuted, setIsMuted] = useState(true);
   const [content, setContent] = useState({
     title: 'Become A Member Today',
-    subtitle: 'Join our premium club and unlock exclusive discounts. Members save up to 30% on table rates, dining, and event bookings.',
+    subtitle: 'Join our premium club and unlock exclusive discounts. Members save up to 20% on table rates, dining, and event bookings.',
     cta: 'Get Membership Now!'
   });
   const [loading, setLoading] = useState(true);
@@ -226,7 +226,7 @@ const Hero: React.FC = () => {
             <div className="flex flex-col md:flex-row items-center justify-between px-4 py-3 gap-3 md:gap-0">
               <div className="flex items-center gap-4">
                 <span className="bg-red-600 text-white font-extrabold px-3 py-1 text-xs uppercase rounded shadow-sm animate-pulse">Flash Sale</span>
-                <span className="text-white font-bold uppercase tracking-wide text-xs md:text-base">30% Off Annual Membership</span>
+                <span className="text-white font-bold uppercase tracking-wide text-xs md:text-base">20% Off Annual Membership</span>
               </div>
 
               {/* Divider */}

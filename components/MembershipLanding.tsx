@@ -38,7 +38,7 @@ const MembershipLanding: React.FC = () => {
         id: 'gold',
         name: 'Gold',
         priceMonthly: 85,
-        priceAnnual: 59,
+        priceAnnual: 68,
         features: [
           'Free 3 hours playing time monthly',
           'Discounted table rate: QAR30/hour',
@@ -56,7 +56,7 @@ const MembershipLanding: React.FC = () => {
         id: 'silver',
         name: 'Silver',
         priceMonthly: 60,
-        priceAnnual: 42,
+        priceAnnual: 48,
         features: [
           'Free 2 hours playing time monthly',
           'Discounted table rate: QAR30/hour',
@@ -72,7 +72,7 @@ const MembershipLanding: React.FC = () => {
         id: 'bronze',
         name: 'Bronze',
         priceMonthly: 35,
-        priceAnnual: 24,
+        priceAnnual: 28,
         features: [
           'Free 1 hour playing time monthly',
           'Discounted table rate: QAR30/hour',
@@ -300,7 +300,7 @@ const MembershipLanding: React.FC = () => {
               isAnnual ? 'bg-white text-black shadow-md' : 'text-white/60 hover:text-white'
             )}
           >
-            Annual <span className="text-[10px] ml-1 opacity-70">(-30%)</span>
+            Annual <span className="text-[10px] ml-1 opacity-70">(-20%)</span>
           </button>
         </div>
 

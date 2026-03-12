@@ -178,8 +178,8 @@ const Membership: React.FC = () => {
                 variant={plan.popular || plan.isGold || plan.id === 'silver' ? 'primary' : 'outline'}
                 fullWidth
                 className={
-                  plan.isGold 
-                    ? 'bg-yellow-500 text-black hover:bg-yellow-400 border-none' 
+                  plan.isGold
+                    ? 'bg-yellow-500 text-black hover:bg-yellow-400 border-none'
                     : plan.id === 'silver'
                       ? 'bg-slate-400 text-black hover:bg-slate-300 border-none'
                       : ''

@@ -33,18 +33,18 @@ const Hero: React.FC = () => {
   // If it's a youtube link, ensure it has the right embed params
   let embedUrl = bgUrl;
   if (isVideo) {
-      let videoId = '';
-      if (bgUrl.includes('v=')) {
-          videoId = bgUrl.split('v=')[1]?.split('&')[0];
-      } else if (bgUrl.includes('youtu.be/')) {
-          videoId = bgUrl.split('youtu.be/')[1]?.split('?')[0];
-      } else if (bgUrl.includes('embed/')) {
-          videoId = bgUrl.split('embed/')[1]?.split('?')[0];
-      }
-      
-      if (videoId) {
-          embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1`;
-      }
+    let videoId = '';
+    if (bgUrl.includes('v=')) {
+      videoId = bgUrl.split('v=')[1]?.split('&')[0];
+    } else if (bgUrl.includes('youtu.be/')) {
+      videoId = bgUrl.split('youtu.be/')[1]?.split('?')[0];
+    } else if (bgUrl.includes('embed/')) {
+      videoId = bgUrl.split('embed/')[1]?.split('?')[0];
+    }
+
+    if (videoId) {
+      embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1`;
+    }
   }
 
   useEffect(() => {

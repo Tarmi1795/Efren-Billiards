@@ -95,14 +95,14 @@ const MembershipLanding: React.FC = () => {
     annualPrice: p.priceAnnual,
     highlight: p.isGold || p.popular || p.id === 'gold',
     metallicGradient: p.isGold || p.id === 'gold'
-      ? 'bg-gradient-to-br from-[#FFFACD]/90 via-[#D4AF37]/90 to-[#996515]/90' 
+      ? 'bg-gradient-to-br from-[#FFFACD]/90 via-[#D4AF37]/90 to-[#996515]/90'
       : p.popular || p.id === 'silver'
         ? 'bg-gradient-to-br from-[#FFFFFF]/90 via-[#C0C0C0]/90 to-[#808080]/90'
         : 'bg-gradient-to-br from-[#FFE4C4]/90 via-[#CD7F32]/90 to-[#8B4513]/90',
     textColor: 'text-black',
     priceColor: 'text-black',
     borderColor: p.isGold || p.id === 'gold'
-      ? 'border-[#996515]/30' 
+      ? 'border-[#996515]/30'
       : p.popular || p.id === 'silver'
         ? 'border-[#808080]/20'
         : 'border-[#8B4513]/20'
@@ -122,18 +122,18 @@ const MembershipLanding: React.FC = () => {
 
   let embedUrl = bgUrl;
   if (isVideo) {
-      let videoId = '';
-      if (bgUrl.includes('v=')) {
-          videoId = bgUrl.split('v=')[1]?.split('&')[0];
-      } else if (bgUrl.includes('youtu.be/')) {
-          videoId = bgUrl.split('youtu.be/')[1]?.split('?')[0];
-      } else if (bgUrl.includes('embed/')) {
-          videoId = bgUrl.split('embed/')[1]?.split('?')[0];
-      }
-      
-      if (videoId) {
-          embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1`;
-      }
+    let videoId = '';
+    if (bgUrl.includes('v=')) {
+      videoId = bgUrl.split('v=')[1]?.split('&')[0];
+    } else if (bgUrl.includes('youtu.be/')) {
+      videoId = bgUrl.split('youtu.be/')[1]?.split('?')[0];
+    } else if (bgUrl.includes('embed/')) {
+      videoId = bgUrl.split('embed/')[1]?.split('?')[0];
+    }
+
+    if (videoId) {
+      embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}&controls=0&showinfo=0&rel=0&modestbranding=1&iv_load_policy=3&disablekb=1&enablejsapi=1&playsinline=1`;
+    }
   }
 
   useEffect(() => {
@@ -323,7 +323,7 @@ const MembershipLanding: React.FC = () => {
               {/* Responsive Radial Bloom Glow on Hover */}
               <div className="absolute inset-x-0 -top-24 h-48 bg-white opacity-0 group-hover:opacity-20 blur-3xl transition-opacity duration-700 pointer-events-none rounded-full" />
               <div className="absolute inset-x-0 bottom-0 h-32 bg-white opacity-0 group-hover:opacity-20 blur-3xl transition-opacity duration-700 pointer-events-none rounded-full" />
-              
+
               {/* Shine Effect Overlay */}
               <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/40 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
 
@@ -346,10 +346,10 @@ const MembershipLanding: React.FC = () => {
                     <p className="text-black/60 text-xs mb-8 font-bold uppercase tracking-widest">
                       {(plan as any).desc}
                     </p>
-                    
+
                     <div className={cn("flex items-baseline gap-2 mb-10 min-h-[50px]", plan.priceColor)}>
                       <AnimatePresence mode="popLayout">
-                        <motion.span 
+                        <motion.span
                           key={isAnnual ? 'annual' : 'monthly'}
                           initial={{ opacity: 0, scale: 0.8, y: 15 }}
                           animate={{ opacity: 1, scale: 1, y: 0 }}

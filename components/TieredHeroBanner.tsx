@@ -175,9 +175,8 @@ const TieredHeroBanner: React.FC = () => {
                                     {getTierIcon(profile?.tier)}
                                 </div>
                                 <div className="text-left md:text-right overflow-hidden w-full">
-                                    <div className="text-[6px] md:text-[10px] font-black uppercase tracking-widest text-gray-500 mb-0.5 md:mb-1">Membership</div>
-                                    <div className={`text-[6px] md:text-[10px] font-black uppercase tracking-widest px-1 md:px-2 py-0.5 md:py-1 rounded border shadow-inner bg-black/20 truncate ${profile?.tier === 'Guest' ? 'border-white/20 text-white' : 'border-brand/40 text-brand'
-                                        }`}>
+                                    <div className="text-[6px] md:text-[10px] font-black uppercase tracking-widest text-gray-400 mb-0.5 md:mb-1">Membership Tier</div>
+                                    <div className={`text-[8px] md:text-[14px] font-black uppercase tracking-widest px-1.5 md:px-3 py-0.5 md:py-1 rounded border shadow-inner bg-black/40 text-white border-white/20 truncate`}>
                                         {profile?.tier || 'Guest'}
                                     </div>
                                 </div>

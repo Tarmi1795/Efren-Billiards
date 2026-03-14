@@ -15,7 +15,7 @@ import type { Profile, MembershipTier } from '../types/database';
 // ============================================================================
 
 /** Tier visual configuration */
-const TIER_CONFIG: Record<MembershipTier, {
+const TIER_CONFIG: Record<string, {
     label: string;
     color: string;
     bg: string;
@@ -25,67 +25,67 @@ const TIER_CONFIG: Record<MembershipTier, {
 }> = {
     Guest: {
         label: 'Guest Player',
-        color: 'text-brand',
-        bg: 'bg-brand/10',
-        border: 'border-brand/20',
+        color: 'text-gray-400',
+        bg: 'bg-white/5',
+        border: 'border-white/10',
         icon: <Users size={20} />,
-        gradient: 'from-brand/20 to-brand/10',
+        gradient: 'from-gray-800 to-gray-900',
     },
     Player: {
-        label: 'Guest Player',
+        label: 'Club Player',
         color: 'text-brand',
         bg: 'bg-brand/10',
         border: 'border-brand/20',
-        icon: <Users size={20} />,
+        icon: <Award size={20} />,
         gradient: 'from-brand/20 to-brand/10',
     },
     Bronze: {
-        label: 'Guest Player',
-        color: 'text-brand',
-        bg: 'bg-brand/10',
-        border: 'border-brand/20',
-        icon: <Users size={20} />,
-        gradient: 'from-brand/20 to-brand/10',
+        label: 'Bronze Member',
+        color: 'text-[#CD7F32]',
+        bg: 'bg-[#CD7F32]/10',
+        border: 'border-[#CD7F32]/20',
+        icon: <Trophy size={20} />,
+        gradient: 'from-[#CD7F32] via-[#E3AF66] to-[#8B4513]',
     },
     Silver: {
-        label: 'Guest Player',
-        color: 'text-brand',
-        bg: 'bg-brand/10',
-        border: 'border-brand/20',
-        icon: <Users size={20} />,
-        gradient: 'from-brand/20 to-brand/10',
+        label: 'Silver Member',
+        color: 'text-[#C0C0C0]',
+        bg: 'bg-[#C0C0C0]/10',
+        border: 'border-[#C0C0C0]/20',
+        icon: <Star size={20} />,
+        gradient: 'from-[#C0C0C0] via-[#F5F5F5] to-[#808080]',
     },
     Gold: {
-        label: 'Guest Player',
-        color: 'text-brand',
-        bg: 'bg-brand/10',
-        border: 'border-brand/20',
-        icon: <Users size={20} />,
-        gradient: 'from-brand/20 to-brand/10',
+        label: 'Gold Member',
+        color: 'text-[#D4AF37]',
+        bg: 'bg-[#D4AF37]/10',
+        border: 'border-[#D4AF37]/20',
+        icon: <Crown size={20} />,
+        gradient: 'from-[#D4AF37] via-[#FFF8DC] to-[#B8860B]',
     },
     Admin: {
-        label: 'Administrator',
-        color: 'text-red-400',
-        bg: 'bg-red-500/10',
-        border: 'border-red-500/20',
+        label: 'System Admin',
+        color: 'text-blue-400',
+        bg: 'bg-blue-500/10',
+        border: 'border-blue-500/20',
         icon: <Shield size={20} />,
-        gradient: 'from-red-500/20 to-red-600/10',
+        gradient: 'from-blue-900 via-blue-700 to-blue-900',
     },
     guest: {
         label: 'Guest Player',
-        color: 'text-brand',
-        bg: 'bg-brand/10',
-        border: 'border-brand/20',
+        color: 'text-gray-400',
+        bg: 'bg-white/5',
+        border: 'border-white/10',
         icon: <Users size={20} />,
-        gradient: 'from-brand/20 to-brand/10',
+        gradient: 'from-gray-800 to-gray-900',
     },
     admin: {
-        label: 'Administrator',
-        color: 'text-red-400',
-        bg: 'bg-red-500/10',
-        border: 'border-red-500/20',
+        label: 'System Admin',
+        color: 'text-blue-400',
+        bg: 'bg-blue-500/10',
+        border: 'border-blue-500/20',
         icon: <Shield size={20} />,
-        gradient: 'from-red-500/20 to-red-600/10',
+        gradient: 'from-blue-900 via-blue-700 to-blue-900',
     },
 };
 
@@ -391,50 +391,81 @@ const ProfileDashboard: React.FC = () => {
                 {/* ── Digital Membership Card ── */}
                 <div className="relative group perspective-1000 mb-8">
                     <div className={`
-                        relative w-full aspect-[1.586/1] rounded-2xl p-8 overflow-hidden
+                        relative w-full aspect-[1.586/1] rounded-2xl p-6 md:p-8 overflow-hidden
                         bg-gradient-to-br ${tier.gradient} border ${tier.border}
-                        shadow-2xl shadow-black/40 backdrop-blur-xl
-                        transition-transform duration-500 group-hover:rotate-y-12
+                        shadow-2xl shadow-black/60 backdrop-blur-xl
+                        transition-all duration-700 group-hover:shadow-[0_20px_50px_rgba(0,0,0,0.5)]
+                        group-hover:scale-[1.02]
                     `}>
+                        {/* Metallic Glass Overlay */}
+                        <div className="absolute inset-0 bg-white/5 backdrop-blur-[2px]" />
+                        
                         {/* Shimmer effect */}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/5 to-white/0 -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
+                        <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 -translate-x-[100%] group-hover:translate-x-[100%] transition-transform duration-1000 ease-in-out" />
 
                         <div className="h-full flex flex-col justify-between relative z-10">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <p className="text-[10px] uppercase tracking-[0.3em] text-white/40 font-bold mb-1">Membership Card</p>
-                                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter">Efren Club</h2>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_5px_rgba(52,211,153,0.5)]" />
+                                        <p className="text-[10px] uppercase tracking-[0.3em] text-white/60 font-black">Digital Membership</p>
+                                    </div>
+                                    <h2 className="text-2xl md:text-3xl font-black text-white uppercase tracking-tighter drop-shadow-lg">Efren Club</h2>
                                 </div>
-                                <div className={`w-12 h-12 rounded-xl ${tier.bg} flex items-center justify-center border ${tier.border}`}>
-                                    {tier.icon}
+                                <div className={`w-12 h-12 md:w-16 md:h-16 rounded-2xl ${tier.bg} flex items-center justify-center border border-white/20 shadow-2xl backdrop-blur-md transform group-hover:rotate-6 transition-transform duration-500`}>
+                                    {React.cloneElement(tier.icon as React.ReactElement, { size: 32, className: "text-white drop-shadow-md" })}
                                 </div>
                             </div>
 
-                            <div className="mt-8">
-                                <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">Member Name</p>
-                                <p className="text-xl font-bold text-white tracking-tight">
-                                    {profile.full_name || 'REGISTERED MEMBER'}
-                                </p>
+                            <div className="mt-4 md:mt-8">
+                                <div className="flex items-end justify-between">
+                                    <div>
+                                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 font-bold mb-0.5">Member Name</p>
+                                        <p className="text-xl md:text-2xl font-black text-white tracking-tight drop-shadow-md">
+                                            {profile.full_name || 'REGISTERED MEMBER'}
+                                        </p>
+                                    </div>
+                                    <div className="text-right hidden md:block">
+                                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 font-bold mb-0.5">Member Since</p>
+                                        <p className="text-sm font-bold text-white/90">
+                                            {new Date(profile.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toUpperCase()}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="flex justify-between items-end">
-                                <div>
-                                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold">ID Number</p>
-                                    <p className="text-sm font-mono text-white/80">EF-{profile.id.slice(0, 8).toUpperCase()}</p>
+                            <div className="flex justify-between items-end pt-4 border-t border-white/10">
+                                <div className="flex items-center gap-4">
+                                    <div>
+                                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 font-bold mb-0.5">Tier</p>
+                                        <p className="text-sm md:text-base font-black text-white uppercase tracking-widest flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-white/20" />
+                                            {tier.label}
+                                        </p>
+                                    </div>
+                                    <div className="h-8 w-[1px] bg-white/10" />
+                                    <div>
+                                        <p className="text-[10px] uppercase tracking-[0.2em] text-white/50 font-bold mb-0.5">Card ID</p>
+                                        <p className="text-xs md:text-sm font-mono font-bold text-white/70 tracking-tighter">EF-{profile.id.slice(0, 8).toUpperCase()}</p>
+                                    </div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[10px] uppercase tracking-[0.2em] text-white/40 font-bold italic">Status</p>
-                                    <p className={`text-sm font-bold uppercase ${profile.status === 'active' ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    <div className={`px-3 py-1 rounded-full border ${profile.status === 'active' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-red-500/20 border-red-500/30 text-red-400'} text-[10px] font-black uppercase tracking-widest shadow-inner`}>
                                         {profile.status}
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Card Branding Accent */}
-                        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
-                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center justify-center opacity-[0.03]">
-                            <Shield size={240} className="text-white" />
+                        {/* Premium Card Accents */}
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+                        <div className="absolute bottom-0 left-0 w-48 h-48 bg-black/20 rounded-full blur-2xl translate-y-1/2 -translate-x-1/2 pointer-events-none" />
+                        
+                        {/* Chip Graphic */}
+                        <div className="absolute top-1/2 right-12 -translate-y-1/2 w-12 h-10 bg-gradient-to-br from-yellow-200/20 to-yellow-600/20 rounded-md border border-white/10 flex flex-col justify-around p-1 opacity-40">
+                            <div className="h-[1px] w-full bg-white/20" />
+                            <div className="h-[1px] w-full bg-white/20" />
+                            <div className="h-[1px] w-full bg-white/20" />
                         </div>
                     </div>
                 </div>

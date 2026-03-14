@@ -26,9 +26,10 @@ import AdminEventPricing from './admin/AdminEventPricing';
 import AdminGameGalleries from './admin/AdminGameGalleries';
 import AdminPageHeroes from './admin/AdminPageHeroes';
 import AdminEventPreviews from './admin/AdminEventPreviews';
+import AdminMemberBanners from './admin/AdminMemberBanners';
 import type { Profile, MembershipTier } from '../types/database';
 
-type CMSModule = 'hero' | 'gallery' | 'offerings' | 'visual-tour' | 'site-images' | 'videos' | 'food-menu' | 'match-my-game' | 'weekly-schedule' | 'membership-plans' | 'contact-info' | 'social-links' | 'tournaments' | 'players' | 'members' | 'rankings' | 'event-pricing' | 'game-galleries' | 'page-heroes' | 'event-previews' | 'settings';
+type CMSModule = 'hero' | 'gallery' | 'offerings' | 'visual-tour' | 'site-images' | 'videos' | 'food-menu' | 'match-my-game' | 'weekly-schedule' | 'membership-plans' | 'contact-info' | 'social-links' | 'tournaments' | 'players' | 'members' | 'member-banners' | 'rankings' | 'event-pricing' | 'game-galleries' | 'page-heroes' | 'event-previews' | 'settings';
 
 const AdminCMS: React.FC = () => {
     const { profile, loading: authLoading } = useAuth();
@@ -312,6 +313,7 @@ const AdminCMS: React.FC = () => {
                                 { module: 'players', icon: <Users size={18} />, label: 'Players' },
                                 { module: 'rankings', icon: <Trophy size={18} />, label: 'Rankings' },
                                 { module: 'members', icon: <Shield size={18} />, label: 'Members' },
+                                { module: 'member-banners', icon: <Zap size={18} />, label: 'Member Banners' },
                                 { module: 'settings', icon: <Settings size={18} />, label: 'Settings' },
                             ] as { module: CMSModule; icon: React.ReactNode; label: string }[]).map(({ module, icon, label }) => (
                                 <button
@@ -514,6 +516,9 @@ const AdminCMS: React.FC = () => {
                                                             className="bg-brand/10 text-brand border border-brand/20 text-[10px] font-black uppercase tracking-widest rounded-lg px-3 py-1.5 focus:outline-none"
                                                         >
                                                             <option className="bg-[#0a0a0c] text-brand" value="Guest">Guest</option>
+                                                            <option className="bg-[#0a0a0c] text-brand" value="Bronze">Bronze</option>
+                                                            <option className="bg-[#0a0a0c] text-brand" value="Silver">Silver</option>
+                                                            <option className="bg-[#0a0a0c] text-brand" value="Gold">Gold</option>
                                                             <option className="bg-[#0a0a0c] text-brand" value="Admin">Admin</option>
                                                         </select>
                                                     </td>
@@ -543,6 +548,11 @@ const AdminCMS: React.FC = () => {
                                 </table>
                             </div>
                         </div>
+                    )}
+
+                    {/* Member Banners Module */}
+                    {activeModule === 'member-banners' && (
+                        <AdminMemberBanners />
                     )}
 
                     {/* Tournaments Module */}

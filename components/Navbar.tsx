@@ -11,7 +11,7 @@ const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const { user, profile, isAdmin, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
   const { data: siteImages } = useCMSContent('site-images', { 'site-logo': 'https://iili.io/q2fcFYN.png' });
 
 
@@ -121,11 +121,7 @@ const Navbar: React.FC = () => {
               Contact
             </a>
             
-            {isAdmin && (
-              <a href="#admin-cms" onClick={(e) => handleNavClick(e, '#admin-cms')} className="text-sm font-semibold uppercase tracking-wide text-brand hover:text-brand/80 transition-colors">
-                Admin
-              </a>
-            )}
+
           </div>
 
           {/* Desktop CTAs */}
@@ -240,9 +236,7 @@ const Navbar: React.FC = () => {
           <a href="#membership-packages" onClick={(e) => handleNavClick(e, '#membership-packages')} className="text-xl font-bold uppercase text-white hover:text-brand">Membership</a>
           <a href="#contact" onClick={(e) => handleNavClick(e, '#contact')} className="text-xl font-bold uppercase text-white hover:text-brand">Contact</a>
           
-          {isAdmin && (
-            <a href="#admin-cms" onClick={(e) => handleNavClick(e, '#admin-cms')} className="text-xl font-bold uppercase text-brand hover:text-brand/80">Admin</a>
-          )}
+
 
           <div className="flex flex-col gap-4 mt-8 w-64">
             {!user ? (

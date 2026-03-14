@@ -71,6 +71,22 @@ const TIER_CONFIG: Record<MembershipTier, {
         icon: <Shield size={20} />,
         gradient: 'from-red-500/20 to-red-600/10',
     },
+    guest: {
+        label: 'Guest Player',
+        color: 'text-brand',
+        bg: 'bg-brand/10',
+        border: 'border-brand/20',
+        icon: <Users size={20} />,
+        gradient: 'from-brand/20 to-brand/10',
+    },
+    admin: {
+        label: 'Administrator',
+        color: 'text-red-400',
+        bg: 'bg-red-500/10',
+        border: 'border-red-500/20',
+        icon: <Shield size={20} />,
+        gradient: 'from-red-500/20 to-red-600/10',
+    },
 };
 
 /** Membership privileges per tier */
@@ -105,6 +121,16 @@ const TIER_BENEFITS: Record<MembershipTier, string[]> = {
         'First access to international exhibitions'
     ],
     Admin: [
+        'Complete system access',
+        'Full management control',
+        'Reporting & Analytics'
+    ],
+    guest: [
+        'Access to common areas',
+        'Standard table rates',
+        'Public event access'
+    ],
+    admin: [
         'Complete system access',
         'Full management control',
         'Reporting & Analytics'
@@ -155,16 +181,17 @@ const ProfileDashboard: React.FC = () => {
         fetchStats();
     }, [user]);
 
-    // Fetch My Tournaments
+    // Fetch My Tournaments — reads from `registrations` table (user_id = auth uid)
     useEffect(() => {
         if (!user) return;
         const fetchMyTournaments = async () => {
             setTournamentsLoading(true);
             try {
-                const { data, error } = await supabase
-                    .from('tournament_participants')
+                const { data, error } = await (supabase as any)
+                    .from('registrations')
                     .select('*, tournaments(*)')
-                    .eq('player_id', user.id);
+                    .eq('user_id', user.id)
+                    .neq('status', 'withdrawn');
 
                 if (error) throw error;
                 // extract tournaments from the join
@@ -445,17 +472,23 @@ const ProfileDashboard: React.FC = () => {
                                 <a href="#tournaments" className="text-brand text-xs font-bold uppercase tracking-widest mt-2 inline-block hover:text-white transition-colors">Find a Tournament</a>
                             </div>
                         ) : (
-                            myTournaments.map(t => (
-                                <div key={t.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                                    <div>
-                                        <p className="text-sm font-bold text-white">{t.name}</p>
-                                        <p className="text-[10px] text-gray-500 uppercase tracking-wider">Starts: {t.started_at ? new Date(t.started_at).toLocaleDateString() : 'TBA'}</p>
+                            myTournaments.map(t => {
+                                const dateStr = t.start_date || t.started_at;
+                                return (
+                                    <div key={t.id} className="flex items-center justify-between p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                                        <div>
+                                            <p className="text-sm font-bold text-white">{t.name}</p>
+                                            <p className="text-[10px] text-gray-500 uppercase tracking-wider">
+                                                {t.game_type && <span className="text-brand mr-2">{t.game_type}</span>}
+                                                {dateStr ? new Date(dateStr).toLocaleDateString('en-US', { dateStyle: 'medium' }) : 'Date TBA'}
+                                            </p>
+                                        </div>
+                                        <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20">
+                                            Registered
+                                        </span>
                                     </div>
-                                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/20">
-                                        Registered
-                                    </span>
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
                 </div>

@@ -1,13 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Button from './ui/Button';
-import { Timer, ArrowRight, Volume2, VolumeX } from 'lucide-react';
+import { Timer, ArrowRight, Volume2, VolumeX, Trophy, Users, CheckCircle } from 'lucide-react';
 import Reveal from './ui/Reveal';
 import { supabase } from '../lib/supabase';
 import { scrollToElement, handleHashClick } from '../lib/scroll';
 import { useCMSContent } from '../hooks/useCMSContent';
+import { useAuth } from '../contexts/AuthContext';
+import TieredHeroBanner from './TieredHeroBanner';
 
 const Hero: React.FC = () => {
+  const { user, profile } = useAuth();
   const [isMuted, setIsMuted] = useState(true);
+  const [recentMembers, setRecentMembers] = useState<string[]>([]);
   const [content, setContent] = useState({
     title: 'Become A Member Today',
     subtitle: 'Join our premium club and unlock exclusive discounts. Members save up to 20% on table rates, dining, and event bookings.',
@@ -76,6 +80,25 @@ const Hero: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const fetchRecentMembers = async () => {
+      try {
+        const { data } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (data) {
+          setRecentMembers(data.map(d => d.full_name?.charAt(0) || '?'));
+        }
+      } catch (err) {
+        console.error('Error fetching recent members:', err);
+      }
+    };
+    fetchRecentMembers();
+  }, []);
+
+  useEffect(() => {
     if (hasInteracted || !isVideo) return;
 
     const handleFirstInteraction = () => {
@@ -117,7 +140,7 @@ const Hero: React.FC = () => {
   };
 
   return (
-    <div id="home" className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden pb-20 pt-32">
+    <div id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pb-48 pt-32 md:pt-40">
 
       {/* 
         Background Video Container with V-Shape Border 
@@ -177,6 +200,9 @@ const Hero: React.FC = () => {
       )}
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 flex flex-col items-center text-center">
+
+        {/* Tiered Member Banner System */}
+        <TieredHeroBanner />
 
         {/* Heading */}
         <Reveal>

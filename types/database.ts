@@ -3,8 +3,21 @@
 // Maps to the existing Supabase PostgreSQL schema
 // ============================================================================
 
-export type MembershipTier = 'Guest' | 'Player' | 'Bronze' | 'Silver' | 'Gold' | 'Admin';
+export type MembershipTier = 'Guest' | 'Player' | 'Bronze' | 'Silver' | 'Gold' | 'Admin' | 'guest' | 'admin';
 export type ProfileStatus = 'active' | 'suspended' | 'pending';
+
+export interface MemberBanner {
+    id: string;
+    title: string;
+    marketing_message: string | null;
+    instruction_message: string | null;
+    target_type: 'general' | 'tier' | 'specific_member';
+    target_value: string | null;
+    whatsapp_preset: string | null;
+    is_active: boolean;
+    created_at: string;
+    updated_at: string;
+}
 
 export interface Player {
     id: string;
@@ -236,6 +249,34 @@ export interface Database {
                     score?: number;
                     trend?: 'up' | 'down' | 'same';
                     company?: string | null;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Relationships: [];
+            };
+            member_banners: {
+                Row: MemberBanner;
+                Insert: {
+                    id?: string;
+                    title: string;
+                    marketing_message?: string | null;
+                    instruction_message?: string | null;
+                    target_type: 'general' | 'tier' | 'specific_member';
+                    target_value?: string | null;
+                    whatsapp_preset?: string | null;
+                    is_active?: boolean;
+                    created_at?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    title?: string;
+                    marketing_message?: string | null;
+                    instruction_message?: string | null;
+                    target_type?: 'general' | 'tier' | 'specific_member';
+                    target_value?: string | null;
+                    whatsapp_preset?: string | null;
+                    is_active?: boolean;
                     created_at?: string;
                     updated_at?: string;
                 };

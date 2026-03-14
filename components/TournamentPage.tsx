@@ -82,18 +82,20 @@ const TournamentCard: React.FC<{
 
                 <div className="mb-4">
                     {participants.length === 0 ? (
-                        <p className="text-xs text-gray-500 italic">No participants yet.</p>
+                        <p className="text-xs text-gray-500 italic uppercase tracking-widest font-bold">No participants yet.</p>
                     ) : (
-                        <ul className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                        <div className="grid grid-cols-2 gap-2">
                             {participants.map((p, idx) => (
-                                <li key={idx} className="text-sm text-gray-300 flex items-center gap-2 bg-dark-900 p-2 rounded-lg border border-white/5">
-                                    <div className="w-6 h-6 rounded-full bg-dark-700 flex items-center justify-center text-[10px] font-bold text-brand">
+                                <div key={idx} className="text-[11px] text-gray-300 flex items-center gap-2 bg-dark-900/50 p-2 rounded-lg border border-white/5 hover:border-brand/20 transition-colors group">
+                                    <div className="shrink-0 w-5 h-5 rounded-full bg-dark-700 flex items-center justify-center text-[9px] font-bold text-brand group-hover:bg-brand group-hover:text-white transition-colors">
                                         {p.profiles?.full_name?.charAt(0) || 'U'}
                                     </div>
-                                    {p.profiles?.full_name || 'Unknown Player'}
-                                </li>
+                                    <span className="truncate uppercase font-medium tracking-tight">
+                                        {p.profiles?.full_name || 'Unknown Player'}
+                                    </span>
+                                </div>
                             ))}
-                        </ul>
+                        </div>
                     )}
                 </div>
 

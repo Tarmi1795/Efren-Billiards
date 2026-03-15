@@ -7,7 +7,7 @@ import { handleHashClick } from '../lib/scroll';
 import type { MemberBanner } from '../types/database';
 
 const TieredHeroBanner: React.FC = () => {
-    const { user, profile } = useAuth();
+    const { user, profile, loading: authLoading } = useAuth();
     const [activeBanner, setActiveBanner] = useState<MemberBanner | null>(null);
     const [loading, setLoading] = useState(true);
 
@@ -98,6 +98,8 @@ const TieredHeroBanner: React.FC = () => {
                 : 'Claim Offer';
 
     const whatsappUrl = `https://wa.me/97451622111?text=${encodeURIComponent(displayBanner.whatsapp_preset || `Hi, I am interested in ${nextTier ? `upgrading to ${nextTier}` : 'membership'} benefits.`)}`;
+
+    if (authLoading || !user) return null;
 
     return (
         <div className="w-full max-w-6xl mx-auto px-2 md:px-4 z-20 mt-8 md:mt-12 mb-8">

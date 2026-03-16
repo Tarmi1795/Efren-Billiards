@@ -3,11 +3,22 @@ import {
     Plus, Save, Trash2, Zap, Target, MessageSquare, 
     CheckCircle, XCircle, Loader2, Search, Filter, 
     User, Crown, ShieldAlert, AlertCircle, Bold, Type, Palette,
-    Trophy, Star
+    Trophy, Star, Pencil
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../ui/Toast';
 import type { MemberBanner, Profile, MembershipTier } from '../../types/database';
+
+const Tooltip = ({ children, content }: { children: React.ReactNode, content: string }) => (
+    <div className="relative group/tooltip">
+        {children}
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-[9px] font-black uppercase tracking-[0.2em] rounded-lg opacity-0 group-hover/tooltip:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap z-50 translate-y-1 group-hover/tooltip:translate-y-0 border border-white/10 shadow-2xl backdrop-blur-md">
+            {content}
+            <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-black/90" />
+        </div>
+    </div>
+);
 
 const AdminMemberBanners: React.FC = () => {
     const { showToast } = useToast();
@@ -422,16 +433,24 @@ const AdminMemberBanners: React.FC = () => {
                                         </div>
                                     )}
 
-                                    <div className="flex items-center gap-3 pt-2">
-                                        <button
-                                            onClick={() => setCurrentBanner(prev => ({ ...prev, is_active: !prev.is_active }))}
-                                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
-                                                currentBanner.is_active ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'
-                                            }`}
-                                        >
-                                            {currentBanner.is_active ? <CheckCircle size={14} /> : <XCircle size={14} />}
-                                            {currentBanner.is_active ? 'Active' : 'Inactive'}
-                                        </button>
+                                    <div className="flex items-center gap-4 pt-2">
+                                        <div className="flex items-center gap-3">
+                                            <label className="text-[10px] uppercase tracking-widest text-gray-500 font-black">Status:</label>
+                                            <button
+                                                onClick={() => setCurrentBanner(prev => ({ ...prev, is_active: !prev.is_active }))}
+                                                className={`relative w-11 h-6 rounded-full transition-all duration-300 ${
+                                                    currentBanner.is_active ? 'bg-emerald-500/20 border-emerald-500/30' : 'bg-red-500/20 border-red-500/30'
+                                                } border p-1`}
+                                            >
+                                                <motion.div 
+                                                    animate={{ x: currentBanner.is_active ? 20 : 0 }}
+                                                    className={`w-3.5 h-3.5 rounded-full shadow-lg ${
+                                                        currentBanner.is_active ? 'bg-emerald-400' : 'bg-red-400'
+                                                    }`}
+                                                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                                />
+                                            </button>
+                                        </div>
                                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest italic">
                                             {currentBanner.target_type === 'general' ? 'Everyone will see this banner' : 
                                              currentBanner.target_type === 'tier' ? `Only ${currentBanner.target_value || 'selected'} members will see this` : 
@@ -489,34 +508,56 @@ const AdminMemberBanners: React.FC = () => {
                                     <p className="text-gray-500 text-xs font-medium max-w-xl truncate">{banner.marketing_message}</p>
                                 </div>
                             </div>
+                            <div className="flex items-center gap-4">
+                                <Tooltip content={banner.is_active ? 'Deactivate' : 'Activate'}>
+                                    <button 
+                                        onClick={() => toggleActive(banner)}
+                                        className={`relative w-12 h-6 rounded-full transition-all duration-300 ${
+                                            banner.is_active ? 'bg-emerald-500/20 border-emerald-500/30' : 'bg-red-500/20 border-red-500/30'
+                                        } border p-1 group-hover:scale-105`}
+                                    >
+                                        <motion.div 
+                                            animate={{ x: banner.is_active ? 24 : 0 }}
+                                            className={`w-4 h-4 rounded-full shadow-lg ${
+                                                banner.is_active ? 'bg-emerald-400' : 'bg-red-400'
+                                            } flex items-center justify-center`}
+                                            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                                        >
+                                            {banner.is_active ? <CheckCircle size={8} className="text-emerald-900" /> : <XCircle size={8} className="text-red-900" />}
+                                        </motion.div>
+                                    </button>
+                                </Tooltip>
 
-                            <div className="flex items-center gap-3">
-                                <button 
-                                    onClick={() => toggleActive(banner)}
-                                    className={`p-2.5 rounded-xl border transition-all ${
-                                        banner.is_active ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20 hover:bg-red-500/20'
-                                    }`}
-                                    title={banner.is_active ? 'Deactivate' : 'Activate'}
-                                >
-                                    {banner.is_active ? <CheckCircle size={18} /> : <XCircle size={18} />}
-                                </button>
-                                <button 
-                                    onClick={() => {
-                                        setCurrentBanner(banner);
-                                        setIsEditing(true);
-                                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                                    }}
-                                    className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:border-brand/40 transition-all"
-                                >
-                                    <Target size={18} />
-                                </button>
-                                <button 
-                                    onClick={() => handleDelete(banner.id)}
-                                    className="p-2.5 bg-red-500/5 border border-red-500/10 rounded-xl text-red-400 hover:bg-red-500 hover:text-white transition-all"
-                                >
-                                    <Trash2 size={18} />
-                                </button>
+                                <Tooltip content="Edit Banner">
+                                    <button 
+                                        onClick={() => {
+                                            setCurrentBanner(banner);
+                                            setIsEditing(true);
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-white hover:border-brand/40 transition-all group/edit"
+                                    >
+                                        <motion.div
+                                            whileHover={{ rotate: [-10, 10, -10, 10, 0], scale: 1.1 }}
+                                            transition={{ duration: 0.5 }}
+                                        >
+                                            <Pencil size={18} />
+                                        </motion.div>
+                                    </button>
+                                </Tooltip>
+
+                                <Tooltip content="Delete Banner">
+                                    <button 
+                                        onClick={() => handleDelete(banner.id)}
+                                        className="p-2.5 bg-red-500/5 border border-red-500/10 rounded-xl text-red-400 hover:bg-red-500 hover:text-white transition-all"
+                                    >
+                                        <motion.div whileHover={{ scale: 1.1, rotate: 5 }}>
+                                            <Trash2 size={18} />
+                                        </motion.div>
+                                    </button>
+                                </Tooltip>
                             </div>
+
                         </div>
                     ))
                 )}

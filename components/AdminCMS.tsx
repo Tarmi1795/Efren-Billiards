@@ -27,6 +27,7 @@ import AdminGameGalleries from './admin/AdminGameGalleries';
 import AdminPageHeroes from './admin/AdminPageHeroes';
 import AdminEventPreviews from './admin/AdminEventPreviews';
 import AdminMemberBanners from './admin/AdminMemberBanners';
+import Loading from './ui/Loading';
 import type { Profile, MembershipTier } from '../types/database';
 
 type CMSModule = 'hero' | 'gallery' | 'offerings' | 'visual-tour' | 'site-images' | 'videos' | 'food-menu' | 'match-my-game' | 'weekly-schedule' | 'membership-plans' | 'contact-info' | 'social-links' | 'tournaments' | 'players' | 'members' | 'member-banners' | 'rankings' | 'event-pricing' | 'game-galleries' | 'page-heroes' | 'event-previews' | 'settings';
@@ -174,11 +175,7 @@ const AdminCMS: React.FC = () => {
     };
 
     if (authLoading || !profile || profile.tier !== 'Admin') {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#0a0a0c]">
-                <Loader2 size={32} className="text-brand animate-spin" />
-            </div>
-        );
+        return <Loading />;
     }
 
     const filteredMembers = members.filter(m =>
@@ -579,8 +576,6 @@ const AdminCMS: React.FC = () => {
                     {activeModule === 'videos' && (
                         <AdminVideos />
                     )}
-
-
 
                     {/* Food Menu Module */}
                     {activeModule === 'food-menu' && (

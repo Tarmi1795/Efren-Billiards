@@ -13,12 +13,26 @@ const AdminTournaments: React.FC = () => {
     const [showForm, setShowForm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [selectedTournament, setSelectedTournament] = useState<Tournament | null>(null);
+    const [initialTab, setInitialTab] = useState<'participants' | 'bracket'>('participants');
+
+    // Parse deep link params once on mount
+    useEffect(() => {
+        const hash = window.location.hash;
+        if (hash.includes('tournamentId=')) {
+            const params = new URLSearchParams(hash.split('?')[1]);
+            const maybeTab = params.get('tab');
+            if (maybeTab === 'bracket') {
+                setInitialTab('bracket');
+            }
+        }
+    }, []);
 
     // Form State
     const [formData, setFormData] = useState<{
         name: string;
         game_type: TournamentCategory;
         status: TournamentStatus;
+        format: 'single_elimination' | 'double_elimination';
         start_date: string;
         description: string;
         prize_amount: string;
@@ -26,6 +40,7 @@ const AdminTournaments: React.FC = () => {
         name: '',
         game_type: 'billiards',
         status: 'pending',
+        format: 'single_elimination',
         start_date: '',
         description: '',
         prize_amount: '',
@@ -43,7 +58,19 @@ const AdminTournaments: React.FC = () => {
                 .order('created_at', { ascending: false });
 
             if (error) throw error;
-            setTournaments(data || []);
+            const dataList = (data as Tournament[]) || [];
+            setTournaments(dataList);
+
+            // Handle deep linking to a specific tournament
+            const hash = window.location.hash;
+            if (hash.includes('tournamentId=')) {
+                const params = new URLSearchParams(hash.split('?')[1]);
+                const tId = params.get('tournamentId');
+                if (tId) {
+                    const found = dataList.find(t => t.id === tId);
+                    if (found) setSelectedTournament(found);
+                }
+            }
         } catch (err: any) {
             console.error('Error fetching tournaments:', err);
             showToast(err.message, 'error');
@@ -57,6 +84,7 @@ const AdminTournaments: React.FC = () => {
             name: '',
             game_type: 'billiards',
             status: 'pending',
+            format: 'single_elimination',
             start_date: '',
             description: '',
             prize_amount: '',
@@ -73,6 +101,7 @@ const AdminTournaments: React.FC = () => {
                 name: formData.name,
                 game_type: formData.game_type,
                 status: formData.status,
+                format: formData.format,
                 start_date: formData.start_date ? new Date(formData.start_date).toISOString() : null,
                 description: formData.description || null,
                 prize_amount: parsedPrize,
@@ -92,11 +121,21 @@ const AdminTournaments: React.FC = () => {
     };
 
     if (selectedTournament) {
-        return <AdminTournamentParticipants tournament={selectedTournament} onBack={() => setSelectedTournament(null)} />;
+        return (
+            <AdminTournamentParticipants 
+                tournament={selectedTournament} 
+                onBack={() => {
+                    setSelectedTournament(null);
+                    // Clear deep link from hash when backing out
+                    window.location.hash = '#admin-cms?module=tournaments';
+                }} 
+                initialTab={initialTab}
+            />
+        );
     }
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-3xl">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
             <ToastContainer />
             <div className="flex items-center justify-between">
                 <div>
@@ -140,6 +179,17 @@ const AdminTournaments: React.FC = () => {
                                     <option className="bg-[#0a0a0c] text-white" value="billiards">Billiards</option>
                                     <option className="bg-[#0a0a0c] text-white" value="darts">Darts</option>
                                     <option className="bg-[#0a0a0c] text-white" value="chess">Chess</option>
+                                </select>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] uppercase tracking-widest text-gray-500 font-bold">Format</label>
+                                <select
+                                    value={formData.format}
+                                    onChange={e => setFormData({ ...formData, format: e.target.value as 'single_elimination' | 'double_elimination' })}
+                                    className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-brand/40 appearance-none"
+                                >
+                                    <option className="bg-[#0a0a0c] text-white" value="single_elimination">Single Elimination</option>
+                                    <option className="bg-[#0a0a0c] text-white" value="double_elimination">Double Elimination</option>
                                 </select>
                             </div>
                             <div className="space-y-2">

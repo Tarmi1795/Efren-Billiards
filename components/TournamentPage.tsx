@@ -6,7 +6,8 @@ import { Trophy, Calendar, CheckCircle, Loader2, UserPlus, UserMinus, Users, Che
 import Button from './ui/Button';
 import AuthModal from './auth/AuthModal';
 import TournamentSuccessOverlay from './TournamentSuccessOverlay';
-import type { Tournament, Registration, Profile } from '../types/database';
+import TournamentBracket from './TournamentBracket';
+import type { Tournament, Registration, Profile, Match } from '../types/database';
 
 interface TournamentWithParticipants extends Tournament {
     participants?: { user_id: string; profiles: Profile }[];
@@ -19,8 +20,12 @@ const TournamentCard: React.FC<{
     onRegister: (id: string) => void;
     onUnregister: (id: string) => void;
 }> = ({ tournament, isRegistered, isRegistering, onRegister, onUnregister }) => {
+    const { profile } = useAuth();
     const [participants, setParticipants] = useState<{ user_id: string; profiles: Profile }[]>([]);
     const [loadingParticipants, setLoadingParticipants] = useState(false);
+    const [showBracketModal, setShowBracketModal] = useState(false);
+    const [bracketMatches, setBracketMatches] = useState<any[]>([]);
+    const [loadingBracket, setLoadingBracket] = useState(false);
 
     const fetchParticipants = async () => {
         setLoadingParticipants(true);
@@ -45,6 +50,34 @@ const TournamentCard: React.FC<{
 
     const showRegisterButton = ['billiards', 'darts', 'chess'].includes(tournament.game_type?.toLowerCase());
 
+    const handleViewBracket = async () => {
+        if (profile?.tier === 'Admin') {
+            window.location.hash = `#admin-cms?module=tournaments&tournamentId=${tournament.id}&tab=bracket`;
+            return;
+        }
+
+        setShowBracketModal(true);
+        setLoadingBracket(true);
+        try {
+            const { data: matchesData } = await (supabase.from('matches') as any)
+                .select('*')
+                .eq('tournament_id', tournament.id);
+
+            const profiles = participants.map(p => p.profiles);
+            const mappedMatches = (matchesData || []).map((m: any) => ({
+                ...m,
+                player1: profiles.find(p => p.id === m.player1_id),
+                player2: profiles.find(p => p.id === m.player2_id)
+            }));
+
+            setBracketMatches(mappedMatches);
+        } catch (err) {
+            console.error('Failed to load bracket', err);
+        } finally {
+            setLoadingBracket(false);
+        }
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -54,9 +87,16 @@ const TournamentCard: React.FC<{
             <div className="flex-1">
                 <div className="flex justify-between items-start mb-4">
                     <h3 className="text-xl font-bold text-white uppercase tracking-tight">{tournament.name}</h3>
-                    <span className="bg-dark-900 text-brand text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-brand/20">
-                        {tournament.game_type}
-                    </span>
+                    <div className="flex flex-col gap-1 items-end">
+                        <span className="bg-dark-900 text-brand text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-brand/20">
+                            {tournament.game_type}
+                        </span>
+                        {tournament.format && (
+                            <span className="bg-purple-500/10 text-purple-400 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-purple-500/20">
+                                {tournament.format.replace('_', ' ')}
+                            </span>
+                        )}
+                    </div>
                 </div>
                 {tournament.description && (
                     <p className="text-sm text-gray-400 mb-4">{tournament.description}</p>
@@ -134,7 +174,47 @@ const TournamentCard: React.FC<{
                         )}
                     </div>
                 )}
+                
+                <div className="pt-4 mt-4 border-t border-white/5">
+                    <Button 
+                        variant="secondary" 
+                        fullWidth 
+                        onClick={handleViewBracket}
+                        className="py-2.5 uppercase tracking-widest font-black text-xs"
+                    >
+                        {profile?.tier === 'Admin' ? 'Manage Bracket (Admin)' : 'View Bracket'}
+                    </Button>
+                </div>
             </div>
+
+            {/* Bracket Modal */}
+            {showBracketModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-8 bg-black/90 backdrop-blur-sm overflow-y-auto">
+                    <div className="bg-dark-900 border border-white/10 rounded-3xl p-6 md:p-10 w-full max-w-7xl relative min-h-[50vh] flex flex-col">
+                        <button 
+                            onClick={() => setShowBracketModal(false)}
+                            className="absolute top-6 right-6 text-gray-400 hover:text-white transition-colors bg-dark-800 rounded-full p-2 z-50"
+                        >
+                            <X size={20} />
+                        </button>
+                        
+                        <h3 className="text-2xl font-black text-white uppercase tracking-tight mb-8 border-b border-white/10 pb-4">
+                            {tournament.name} - Bracket
+                        </h3>
+                        
+                        <div className="flex-1 w-full overflow-x-auto">
+                            {loadingBracket ? (
+                                <div className="flex flex-col items-center justify-center h-full min-h-[400px]">
+                                    <Loader2 size={32} className="animate-spin text-brand mb-4" />
+                                    <p className="text-sm font-bold uppercase tracking-widest text-gray-500">Loading Bracket Data...</p>
+                                </div>
+                            ) : (
+                                <TournamentBracket matches={bracketMatches} />
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </motion.div>
     );
 };

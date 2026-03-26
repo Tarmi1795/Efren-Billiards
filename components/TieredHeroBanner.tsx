@@ -141,9 +141,9 @@ const TieredHeroBanner: React.FC = () => {
                             {isAdmin ? (
                                 <button
                                     onClick={(e) => handleHashClick(e, '#admin-cms')}
-                                    className={`flex items-center gap-1.5 md:gap-3 px-3 md:px-6 py-2 md:py-3 bg-gradient-to-r ${getTierColor(profile?.tier)} text-white rounded-lg md:rounded-xl font-black uppercase tracking-widest text-[8px] md:text-xs hover:scale-105 transition-transform shadow-xl border border-white/20 whitespace-nowrap`}
+                                    className={`flex items-center gap-2 md:gap-4 px-4 md:px-10 py-3 md:py-5 bg-gradient-to-r ${getTierColor(profile?.tier)} text-white rounded-lg md:rounded-2xl font-black uppercase tracking-widest text-[10px] md:text-xl hover:scale-105 transition-transform shadow-[0_20px_40px_rgba(0,0,0,0.4),0_0_20px_rgba(245,142,28,0.3)] border-2 border-white/40 whitespace-nowrap z-30`}
                                 >
-                                    <Settings size={12} className="md:size-4.5" />
+                                    <Settings size={14} className="md:size-7 animate-[spin_4s_linear_infinite]" />
                                     <span>{buttonText}</span>
                                 </button>
                             ) : (

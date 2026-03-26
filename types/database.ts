@@ -58,6 +58,9 @@ export interface Profile {
 /** Tournament status enum */
 export type TournamentStatus = 'pending' | 'in_progress' | 'completed';
 
+/** Tournament format enum */
+export type TournamentFormat = 'single_elimination' | 'double_elimination';
+
 /** Game type enum */
 export type TournamentCategory = 'billiards' | 'darts' | 'chess';
 
@@ -69,6 +72,7 @@ export interface Tournament {
     prize_amount: number | null;
     game_type: TournamentCategory;
     status: TournamentStatus;
+    format: TournamentFormat;
     start_date: string | null;
     started_at: string | null;
     completed_at: string | null;
@@ -94,6 +98,8 @@ export interface Match {
     winner_id: string | null;
     status: 'pending' | 'in_progress' | 'completed';
     next_match_id: string | null;
+    loser_next_match_id?: string | null;     // New: for double elimination
+    bracket_type?: 'winners' | 'losers' | 'grand_final'; // New: bracket identification
     created_at: string;
 }
 
@@ -161,6 +167,7 @@ export interface Database {
                     prize_amount?: number | null;
                     game_type: TournamentCategory;
                     status: TournamentStatus;
+                    format?: TournamentFormat;
                     start_date?: string | null;
                     started_at?: string | null;
                     completed_at?: string | null;
@@ -173,6 +180,7 @@ export interface Database {
                     prize_amount?: number | null;
                     game_type?: TournamentCategory;
                     status?: TournamentStatus;
+                    format?: TournamentFormat;
                     start_date?: string | null;
                     started_at?: string | null;
                     completed_at?: string | null;

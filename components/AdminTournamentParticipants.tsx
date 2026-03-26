@@ -8,11 +8,12 @@ import BracketEditor from './admin/BracketEditor';
 interface Props {
     tournament: Tournament;
     onBack: () => void;
+    initialTab?: 'participants' | 'bracket';
 }
 
-const AdminTournamentParticipants: React.FC<Props> = ({ tournament, onBack }) => {
+const AdminTournamentParticipants: React.FC<Props> = ({ tournament, onBack, initialTab = 'participants' }) => {
     const { showToast, ToastContainer } = useToast();
-    const [activeTab, setActiveTab] = useState<'participants' | 'bracket'>('participants');
+    const [activeTab, setActiveTab] = useState<'participants' | 'bracket'>(initialTab);
     const [registrations, setRegistrations] = useState<(Registration & { profiles: Profile })[]>([]);
     const [availablePlayers, setAvailablePlayers] = useState<Profile[]>([]);
     const [loading, setLoading] = useState(true);
@@ -101,7 +102,7 @@ const AdminTournamentParticipants: React.FC<Props> = ({ tournament, onBack }) =>
     );
 
     return (
-        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl">
+        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 w-full">
             <ToastContainer />
             
             <div className="flex items-center gap-4">

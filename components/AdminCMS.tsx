@@ -62,6 +62,16 @@ const AdminCMS: React.FC = () => {
         if (activeModule === 'hero') {
             fetchHeroData();
         }
+        
+        // Handle deep linking from hash params
+        const hash = window.location.hash;
+        if (hash.includes('?')) {
+            const params = new URLSearchParams(hash.split('?')[1]);
+            const module = params.get('module') as CMSModule;
+            if (module) {
+                setActiveModule(module);
+            }
+        }
     }, [activeModule]);
 
     const fetchHeroData = async () => {
@@ -146,6 +156,33 @@ const AdminCMS: React.FC = () => {
             showToast(err.message, 'error');
         }
     };
+
+    const deleteMember = async (id: string) => {
+        if (!confirm('Are you sure you want to delete this member?')) return;
+        try {
+            const { error } = await (supabase.from('profiles') as any).delete().eq('id', id);
+            if (error) throw error;
+            showToast('Member deleted successfully', 'success');
+            fetchMembers();
+        } catch(err: any) {
+            showToast(err.message, 'error');
+        }
+    };
+
+    const editMember = async (member: any) => {
+        const newName = prompt('Enter new full name:', member.full_name || '');
+        if (newName !== null) {
+            try {
+                const { error } = await (supabase.from('profiles') as any).update({ full_name: newName }).eq('id', member.id);
+                if (error) throw error;
+                showToast('Member updated successfully', 'success');
+                fetchMembers();
+            } catch(err: any) {
+                showToast(err.message, 'error');
+            }
+        }
+    };
+
 
     const handleSaveHero = async () => {
         setSaving(true);
@@ -479,6 +516,7 @@ const AdminCMS: React.FC = () => {
                                     <thead>
                                         <tr className="bg-white/[0.02] border-b border-white/5">
                                             <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Member</th>
+                                            <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Date Started</th>
                                             <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Tier</th>
                                             <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Stats</th>
                                             <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Status</th>
@@ -505,6 +543,11 @@ const AdminCMS: React.FC = () => {
                                                                 <p className="text-[10px] text-gray-500 font-medium">{member.phone || member.email}</p>
                                                             </div>
                                                         </div>
+                                                    </td>
+                                                    <td className="px-6 py-5">
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                                            {new Date(member.created_at).toLocaleDateString()}
+                                                        </span>
                                                     </td>
                                                     <td className="px-6 py-5">
                                                         <select
@@ -534,9 +577,20 @@ const AdminCMS: React.FC = () => {
                                                         </span>
                                                     </td>
                                                     <td className="px-6 py-5 text-right">
-                                                        <button className="p-2 text-gray-500 hover:text-white transition-all">
-                                                            <MoreVertical size={16} />
-                                                        </button>
+                                                        <div className="flex justify-end gap-2">
+                                                            <button 
+                                                                onClick={() => editMember(member)}
+                                                                className="text-[10px] font-bold uppercase tracking-widest text-brand hover:text-white transition-all bg-brand/10 hover:bg-brand px-2 py-1 rounded-lg"
+                                                            >
+                                                                Edit
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => deleteMember(member.id)}
+                                                                className="text-[10px] font-bold uppercase tracking-widest text-red-500 hover:text-white transition-all bg-red-500/10 hover:bg-red-500 px-2 py-1 rounded-lg"
+                                                            >
+                                                                Delete
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </tr>
                                             ))

@@ -120,6 +120,12 @@ const Navbar: React.FC = () => {
             <a href="#contact" onClick={(e) => handleNavClick(e, '#contact')} className="text-sm font-semibold uppercase tracking-wide text-gray-300 hover:text-brand transition-colors">
               Contact
             </a>
+
+            {profile?.tier === 'Admin' && (
+              <a href="#admin-cms" onClick={(e) => handleNavClick(e, '#admin-cms')} className="text-sm font-black uppercase tracking-widest text-brand hover:text-white transition-all bg-brand/10 px-3 py-1.5 rounded-lg border border-brand/20">
+                Admin Settings
+              </a>
+            )}
             
 
           </div>
@@ -235,6 +241,10 @@ const Navbar: React.FC = () => {
 
           <a href="#membership-packages" onClick={(e) => handleNavClick(e, '#membership-packages')} className="text-xl font-bold uppercase text-white hover:text-brand">Membership</a>
           <a href="#contact" onClick={(e) => handleNavClick(e, '#contact')} className="text-xl font-bold uppercase text-white hover:text-brand">Contact</a>
+          
+          {profile?.tier === 'Admin' && (
+            <a href="#admin-cms" onClick={(e) => { handleNavClick(e, '#admin-cms'); setIsOpen(false); }} className="text-xl font-black uppercase text-brand border-2 border-brand px-6 py-2 rounded-xl bg-brand/10">Admin Settings</a>
+          )}
           
 
 

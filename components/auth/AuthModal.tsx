@@ -127,7 +127,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                     />
                                     <input
                                         type="password"
-                                        placeholder="Password"
+                                        placeholder={isSignUp ? "Create Password" : "Password"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         className="w-full bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 text-white text-sm focus:outline-none focus:border-blue-500 transition-colors"
@@ -161,7 +161,26 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                 </form>
                             )}
 
-                            <div className="flex flex-col gap-2">
+                            <div className="flex flex-col gap-4 mt-6">
+                                {authMethod === 'email' && (
+                                    <div className="flex bg-zinc-900 p-1 rounded-xl">
+                                        <button
+                                            onClick={() => { setIsSignUp(false); setMessage(''); }}
+                                            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${!isSignUp ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-white'}`}
+                                            type="button"
+                                        >
+                                            Sign In
+                                        </button>
+                                        <button
+                                            onClick={() => { setIsSignUp(true); setMessage(''); }}
+                                            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${isSignUp ? 'bg-blue-600 text-white shadow' : 'text-zinc-500 hover:text-white'}`}
+                                            type="button"
+                                        >
+                                            Sign Up
+                                        </button>
+                                    </div>
+                                )}
+
                                 <button
                                     onClick={() => {
                                         setAuthMethod(authMethod === 'email' ? 'phone' : 'email');
@@ -171,15 +190,6 @@ const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose }) => {
                                 >
                                     {authMethod === 'email' ? 'Switch to Phone Login' : 'Switch to Email Login'}
                                 </button>
-
-                                {authMethod === 'email' && (
-                                    <button
-                                        onClick={() => setIsSignUp(!isSignUp)}
-                                        className="w-full text-center text-zinc-500 text-xs font-bold uppercase tracking-widest hover:text-white transition-colors"
-                                    >
-                                        {isSignUp ? 'Already have an account? Sign In' : 'Need an account? Sign Up'}
-                                    </button>
-                                )}
                             </div>
                         </motion.div>
                     </AnimatePresence>

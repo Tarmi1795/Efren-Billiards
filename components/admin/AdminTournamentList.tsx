@@ -109,6 +109,11 @@ function SortableTournamentItem({ tournament, onUpdate, onDelete, onSelect }: So
                                 }`}>
                                     {tournament.status.replace('_', ' ')}
                                 </span>
+                                {tournament.format && (
+                                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-widest bg-purple-500/10 text-purple-400">
+                                        {tournament.format.replace('_', ' ')}
+                                    </span>
+                                )}
                                 {tournament.prize_amount && (
                                     <span className="text-xs text-brand font-bold ml-2">Prize: QAR {tournament.prize_amount.toLocaleString()}</span>
                                 )}

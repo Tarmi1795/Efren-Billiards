@@ -3,6 +3,7 @@ import { DndContext, DragOverlay, useDraggable, useDroppable, DragEndEvent } fro
 import { supabase } from '../../lib/supabase';
 import { useToast } from '../ui/Toast';
 import { Loader2, Save, RefreshCw, Trash2, Plus, X, Trophy, Crown, ChevronRight } from 'lucide-react';
+import { generateTournamentStructure, getSeedOrder } from '../../lib/bracketology';
 import type { Tournament, Profile, Match } from '../../types/database';
 
 interface Props {
@@ -64,43 +65,52 @@ export const BracketEditor: React.FC<Props> = ({ tournament }) => {
         }
     };
 
-    const generateBracket = async (size: number) => {
-        if (!confirm(`This will delete existing matches and create a new bracket for ${size} players. Continue?`)) return;
+    const generateBracket = async () => {
+        const count = registrations.length;
+        const isPowerOfTwo = count > 1 && (count & (count - 1)) === 0;
+
+        if (!isPowerOfTwo || count < 4) {
+            const nearestLower = Math.pow(2, Math.floor(Math.log2(count)));
+            const nearestHigher = Math.pow(2, Math.ceil(Math.log2(count)));
+            const toRemove = count - nearestLower;
+            const toAdd = nearestHigher - count;
+            showToast(`Invalid player count. Remove ${toRemove} players or add ${toAdd} players to reach exactly ${nearestLower} or ${nearestHigher} players to continue.`, 'error');
+            return;
+        }
+
+        const formatStr = tournament.format?.replace('_', ' ').toUpperCase() || 'SINGLE ELIMINATION';
+        if (!confirm(`This will delete existing matches and create a new ${formatStr} bracket suited for ${count} players. Continue?`)) return;
+        
         setGenerating(true);
         try {
             await supabase.from('matches').delete().eq('tournament_id', tournament.id);
-
-            const rounds = Math.log2(size);
-            let nextRoundMatches: { id: string; match_order: number }[] = [];
-
-            for (let r = rounds; r >= 1; r--) {
-                const matchCountInRound = Math.pow(2, rounds - r);
-                const currentRoundMatches = [];
-
-                for (let i = 0; i < matchCountInRound; i++) {
-                    const nextMatchIndex = Math.floor(i / 2);
-                    const nextMatchId = nextRoundMatches.length > 0 ? nextRoundMatches[nextMatchIndex].id : null;
-
-                    const { data, error } = await supabase.from('matches').insert({
-                        tournament_id: tournament.id,
-                        round: r,
-                        match_order: i,
-                        status: 'pending',
-                        next_match_id: nextMatchId
-                    } as any).select().single();
-
-                    if (error) throw error;
-                    currentRoundMatches.push(data);
-                }
-                nextRoundMatches = currentRoundMatches;
-            }
-
-            showToast('Bracket generated successfully', 'success');
+            const matchesArray = generateTournamentStructure(tournament.id, tournament.format || 'single_elimination', count);
+            const { error } = await (supabase.from('matches') as any).insert(matchesArray);
+            if (error) throw error;
+            
+            showToast('Bracket generated successfully!', 'success');
             fetchData();
         } catch (err: any) {
             showToast(err.message, 'error');
         } finally {
             setGenerating(false);
+        }
+    };
+
+
+    const ensurePlayerExists = async (playerId: string) => {
+        try {
+            const { data: existing } = await (supabase.from('players') as any).select('id').eq('id', playerId).maybeSingle();
+            if (!existing) {
+                const profile = registrations.find(p => p.id === playerId);
+                await (supabase.from('players') as any).insert([{
+                    id: playerId,
+                    name: profile?.full_name || 'Unknown Player',
+                    rating: 1500, wins: 0, losses: 0
+                }]);
+            }
+        } catch (err) {
+            console.error('Error ensuring player exists:', err);
         }
     };
 
@@ -118,24 +128,34 @@ export const BracketEditor: React.FC<Props> = ({ tournament }) => {
                 .eq('id', matchId);
             if (matchError) throw matchError;
 
-            // 2. Advance winner to next match if one exists
-            if (match.next_match_id) {
-                const nextMatch = matches.find(m => m.id === match.next_match_id);
-                if (nextMatch) {
-                    // Determine which slot the winner goes into based on match_order (even → player1, odd → player2)
-                    const slot = match.match_order % 2 === 0 ? 'player1_id' : 'player2_id';
+            const loserId = match.player1_id === winnerId ? match.player2_id : match.player1_id;
 
-                    // Ensure player row exists
-                    await ensurePlayerExists(winnerId);
+            // 2 & 3: Advance winner / Drop loser (Handled perfectly by Supabase trigger 'on_match_completed' on the DB side!)
+            // We rely on the SQL trigger to gracefully handle crossovers and COALESCE onto empty match slots 
+            // without creating race conditions.
 
-                    const { error: nextError } = await (supabase.from('matches') as any)
-                        .update({ [slot]: winnerId })
-                        .eq('id', match.next_match_id);
-                    if (nextError) throw nextError;
+            // 4. Grand Final Reset Logic (True Double Elim)
+            if (match.bracket_type === 'grand_final' && tournament.format === 'double_elimination' && !(match as any).is_reset) {
+                const winnerHasLoss = matches.some(m => m.bracket_type === 'winners' && m.loser_next_match_id && m.winner_id && m.winner_id !== winnerId && (m.player1_id === winnerId || m.player2_id === winnerId));
 
-                    showToast(`Winner advanced to Round ${nextMatch.round}!`, 'success');
+                if (winnerHasLoss) {
+                    await (supabase.from('matches') as any).insert({
+                        tournament_id: tournament.id,
+                        round: 2,
+                        match_order: 0,
+                        status: 'pending',
+                        bracket_type: 'grand_final',
+                        is_reset: true,
+                        player1_id: winnerId,
+                        player2_id: loserId
+                    });
+                    showToast('LB Winner forced a Reset! True Double Elimination Final created!', 'info');
+                } else {
+                    await finalizeTournamentData(winnerId, loserId);
+                    showToast('🏆 Tournament Champion declared!', 'success');
                 }
-            } else {
+            } else if (!match.next_match_id && match.bracket_type !== 'winners' && match.bracket_type !== 'losers') {
+                await finalizeTournamentData(winnerId, loserId);
                 showToast('🏆 Tournament Champion declared!', 'success');
             }
 
@@ -147,19 +167,91 @@ export const BracketEditor: React.FC<Props> = ({ tournament }) => {
         }
     };
 
-    const ensurePlayerExists = async (playerId: string) => {
+    const undoMatch = async (matchId: string) => {
+        const match = matches.find(m => m.id === matchId);
+        if (!match || match.status !== 'completed' || !match.winner_id) return;
+        
+        if (!confirm('Reopen this match? This will remove the advanced players from their next match slots if those matches are still pending.')) return;
+
+        setSaving(true);
         try {
-            const { data: existing } = await (supabase.from('players') as any).select('id').eq('id', playerId).maybeSingle();
-            if (!existing) {
-                const profile = registrations.find(p => p.id === playerId);
-                await (supabase.from('players') as any).insert([{
-                    id: playerId,
-                    name: profile?.full_name || 'Unknown Player',
-                    rating: 1500, wins: 0, losses: 0
-                }]);
+            const winnerId = match.winner_id;
+            const loserId = match.player1_id === winnerId ? match.player2_id : match.player1_id;
+
+            // 1. Revert Match to Pending
+            const { error } = await (supabase.from('matches') as any).update({
+                winner_id: null,
+                status: 'pending'
+            }).eq('id', match.id);
+            if (error) throw error;
+
+            // 2. Remove winner from next match
+            if (match.next_match_id) {
+                const nx = matches.find(m => m.id === match.next_match_id);
+                if (nx && nx.status !== 'completed') {
+                    if (nx.player1_id === winnerId) await (supabase.from('matches') as any).update({ player1_id: null }).eq('id', nx.id);
+                    if (nx.player2_id === winnerId) await (supabase.from('matches') as any).update({ player2_id: null }).eq('id', nx.id);
+                }
+            }
+
+            // 3. Remove loser from losers bracket match 
+            if (match.loser_next_match_id && loserId) {
+                const lx = matches.find(m => m.id === match.loser_next_match_id);
+                if (lx && lx.status !== 'completed') {
+                    if (lx.player1_id === loserId) await (supabase.from('matches') as any).update({ player1_id: null }).eq('id', lx.id);
+                    if (lx.player2_id === loserId) await (supabase.from('matches') as any).update({ player2_id: null }).eq('id', lx.id);
+                }
+            }
+
+            // Note: If this was the Grand Final, resetting doesn't easily 'undo' the tournament completed status or rankings. 
+            // In a pro system, rankings are manually regenerated. We'll leave it as is for simplicity.
+
+            showToast('Match reopened.', 'success');
+            fetchData();
+        } catch (err: any) {
+            showToast(err.message, 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const finalizeTournamentData = async (championId: string, runnerUpId: string | undefined | null) => {
+        try {
+            // Find 3rd place if Double Elim
+            let thirdPlaceId = null;
+            if (tournament.format === 'double_elimination') {
+                const losersFinal = matches.find(m => m.bracket_type === 'losers' && !matches.some(child => child.bracket_type === 'losers' && child.next_match_id === m.id));
+                if (losersFinal && losersFinal.winner_id) {
+                    thirdPlaceId = losersFinal.player1_id === losersFinal.winner_id ? losersFinal.player2_id : losersFinal.player1_id;
+                }
+            }
+
+            // Optional: Insert into rankings. 
+            // In EfrenBilliards, we can just save it or mark the tournament as completed.
+            await (supabase.from('tournaments') as any)
+                .update({ status: 'completed', completed_at: new Date().toISOString() })
+                .eq('id', tournament.id);
+
+            // Record rankings in `rankings` table (1st, 2nd, 3rd)
+            const ranksToInsert = [];
+            const champ = registrations.find(p => p.id === championId);
+            if (champ) ranksToInsert.push({ game_type: tournament.game_type, rank: 1, player_name: champ.full_name || 'Player', user_id: champ.id, score: 300, trend: 'up' as const });
+            
+            if (runnerUpId) {
+                const runner = registrations.find(p => p.id === runnerUpId);
+                if (runner) ranksToInsert.push({ game_type: tournament.game_type, rank: 2, player_name: runner.full_name || 'Player', user_id: runner.id, score: 200, trend: 'up' as const });
+            }
+            
+            if (thirdPlaceId) {
+                const third = registrations.find(p => p.id === thirdPlaceId);
+                if (third) ranksToInsert.push({ game_type: tournament.game_type, rank: 3, player_name: third.full_name || 'Player', user_id: third.id, score: 100, trend: 'up' as const });
+            }
+
+            if (ranksToInsert.length > 0) {
+                await (supabase.from('rankings') as any).insert(ranksToInsert);
             }
         } catch (err) {
-            console.error('Error ensuring player exists:', err);
+            console.error('Error recording rankings:', err);
         }
     };
 
@@ -226,33 +318,41 @@ export const BracketEditor: React.FC<Props> = ({ tournament }) => {
     };
 
     const autoAssignPlayers = async () => {
-        const round1Matches = matches.filter(m => m.round === 1);
+        const round1Matches = matches.filter(m => m.round === 1 && m.bracket_type === 'winners').sort((a,b) => a.match_order - b.match_order);
         if (round1Matches.length === 0) { showToast('Generate a bracket first.', 'error'); return; }
 
         const assignedIds = new Set<string>();
         matches.forEach(m => { if (m.player1_id) assignedIds.add(m.player1_id); if (m.player2_id) assignedIds.add(m.player2_id); });
-        const available = [...registrations.filter(p => !assignedIds.has(p.id))];
+        
+        // Unassigned players sorted (simulate ranking by sorting arbitrarily or by full_name for now)
+        const available = [...registrations.filter(p => !assignedIds.has(p.id))].sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
         if (available.length === 0) { showToast('All players are already assigned.', 'info'); return; }
 
-        for (let i = available.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [available[i], available[j]] = [available[j], available[i]];
-        }
-
+        const size = round1Matches.length * 2;
+        const seedOrder = getSeedOrder(Math.log2(size));
+        
         setSaving(true);
         try {
-            let idx = 0;
-            for (const match of round1Matches) {
-                const updates: any = {};
-                if (!match.player1_id && idx < available.length) updates.player1_id = available[idx++].id;
-                if (!match.player2_id && idx < available.length) updates.player2_id = available[idx++].id;
-                if (Object.keys(updates).length > 0) {
-                    for (const pid of Object.values(updates) as string[]) await ensurePlayerExists(pid);
-                    await updateMatch(match.id, updates);
-                }
-                if (idx >= available.length) break;
+            let assignedCount = 0;
+            
+            for (let i = 0; i < size; i++) {
+                 const seed = seedOrder[i];
+                 const matchIndex = Math.floor(i / 2);
+                 const slot = i % 2 === 0 ? 'player1_id' : 'player2_id';
+                 const match = round1Matches[matchIndex];
+                 
+                 const playerIndex = seed - 1;
+                 const playerId = playerIndex < available.length ? available[playerIndex].id : null;
+                 
+                 if (playerId) {
+                     await ensurePlayerExists(playerId);
+                     await updateMatch(match.id, { [slot]: playerId });
+                     assignedCount++;
+                 }
             }
-            showToast(`Auto-assigned ${idx} players to Round 1.`, 'success');
+            
+            showToast(`Auto-assigned ${assignedCount} players using professional Byes/Seeding rules.`, 'success');
+            fetchData();
         } catch (err: any) {
             showToast(err.message, 'error');
         } finally {
@@ -260,17 +360,58 @@ export const BracketEditor: React.FC<Props> = ({ tournament }) => {
         }
     };
 
+    // Assigned state maps
     const assignedIds = new Set<string>();
     matches.forEach(m => { if (m.player1_id) assignedIds.add(m.player1_id); if (m.player2_id) assignedIds.add(m.player2_id); });
     const unassignedPlayers = registrations.filter(p => !assignedIds.has(p.id));
-    const maxRound = matches.length > 0 ? Math.max(...matches.map(m => m.round)) : 0;
 
-    const getRoundLabel = (round: number) => {
-        if (round === maxRound) return 'Final';
-        if (round === maxRound - 1) return 'Semi‑Final';
-        if (round === maxRound - 2) return 'Quarter‑Final';
-        return `Round ${round}`;
+    // Build global match map
+    const matchNumberMap = new Map<string, number>();
+    let counter = 1;
+    ['winners', 'losers', 'grand_final'].forEach(sec => {
+        const matchesInSection = matches.filter(m => m.bracket_type === sec || (!m.bracket_type && sec === 'winners'));
+        matchesInSection.sort((a,b) => (a.round === b.round ? a.match_order - b.match_order : a.round - b.round));
+        matchesInSection.forEach(m => matchNumberMap.set(m.id, counter++));
+    });
+
+    // Helper: Recursive Bracket Node
+    const EditBracketNode: React.FC<{ match: MatchWithPlayers; allMatches: MatchWithPlayers[] }> = ({ match, allMatches }) => {
+        const priorMatches = allMatches.filter(m => m.next_match_id === match.id).sort((a, b) => a.match_order - b.match_order);
+        return (
+            <div className="flex flex-row items-center">
+                {priorMatches.length > 0 && (
+                    <div className="flex flex-col justify-center gap-4 border-r-2 border-brand/20 pr-8 mr-8 relative py-4">
+                        <div className="absolute top-1/2 right-0 w-8 h-[2px] bg-brand/20 -translate-y-1/2"></div>
+                        {priorMatches.map(child => (
+                            <div key={child.id} className="relative">
+                                <div className="absolute top-1/2 -right-8 w-8 h-[2px] bg-brand/20"></div>
+                                <EditBracketNode match={child} allMatches={allMatches} />
+                            </div>
+                        ))}
+                    </div>
+                )}
+                <MatchCard
+                    match={match}
+                    matchNumber={matchNumberMap.get(match.id) || 1}
+                    unassignedPlayers={unassignedPlayers}
+                    onAssign={(slot, pid) => assignPlayerToSlot(match.id, slot, pid)}
+                    onRemove={(slot) => removePlayerFromSlot(match.id, slot)}
+                    onDeclareWinner={(winnerId, winnerName) => setConfirmWinner({ matchId: match.id, winnerId, winnerName })}
+                    onUndoMatch={() => undoMatch(match.id)}
+                />
+            </div>
+        );
     };
+
+    // Tree Roots
+    const hasDE = matches.some(m => m.bracket_type === 'losers');
+    const winnersMatches = matches.filter(m => m.bracket_type === 'winners' || !m.bracket_type);
+    const losersMatches = matches.filter(m => m.bracket_type === 'losers');
+    const grandFinals = matches.filter(m => m.bracket_type === 'grand_final');
+
+    const winnersRoot = winnersMatches.find(m => m.next_match_id === null || grandFinals.some(gf => gf.id === m.next_match_id)) || winnersMatches[winnersMatches.length - 1];
+    const losersRoot = losersMatches.find(m => m.next_match_id === null || grandFinals.some(gf => gf.id === m.next_match_id)) || losersMatches[losersMatches.length - 1];
+    const gfRoot = grandFinals.find(m => m.next_match_id === null) || grandFinals[grandFinals.length - 1];
 
     return (
         <DndContext onDragEnd={handleDragEnd} onDragStart={(e) => setActiveId(e.active.id as string)}>
@@ -292,15 +433,15 @@ export const BracketEditor: React.FC<Props> = ({ tournament }) => {
                             Auto Assign
                         </button>
                         <div className="w-px h-8 bg-white/10 mx-2" />
-                        <button onClick={() => generateBracket(4)} disabled={generating} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold text-white">Gen 4</button>
-                        <button onClick={() => generateBracket(8)} disabled={generating} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold text-white">Gen 8</button>
-                        <button onClick={() => generateBracket(16)} disabled={generating} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-xs font-bold text-white">Gen 16</button>
+                        <button onClick={generateBracket} disabled={generating} className="px-5 py-1.5 bg-blue-600/20 hover:bg-blue-600/40 border border-blue-600/40 rounded-lg text-xs font-bold text-blue-400">
+                            Generate {tournament.format === 'double_elimination' ? 'Double' : 'Single'} Elim Bracket
+                        </button>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+                <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
                     {/* Unassigned Pool */}
-                    <div className="lg:col-span-1 bg-white/[0.02] border border-white/10 rounded-2xl p-4">
+                    <div className="xl:col-span-1 bg-white/[0.02] border border-white/10 rounded-2xl p-4">
                         <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Unassigned Players</h3>
                         <div className="space-y-2 min-h-[200px]">
                             {unassignedPlayers.map(player => (
@@ -313,34 +454,50 @@ export const BracketEditor: React.FC<Props> = ({ tournament }) => {
                     </div>
 
                     {/* Bracket */}
-                    <div className="lg:col-span-3 bg-dark-900 border border-white/5 rounded-2xl p-6 overflow-x-auto">
+                    <div className="xl:col-span-3 bg-[#0a0a0c] border border-white/5 rounded-2xl p-6 overflow-x-auto custom-scrollbar">
                         {loading ? (
                             <div className="flex items-center justify-center h-48">
                                 <Loader2 size={28} className="animate-spin text-brand" />
                             </div>
+                        ) : matches.length === 0 ? (
+                            <div className="flex items-center justify-center h-48 text-gray-500">No Bracket Generated</div>
                         ) : (
-                            <div className="flex gap-12 min-w-max items-start">
-                                {Array.from(new Set(matches.map(m => m.round))).sort((a, b) => (a as number) - (b as number)).map(round => (
-                                    <div key={round} className="flex flex-col gap-6">
-                                        <div className="text-center text-xs font-black text-gray-500 uppercase tracking-widest mb-2">
-                                            {getRoundLabel(round as number)}
-                                        </div>
-                                        <div className="flex flex-col justify-around gap-10">
-                                            {matches.filter(m => m.round === round).map(match => (
-                                                <MatchCard
-                                                    key={match.id}
-                                                    match={match}
-                                                    unassignedPlayers={unassignedPlayers}
-                                                    onAssign={(slot, pid) => assignPlayerToSlot(match.id, slot, pid)}
-                                                    onRemove={(slot) => removePlayerFromSlot(match.id, slot)}
-                                                    onDeclareWinner={(winnerId, winnerName) =>
-                                                        setConfirmWinner({ matchId: match.id, winnerId, winnerName })
-                                                    }
-                                                />
-                                            ))}
+                            <div className="flex flex-col gap-16 min-w-max">
+                                {/* Winners Bracket */}
+                                {winnersRoot && (
+                                    <div className="bg-dark-900/30 p-8 rounded-3xl border border-white/5">
+                                        <h3 className="text-white font-black uppercase tracking-widest text-lg mb-12 flex items-center gap-3">
+                                            <div className="w-2 h-8 rounded-full bg-brand" /> Winners Bracket
+                                        </h3>
+                                        <div className="inline-block min-w-max">
+                                            <EditBracketNode match={winnersRoot} allMatches={winnersMatches} />
                                         </div>
                                     </div>
-                                ))}
+                                )}
+
+                                {/* Losers Bracket */}
+                                {losersRoot && hasDE && (
+                                    <div className="bg-dark-900/30 p-8 rounded-3xl border border-white/5">
+                                        <h3 className="text-white font-black uppercase tracking-widest text-lg mb-12 flex items-center gap-3">
+                                            <div className="w-2 h-8 rounded-full bg-maroon" /> Losers Bracket
+                                        </h3>
+                                        <div className="inline-block min-w-max">
+                                            <EditBracketNode match={losersRoot} allMatches={losersMatches} />
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Grand Final */}
+                                {gfRoot && hasDE && (
+                                    <div className="bg-gradient-to-r from-dark-900/30 to-brand/5 p-8 rounded-3xl border border-gold/20 shadow-[0_0_100px_rgba(245,142,28,0.05)]">
+                                        <h3 className="text-gold font-black uppercase tracking-widest text-lg mb-12 flex items-center gap-3">
+                                            <div className="w-2 h-8 rounded-full bg-gold" /> Grand Finals
+                                        </h3>
+                                        <div className="inline-block min-w-max relative z-20">
+                                            <EditBracketNode match={gfRoot} allMatches={grandFinals} />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
@@ -407,62 +564,56 @@ const DraggablePlayer: React.FC<{ player: Profile }> = ({ player }) => {
 
 const MatchCard: React.FC<{
     match: MatchWithPlayers;
+    matchNumber: number;
     unassignedPlayers: Profile[];
     onAssign: (slot: 'player1' | 'player2', playerId: string) => void;
     onRemove: (slot: 'player1' | 'player2') => void;
     onDeclareWinner: (winnerId: string, winnerName: string) => void;
-}> = ({ match, unassignedPlayers, onAssign, onRemove, onDeclareWinner }) => {
+    onUndoMatch: () => void;
+}> = ({ match, matchNumber, unassignedPlayers, onAssign, onRemove, onDeclareWinner, onUndoMatch }) => {
     const isCompleted = match.status === 'completed';
     const canDeclareWinner = match.player1_id && match.player2_id && !isCompleted;
 
     return (
-        <div className={`w-52 rounded-xl overflow-hidden flex flex-col shadow-lg border transition-all ${isCompleted ? 'border-brand/40 bg-dark-800/60' : 'border-white/10 bg-dark-800'}`}>
+        <div className={`w-56 shrink-0 z-10 my-2 rounded-md overflow-hidden flex flex-col shadow-2xl border transition-all ${isCompleted ? 'border-brand/20 bg-dark-800' : 'border-white/10 bg-dark-800'}`}>
             {/* Match header */}
-            <div className={`px-3 py-1.5 flex justify-between items-center text-[10px] font-mono ${isCompleted ? 'bg-brand/10' : 'bg-white/5'}`}>
-                <span className="font-black text-gray-400">M{match.match_order + 1}</span>
-                <span className={`uppercase tracking-tighter font-bold ${isCompleted ? 'text-brand' : 'text-gray-600'}`}>
-                    {isCompleted ? 'Done' : match.status}
-                </span>
-            </div>
-
-            {/* Player 1 Slot */}
-            <PlayerSlot
-                matchId={match.id}
-                slot="player1"
-                player={match.player1}
-                isWinner={isCompleted && match.winner_id === match.player1_id}
-                isLoser={isCompleted && !!match.winner_id && match.winner_id !== match.player1_id}
-                unassignedPlayers={unassignedPlayers}
-                onAssign={(pid) => onAssign('player1', pid)}
-                onRemove={() => onRemove('player1')}
-                onWin={canDeclareWinner && match.player1 ? () => onDeclareWinner(match.player1_id!, match.player1?.full_name || 'Player 1') : undefined}
-            />
-
-            {/* Divider */}
-            <div className="h-px bg-white/5 relative flex items-center justify-center">
-                <span className="absolute text-[8px] font-black text-gray-600 uppercase tracking-widest bg-dark-800 px-1">VS</span>
-            </div>
-
-            {/* Player 2 Slot */}
-            <PlayerSlot
-                matchId={match.id}
-                slot="player2"
-                player={match.player2}
-                isWinner={isCompleted && match.winner_id === match.player2_id}
-                isLoser={isCompleted && !!match.winner_id && match.winner_id !== match.player2_id}
-                unassignedPlayers={unassignedPlayers}
-                onAssign={(pid) => onAssign('player2', pid)}
-                onRemove={() => onRemove('player2')}
-                onWin={canDeclareWinner && match.player2 ? () => onDeclareWinner(match.player2_id!, match.player2?.full_name || 'Player 2') : undefined}
-            />
-
-            {/* Advance indicator for completed matches */}
-            {isCompleted && match.winner_id && (
-                <div className="px-3 py-1.5 bg-brand/10 border-t border-brand/20 flex items-center gap-1.5">
-                    <ChevronRight size={12} className="text-brand" />
-                    <span className="text-[9px] font-black text-brand uppercase tracking-wide">Winner Advanced</span>
+            <div className="bg-[#111] px-2 py-1 border-b border-white/5 text-[9px] text-gray-500 font-bold flex justify-between items-center group/header">
+                <span className="text-[10px] text-gray-300">Match {matchNumber}</span>
+                <div className="flex items-center gap-2">
+                    {isCompleted && (
+                        <button onClick={(e) => { e.stopPropagation(); onUndoMatch(); }} title="Reopen match" className="opacity-0 group-hover/header:opacity-100 hidden md:block px-1.5 py-0.5 rounded bg-red-500/10 hover:bg-red-500/20 text-red-400 transition-all uppercase tracking-widest text-[8px]">
+                            Undo
+                        </button>
+                    )}
+                    <span className={isCompleted ? 'text-brand font-black' : ''}>{isCompleted ? 'FINAL' : match.status}</span>
                 </div>
-            )}
+            </div>
+
+            {/* Player Slots Container */}
+            <div className="flex flex-col bg-dark-900">
+                <PlayerSlot
+                    matchId={match.id}
+                    slot="player1"
+                    player={match.player1}
+                    isWinner={isCompleted && match.winner_id === match.player1_id}
+                    isLoser={isCompleted && !!match.winner_id && match.winner_id !== match.player1_id}
+                    unassignedPlayers={unassignedPlayers}
+                    onAssign={(pid) => onAssign('player1', pid)}
+                    onRemove={() => onRemove('player1')}
+                    onWin={canDeclareWinner && match.player1 ? () => onDeclareWinner(match.player1_id!, match.player1?.full_name || 'Player 1') : undefined}
+                />
+                <PlayerSlot
+                    matchId={match.id}
+                    slot="player2"
+                    player={match.player2}
+                    isWinner={isCompleted && match.winner_id === match.player2_id}
+                    isLoser={isCompleted && !!match.winner_id && match.winner_id !== match.player2_id}
+                    unassignedPlayers={unassignedPlayers}
+                    onAssign={(pid) => onAssign('player2', pid)}
+                    onRemove={() => onRemove('player2')}
+                    onWin={canDeclareWinner && match.player2 ? () => onDeclareWinner(match.player2_id!, match.player2?.full_name || 'Player 2') : undefined}
+                />
+            </div>
         </div>
     );
 };
@@ -483,54 +634,54 @@ const PlayerSlot: React.FC<{
 
     return (
         <div ref={setNodeRef}
-            className={`p-3 min-h-[52px] flex items-center transition-all relative group
-                ${isOver ? 'bg-brand/20 ring-2 ring-brand ring-inset' : ''}
-                ${isWinner ? 'bg-brand/10' : ''}
-                ${isLoser ? 'opacity-40' : ''}
-                ${!isOver && !isWinner && !isLoser ? 'hover:bg-white/[0.02]' : ''}
+            className={`h-9 flex items-stretch border-b last:border-b-0 border-white/5 transition-colors relative group
+                ${isOver ? 'bg-brand/20' : ''}
             `}
         >
-            {player ? (
-                <div className="flex items-center gap-2 w-full">
-                    {isWinner && <Crown size={14} className="text-brand shrink-0" />}
-                    {!isWinner && (
-                        <div className="w-5 h-5 rounded bg-brand/20 flex items-center justify-center text-[10px] font-bold text-brand shrink-0">
-                            {player.full_name?.charAt(0)}
+            {/* Player details area */}
+            <div className={`flex-1 flex items-center px-3 truncate relative overflow-visible ${isWinner ? 'text-white font-bold' : isLoser ? 'text-gray-500 opacity-50' : 'text-gray-300'}`}>
+                {player ? (
+                    <div className="flex items-center gap-2 w-full justify-between pr-2">
+                        <div className="flex items-center gap-2 truncate">
+                            {isWinner && <Crown size={12} className="text-[#f58e1c] shrink-0" />}
+                            <span className="truncate">{player.full_name}</span>
                         </div>
-                    )}
-                    <span className={`text-sm font-bold truncate flex-1 ${isWinner ? 'text-brand' : 'text-white'}`}>
-                        {player.full_name}
-                    </span>
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {/* Declare winner button */}
-                        {onWin && (
-                            <button onClick={(e) => { e.stopPropagation(); onWin(); }}
-                                title="Declare Winner"
-                                className="p-1 bg-brand/20 hover:bg-brand text-brand hover:text-white rounded transition-all">
-                                <Trophy size={12} />
-                            </button>
-                        )}
-                        {/* Remove button */}
-                        {!isWinner && !isLoser && (
-                            <button onClick={(e) => { e.stopPropagation(); onRemove(); }}
-                                title="Remove Player"
-                                className="p-1 text-gray-500 hover:text-red-500 transition-colors">
-                                <Trash2 size={12} />
-                            </button>
-                        )}
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity absolute right-1">
+                            {/* Actions overlayed to not push layout */}
+                            {onWin && (
+                                <button onClick={(e) => { e.stopPropagation(); onWin(); }}
+                                    title="Declare Winner"
+                                    className="p-1 bg-brand text-white rounded transition-all shadow shadow-black">
+                                    <Trophy size={10} />
+                                </button>
+                            )}
+                            {!isWinner && !isLoser && (
+                                <button onClick={(e) => { e.stopPropagation(); onRemove(); }}
+                                    title="Remove Player"
+                                    className="p-1 bg-red-500/80 text-white rounded transition-colors shadow shadow-black">
+                                    <Trash2 size={10} />
+                                </button>
+                            )}
+                        </div>
                     </div>
-                </div>
-            ) : (
-                <div className="flex items-center justify-between w-full">
-                    <span className="text-xs text-gray-600 italic">Empty Slot</span>
-                    <button onClick={(e) => { e.stopPropagation(); setShowSelector(!showSelector); }}
-                        className="p-1 bg-white/5 hover:bg-brand/20 text-gray-400 hover:text-brand rounded transition-colors"
-                        title="Assign Player">
-                        <Plus size={14} />
-                    </button>
-                </div>
-            )}
+                ) : (
+                    <div className="flex items-center justify-between w-full opacity-50">
+                        <span className="text-xs text-gray-500">Empty Slot</span>
+                        <button onClick={(e) => { e.stopPropagation(); setShowSelector(!showSelector); }}
+                            className="p-1 hover:text-white rounded transition-colors">
+                            <Plus size={12} />
+                        </button>
+                    </div>
+                )}
+            </div>
 
+            {/* Score / Rank UI Block (Orange for winner) */}
+            <div className={`w-8 shrink-0 flex items-center justify-center border-l border-white/5 font-mono text-xs font-bold
+                ${isWinner ? 'bg-[#f58e1c] text-white shadow-[0_0_10px_rgba(245,142,28,0.3)]' : isLoser ? 'bg-white/5 text-gray-600' : 'bg-dark-800 text-gray-500'}`}>
+                {isWinner ? 1 : isLoser ? 0 : '-'}
+            </div>
+
+            {/* Selection Dropdown */}
             {showSelector && (
                 <div className="absolute top-full left-0 w-full z-50 mt-1 bg-dark-800 border border-white/10 rounded-lg shadow-2xl max-h-48 overflow-y-auto">
                     <div className="p-2 border-b border-white/5 flex justify-between items-center sticky top-0 bg-dark-800">
@@ -543,9 +694,6 @@ const PlayerSlot: React.FC<{
                         unassignedPlayers.map(p => (
                             <button key={p.id} onClick={() => { onAssign(p.id); setShowSelector(false); }}
                                 className="w-full text-left px-3 py-2 text-xs text-gray-300 hover:bg-brand hover:text-white transition-colors flex items-center gap-2">
-                                <div className="w-4 h-4 rounded bg-white/10 flex items-center justify-center text-[8px] font-bold">
-                                    {p.full_name?.charAt(0)}
-                                </div>
                                 <span className="truncate">{p.full_name}</span>
                             </button>
                         ))

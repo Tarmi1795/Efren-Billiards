@@ -38,6 +38,7 @@ export function generateRelationalBracket(
             winner_id: null,
             status: 'pending',
             next_match_id: nextMatchId,
+            bracket_type: 'winners',
             created_at: new Date().toISOString()
         };
 

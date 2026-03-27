@@ -1,11 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import Reveal from './ui/Reveal';
 import { Volume2, VolumeX } from 'lucide-react';
 import { useCMSContent } from '../hooks/useCMSContent';
 
 const CinematicVideo: React.FC = () => {
   const [isMuted, setIsMuted] = useState(true);
-  const [hasInteracted, setHasInteracted] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   const { data: videoData } = useCMSContent('videos', {
@@ -34,32 +33,6 @@ const CinematicVideo: React.FC = () => {
       }
   }
 
-  useEffect(() => {
-    if (hasInteracted) return;
-
-    const handleFirstInteraction = () => {
-      if (!hasInteracted && iframeRef.current && iframeRef.current.contentWindow) {
-        iframeRef.current.contentWindow.postMessage(JSON.stringify({
-          event: 'command',
-          func: 'unMute',
-          args: []
-        }), '*');
-        setIsMuted(false);
-        setHasInteracted(true);
-      }
-    };
-
-    window.addEventListener('click', handleFirstInteraction, { once: true });
-    window.addEventListener('touchstart', handleFirstInteraction, { once: true });
-    window.addEventListener('keydown', handleFirstInteraction, { once: true });
-
-    return () => {
-      window.removeEventListener('click', handleFirstInteraction);
-      window.removeEventListener('touchstart', handleFirstInteraction);
-      window.removeEventListener('keydown', handleFirstInteraction);
-    };
-  }, [hasInteracted]);
-
   const toggleSound = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     if (iframeRef.current && iframeRef.current.contentWindow) {
@@ -70,7 +43,6 @@ const CinematicVideo: React.FC = () => {
         args: []
       }), '*');
       setIsMuted(!isMuted);
-      setHasInteracted(true);
     }
   };
 
@@ -88,7 +60,7 @@ const CinematicVideo: React.FC = () => {
         <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
             <iframe 
                 ref={iframeRef}
-                className="w-full h-full object-cover scale-[1.35] opacity-60 pointer-events-auto"
+                className="w-full h-full object-cover scale-[1.35] opacity-60 pointer-events-none"
                 src={embedUrl}
                 title="Cinematic Video" 
                 frameBorder="0" 
